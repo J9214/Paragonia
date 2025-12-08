@@ -1,2 +1,57 @@
 #include "Animation/PGAnimInstance.h"
+#include "Character/PGPlayerCharacterBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
+void UPGAnimInstance::NativeInitializeAnimation()
+{
+	Super::NativeInitializeAnimation();
+
+	OwnerCharacter = Cast<ACharacter>(GetOwningActor());
+	if (IsValid(OwnerCharacter))
+	{
+		OwnerCharacterMovementComponent = OwnerCharacter->GetCharacterMovement();
+	}
+
+	LastRotation = OwnerCharacter ? OwnerCharacter->GetActorRotation() : FRotator::ZeroRotator;
+	LeanIntensity = 7.0f;
+}
+
+void UPGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+{
+	Super::NativeUpdateAnimation(DeltaSeconds);
+
+	if (!IsValid(OwnerCharacter) || !IsValid(OwnerCharacterMovementComponent))
+	{
+		return;
+	}
+
+	Velocity = OwnerCharacterMovementComponent->Velocity;
+	GroundSpeed = FVector(Velocity.X, Velocity.Y, 0.f).Size();
+	bIsFalling = OwnerCharacterMovementComponent->IsFalling();
+
+	bShouldMove = (!OwnerCharacterMovementComponent->GetCurrentAcceleration().IsNearlyZero()) && (0.01f < GroundSpeed);
+
+	FRotator AimRotation = (OwnerCharacter->GetBaseAimRotation() - OwnerCharacter->GetActorRotation()).GetNormalized();
+	AimPitch = AimRotation.Pitch;
+	AimYaw = AimRotation.Yaw;
+
+	bIsFullBody = GetCurveValue(FName("FullBody"));
+
+	FRotator DeltaRotation = (OwnerCharacter->GetActorRotation() - LastRotation).GetNormalized();
+	YawDelta = FMath::FInterpTo(YawDelta, (DeltaRotation.Yaw / DeltaSeconds) / LeanIntensity, DeltaSeconds, 6.f);
+	LastRotation = OwnerCharacter->GetActorRotation();
+}
+
+void UPGAnimInstance::AnimNotify_HitCheck()
+{
+	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
+	if (IsValid(PlayerCharacter))
+	{
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+			OwnerCharacter,
+			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
+			FGameplayEventData()
+		);
+	}
+}

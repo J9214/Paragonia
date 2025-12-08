@@ -4,9 +4,57 @@
 #include "Animation/AnimInstance.h"
 #include "PGAnimInstance.generated.h"
 
+class UCharacterMovementComponent;
+
 UCLASS()
 class PARAGONIA_API UPGAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void NativeInitializeAnimation() override;
+
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+protected:
+	UFUNCTION()
+	void AnimNotify_HitCheck();
+
+protected:
+	UPROPERTY()
+	TObjectPtr<ACharacter> OwnerCharacter;
+
+	UPROPERTY()
+	TObjectPtr<UCharacterMovementComponent> OwnerCharacterMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector Velocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float GroundSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bShouldMove : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsFalling : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsDeath : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float AimPitch;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float AimYaw;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float YawDelta;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsFullBody : 1;
+
+	FRotator LastRotation;
+
+	float LeanIntensity;
 };
