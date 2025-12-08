@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "AbilitySystemComponent.h"
+#include "PlayerState/PGPlayerState.h"
+#include "AttributeSet/CharacterAttributeSet.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -38,6 +40,35 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
+void APGPlayerCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	InitializeActorInfo();
+
+	if (HasAuthority())
+	{
+		InitializeAbilities();
+		InitializeAttributes();
+	}
+}
+
+void APGPlayerCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	InitializeActorInfo();
+
+	APGPlayerState* PS = GetPlayerState<APGPlayerState>();
+	if (!IsValid(PS))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributes - PlayerState is not valid"));
+		return;
+	}
+
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+}
+
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -54,10 +85,12 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::StartJump);
+
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
 	}
 }
-
-
 
 void APGPlayerCharacterBase::Move(const FInputActionValue& Value)
 {
@@ -95,4 +128,97 @@ void APGPlayerCharacterBase::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void APGPlayerCharacterBase::StartJump(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FGameplayTag JumpTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.Jump"));
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(JumpTag));
+}
+
+void APGPlayerCharacterBase::StopJump(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	StopJumping();
+}
+
+void APGPlayerCharacterBase::Attack(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.Attack"));
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+}
+
+void APGPlayerCharacterBase::InitializeActorInfo()
+{
+	ASC->InitAbilityActorInfo(this, this);
+}
+
+void APGPlayerCharacterBase::InitializeAbilities()
+{
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : AllAbilities)
+	{
+		if (IsValid(AbilityClass))
+		{
+			FGameplayAbilitySpec Spec(AbilityClass, 1, 0, this);
+			ASC->GiveAbility(Spec);
+		}
+	}
+}
+
+void APGPlayerCharacterBase::InitializeAttributes()
+{
+	if (!IsValid(ASC))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributes - ASC is not valid"));
+		return;
+	}
+
+	APGPlayerState* PS = GetPlayerState<APGPlayerState>();
+	if (!IsValid(PS))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributes - PlayerState is not valid"));
+		return;
+	}
+
+	for (UAttributeSet* AttributeSet : PS->GetAllAttributeSets())
+	{
+		if (IsValid(AttributeSet))
+		{
+			ASC->AddAttributeSetSubobject(AttributeSet);
+		}
+	}
+}
+
+void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::OnHealthChanged - New Health: %f"), Data.NewValue);
+}
+
+
+UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
+void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward)
+{
+	const float AttackRange = 100.f;
+	const float AttackRadius = 50.f;
+	FVector CapsuleOrigin = TraceStart + (TraceEnd - TraceStart) * 0.5f;
+	float CapsuleHalfHeight = AttackRange * 0.5f;
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRange, FRotationMatrix::MakeFromZ(Forward).ToQuat(), DrawColor, false, 5.0f);
 }
