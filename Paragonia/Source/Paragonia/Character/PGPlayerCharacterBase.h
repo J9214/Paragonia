@@ -15,23 +15,46 @@ struct FInputActionValue;
 struct FOnAttributeChangeData;
 
 UCLASS()
-class PARAGONIA_API APGPlayerCharacterBase : public ACharacter
+class PARAGONIA_API APGPlayerCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	APGPlayerCharacterBase();
 
+	UFUNCTION(Client, Reliable)
+	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void PossessedBy(AController* NewController) override;
+
+	virtual void OnRep_PlayerState() override;
+
 	void Move(const FInputActionValue& Value);
 
 	void Look(const FInputActionValue& Value);
-	
+
+	void StartJump(const FInputActionValue& Value);
+
+	void StopJump(const FInputActionValue& Value);
+
+	void Attack(const FInputActionValue& Value);
+
+private:
+	void InitializeActorInfo();
+
+	void InitializeAbilities();
+
+	void InitializeAttributes();
+
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
@@ -47,4 +70,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> AttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;
 };
