@@ -2,6 +2,7 @@
 #include "Character/PGPlayerCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Struct/AttackDataWrapper.h"
 
 void UPGAnimInstance::NativeInitializeAnimation()
 {
@@ -43,15 +44,27 @@ void UPGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	LastRotation = OwnerCharacter->GetActorRotation();
 }
 
+void UPGAnimInstance::SetCurrentAttackData(const FAttackData& NewAttackData)
+{
+	CurrentAttackData = NewAttackData;
+}
+
 void UPGAnimInstance::AnimNotify_HitCheck()
 {
 	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
 	if (IsValid(PlayerCharacter))
 	{
+		UAttackDataWrapper* Wrapper = NewObject<UAttackDataWrapper>(this);
+		Wrapper->Data = CurrentAttackData;
+
+		FGameplayEventData EventData;
+		EventData.Instigator = OwnerCharacter;
+		EventData.OptionalObject = Wrapper;
+
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 			OwnerCharacter,
 			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
-			FGameplayEventData()
+			EventData
 		);
 	}
 }

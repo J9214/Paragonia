@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "Struct/FAttackData.h"
 #include "PGPlayerCharacterBase.generated.h"
 
 class USpringArmComponent;
@@ -23,7 +24,7 @@ public:
 	APGPlayerCharacterBase();
 
 	UFUNCTION(Client, Reliable)
-	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
+	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData);
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -45,6 +46,8 @@ protected:
 	void StopJump(const FInputActionValue& Value);
 
 	void Attack(const FInputActionValue& Value);
+
+	void SkillQ(const FInputActionValue& Value);
 
 private:
 	void InitializeActorInfo();
@@ -76,6 +79,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AttackAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> SkillQAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;

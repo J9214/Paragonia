@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "PlayerState/PGPlayerState.h"
 #include "AttributeSet/CharacterAttributeSet.h"
+#include "Struct/FAttackData.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -88,7 +89,9 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::StartJump);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ThisClass::Attack);
+
+		EnhancedInputComponent->BindAction(SkillQAction, ETriggerEvent::Triggered, this, &ThisClass::SkillQ);
 	}
 }
 
@@ -162,6 +165,17 @@ void APGPlayerCharacterBase::Attack(const FInputActionValue& Value)
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
 }
 
+void APGPlayerCharacterBase::SkillQ(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FGameplayTag SkillTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.SkillQ"));
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(SkillTag));
+}
+
 void APGPlayerCharacterBase::InitializeActorInfo()
 {
 	ASC->InitAbilityActorInfo(this, this);
@@ -205,6 +219,11 @@ void APGPlayerCharacterBase::InitializeAttributes()
 
 void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
+	if (Data.NewValue <= 0.0f)
+	{
+		// Call Server RPC (Death Delegate broadcast on server)
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::OnHealthChanged - New Health: %f"), Data.NewValue);
 }
 
@@ -214,11 +233,70 @@ UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() con
 	return ASC;
 }
 
-void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward)
+void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData)
 {
-	const float AttackRange = 100.f;
-	const float AttackRadius = 50.f;
-	FVector CapsuleOrigin = TraceStart + (TraceEnd - TraceStart) * 0.5f;
-	float CapsuleHalfHeight = AttackRange * 0.5f;
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRange, FRotationMatrix::MakeFromZ(Forward).ToQuat(), DrawColor, false, 5.0f);
+	FVector Center = TraceStart + (TraceEnd - TraceStart) * 0.5f;
+
+	switch (AttackData.SweepShape)
+	{
+		case EPGAttackShape::Sphere:
+		{
+			DrawDebugSphere(
+				GetWorld(),
+				Center,
+				AttackData.Radius,
+				16,
+				DrawColor,
+				false,
+				5.0f
+			);
+		}
+		break;
+
+		case EPGAttackShape::Capsule:
+		{
+			float HalfHeight = AttackData.Range * 0.5f;
+
+			DrawDebugCapsule(
+				GetWorld(),
+				Center,
+				HalfHeight,
+				AttackData.Radius,
+				FRotationMatrix::MakeFromZ(Forward).ToQuat(),
+				DrawColor,
+				false,
+				5.0f
+			);
+		}
+		break;
+
+		case EPGAttackShape::Box:
+		{
+			float HalfHeight = 88.f;
+
+			if (ACharacter* Char = Cast<ACharacter>(this))
+			{
+				if (UCapsuleComponent* Capsule = Char->GetCapsuleComponent())
+				{
+					HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+				}
+			}
+
+			FVector Extent;
+			Extent.X = AttackData.Range * 0.5f;
+			Extent.Y = AttackData.Radius;
+			Extent.Z = HalfHeight;
+
+			DrawDebugBox(
+				GetWorld(),
+				Center,
+				Extent,
+				GetActorRotation().Quaternion(),
+				DrawColor,
+				false,
+				5.0f
+			);
+		}
+		break;
+	}
 }
