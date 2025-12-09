@@ -13,5 +13,11 @@ UCLASS()
 class PARAGONIA_API UConnectSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
-	
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Network|Client")
+	void ConnectToIpAddress(FString IpAddress);
+
+	UFUNCTION(BlueprintCallable, Category = "Network|Server")
+	void ServerTravelToLevel(FString LevelName);
 };
