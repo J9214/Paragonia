@@ -89,7 +89,9 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::StartJump);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ThisClass::Attack);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ThisClass::Attack);
+
+		EnhancedInputComponent->BindAction(SkillQAction, ETriggerEvent::Triggered, this, &ThisClass::SkillQ);
 	}
 }
 
@@ -161,6 +163,17 @@ void APGPlayerCharacterBase::Attack(const FInputActionValue& Value)
 
 	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.Attack"));
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+}
+
+void APGPlayerCharacterBase::SkillQ(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FGameplayTag SkillTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.SkillQ"));
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(SkillTag));
 }
 
 void APGPlayerCharacterBase::InitializeActorInfo()
