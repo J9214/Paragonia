@@ -90,8 +90,9 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::StartJump);
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ThisClass::Attack);
-
 		EnhancedInputComponent->BindAction(SkillQAction, ETriggerEvent::Triggered, this, &ThisClass::SkillQ);
+		EnhancedInputComponent->BindAction(SkillEAction, ETriggerEvent::Triggered, this, &ThisClass::SkillE);
+		EnhancedInputComponent->BindAction(SkillRAction, ETriggerEvent::Triggered, this, &ThisClass::SkillR);
 	}
 }
 
@@ -173,6 +174,28 @@ void APGPlayerCharacterBase::SkillQ(const FInputActionValue& Value)
 	}
 
 	FGameplayTag SkillTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.SkillQ"));
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(SkillTag));
+}
+
+void APGPlayerCharacterBase::SkillE(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FGameplayTag SkillTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.SkillE"));
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(SkillTag));
+}
+
+void APGPlayerCharacterBase::SkillR(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	FGameplayTag SkillTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.SkillR"));
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(SkillTag));
 }
 

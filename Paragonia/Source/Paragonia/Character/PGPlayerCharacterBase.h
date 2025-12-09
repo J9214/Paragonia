@@ -49,6 +49,10 @@ protected:
 
 	void SkillQ(const FInputActionValue& Value);
 
+	void SkillE(const FInputActionValue& Value);
+
+	void SkillR(const FInputActionValue& Value);
+
 private:
 	void InitializeActorInfo();
 
@@ -82,6 +86,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> SkillQAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> SkillEAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> SkillRAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;
