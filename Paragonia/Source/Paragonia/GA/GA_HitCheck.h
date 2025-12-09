@@ -29,10 +29,6 @@ public:
 		bool bWasCancelled
 	) override;
 
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	TSubclassOf<UGameplayEffect> DamageEffectClass;
-
 private:
 	UFUNCTION()
 	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);

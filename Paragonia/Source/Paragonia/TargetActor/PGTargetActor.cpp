@@ -2,6 +2,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "DrawDebugHelpers.h"
 #include "Character/PGPlayerCharacterBase.h"
+#include "Struct/FAttackData.h"
+#include "Components/CapsuleComponent.h"
 
 APGTargetActor::APGTargetActor()
 {
@@ -22,7 +24,7 @@ void APGTargetActor::ConfirmTargetingAndContinue()
 	if (IsConfirmTargetingAllowed())
 	{
 		TArray<FHitResult> OutHitResults;
-		bool bHit = GetSphereTraceHitResult(SourceActor, OutHitResults);
+		bool bHit = PerformTrace(OutHitResults);
 
 		FGameplayAbilityTargetDataHandle DataHandle;
 		if (bHit)
@@ -34,36 +36,123 @@ void APGTargetActor::ConfirmTargetingAndContinue()
 		}
 
 		TargetDataReadyDelegate.Broadcast(DataHandle);
+
+		APGPlayerCharacterBase* Player = Cast<APGPlayerCharacterBase>(SourceActor);
+		if (IsValid(Player))
+		{
+			FColor Color = bHit ? FColor::Green : FColor::Red;
+			Player->DrawDebugAttackCollision(Color, SourceActor->GetActorLocation(), SourceActor->GetActorLocation() + SourceActor->GetActorForwardVector() * AttackData.Range, SourceActor->GetActorForwardVector(), AttackData);
+		}
 	}
 }
 
-bool APGTargetActor::GetSphereTraceHitResult(AActor* InSourceActor, TArray<FHitResult>& OutHitResults) const
+void APGTargetActor::SetAttackData(const FAttackData& InAttackData)
 {
-	TSet<APGPlayerCharacterBase*> HitCharacters;
-	FCollisionQueryParams Params(NAME_None, false, InSourceActor);
+	AttackData = InAttackData;
+}
 
-	const float AttackRange = 100.f;
-	const float AttackRadius = 50.f;
-	FVector ForwardVec = InSourceActor->GetActorForwardVector();
-	FVector Start = InSourceActor->GetActorLocation();
-	FVector End = Start + ForwardVec * AttackRange;
-	bool bHit = InSourceActor->GetWorld()->SweepMultiByChannel(
+bool APGTargetActor::PerformTrace(TArray<FHitResult>& OutHits) const
+{
+	switch (AttackData.SweepShape)
+	{
+	case EPGAttackShape::Sphere:
+		return SphereTrace(OutHits);
+
+	case EPGAttackShape::Capsule:
+		return CapsuleTrace(OutHits);
+
+	case EPGAttackShape::Box:
+		return BoxTrace(OutHits);
+
+	default:
+		return false;
+	}
+}
+
+bool APGTargetActor::SphereTrace(TArray<FHitResult>& OutHitResults) const
+{
+	FVector Start = SourceActor->GetActorLocation();
+	FVector End = Start + SourceActor->GetActorForwardVector() * AttackData.Range;
+
+	FCollisionQueryParams Params(NAME_None, false, SourceActor);
+
+	bool bHit = SourceActor->GetWorld()->SweepMultiByChannel(
 		OutHitResults,
 		Start,
 		End,
 		FQuat::Identity,
 		ECC_Pawn,
-		FCollisionShape::MakeSphere(AttackRadius),
+		FCollisionShape::MakeSphere(AttackData.Radius),
 		Params
 	);
-
-	FColor DrawColor = bHit ? FColor::Green : FColor::Red;
-	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(SourceActor);
-	if (IsValid(PlayerCharacter))
-	{
-		PlayerCharacter->DrawDebugAttackCollision(DrawColor, Start, End, ForwardVec);
-	}
 
 	return bHit;
 }
 
+bool APGTargetActor::CapsuleTrace(TArray<FHitResult>& OutHitResults) const
+{
+	FVector Start = SourceActor->GetActorLocation();
+	FVector End = Start + SourceActor->GetActorForwardVector() * AttackData.Range;
+	FCollisionQueryParams Params(NAME_None, false, SourceActor);
+
+	ACharacter* Character = Cast<ACharacter>(SourceActor);
+	float HalfHeight = 88.f;
+
+	if (Character)
+	{
+		UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
+		if (Capsule)
+		{
+			HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+		}
+	}
+
+	bool bHit = SourceActor->GetWorld()->SweepMultiByChannel(
+		OutHitResults,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Pawn,
+		FCollisionShape::MakeCapsule(AttackData.Radius, HalfHeight),
+		Params
+	);
+
+	return bHit;
+}
+
+bool APGTargetActor::BoxTrace(TArray<FHitResult>& OutHitResults) const
+{
+	FVector Start = SourceActor->GetActorLocation();
+	FVector End = Start + SourceActor->GetActorForwardVector() * AttackData.Range;
+
+	FCollisionQueryParams Params(NAME_None, false, SourceActor);
+
+	ACharacter* Character = Cast<ACharacter>(SourceActor);
+	float HalfHeight = 88.f;
+
+	if (Character)
+	{
+		UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
+		if (Capsule)
+		{
+			HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+		}
+	}
+
+	FVector BoxExtent;
+	BoxExtent.X = AttackData.Range * 0.5f;
+	BoxExtent.Y = AttackData.Radius;
+	BoxExtent.Z = HalfHeight;
+
+	bool bHit = SourceActor->GetWorld()->SweepMultiByChannel(
+		OutHitResults,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Pawn,
+		FCollisionShape::MakeBox(BoxExtent),
+		Params
+	);
+
+	return bHit;
+}

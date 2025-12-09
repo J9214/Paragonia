@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "Struct/FAttackData.h"
 #include "PGPlayerCharacterBase.generated.h"
 
 class USpringArmComponent;
@@ -23,7 +24,7 @@ public:
 	APGPlayerCharacterBase();
 
 	UFUNCTION(Client, Reliable)
-	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
+	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData);
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
