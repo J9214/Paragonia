@@ -22,5 +22,11 @@ public:
 	void ConnectToIpAddress(FString IpAddress);
 
 	UFUNCTION(BlueprintCallable, Category = "Network|Server")
+	void TravelToLobby();
+
+	UFUNCTION(BlueprintCallable, Category = "Network|Server")
+	void TravelToGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Network|Server")
 	void ServerTravelToLevel(FString LevelName);
 };

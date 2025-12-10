@@ -96,6 +96,52 @@ void UConnectSubsystem::ConnectToIpAddress(FString IpAddress)
 	}
 }
 
+void UConnectSubsystem::TravelToLobby()
+{
+	FString LevelPath;
+	if (GConfig)
+	{
+		GConfig->GetString(
+			TEXT("/Script/Paragonia.ConnectSubsystem"),
+			TEXT("LobbyLevelPath"),
+			LevelPath,
+			GGameIni
+		);
+	}
+
+	// 만약 설정이 없으면 하드코딩된 기본값 리턴 (안전장치)
+	if (LevelPath.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[TravelToLobby] : Config Lobby Levl is Empty!"));
+		LevelPath = TEXT("/Game/Paragonia/Maps/Lobby");
+	}
+
+	ServerTravelToLevel(LevelPath);
+}
+
+void UConnectSubsystem::TravelToGame()
+{
+	FString LevelPath;
+	if (GConfig)
+	{
+		GConfig->GetString(
+			TEXT("/Script/Paragonia.ConnectSubsystem"),
+			TEXT("GameLevelPath"),
+			LevelPath,
+			GGameIni
+		);
+	}
+
+	// 만약 설정이 없으면 하드코딩된 기본값 리턴 (안전장치)
+	if (LevelPath.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[TravelToGame] : Config Game Levl is Empty!"));
+		LevelPath = TEXT("/Game/Paragonia/Maps/Game");
+	}
+
+	ServerTravelToLevel(LevelPath);
+}
+
 void UConnectSubsystem::ServerTravelToLevel(FString LevelName)
 {
 	if (LevelName.IsEmpty() == true)
