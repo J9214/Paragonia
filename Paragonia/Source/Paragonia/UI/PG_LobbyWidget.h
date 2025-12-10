@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CommonActivatableWidget.h"
-#include "PG_TitleWidget.generated.h"
+#include "PG_LobbyWidget.generated.h"
 
 class UCommonButtonBase;
 class UButton;
@@ -22,10 +22,10 @@ enum class ETitleReadyState : uint8
  * 
  */
 UCLASS()
-class PARAGONIA_API UPG_TitleWidget : public UCommonActivatableWidget
+class PARAGONIA_API UPG_LobbyWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
-	
+
 protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "Matching")

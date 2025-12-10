@@ -1,13 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_TitleWidget.h"
+#include "UI/PG_LobbyWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "CommonButtonBase.h"
 #include "Components/CanvasPanelSlot.h"
 
-void UPG_TitleWidget::NativeOnInitialized()
+
+void UPG_LobbyWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
@@ -46,7 +47,7 @@ void UPG_TitleWidget::NativeOnInitialized()
     ApplyPosition(MatchingInfoClosedPos);
 }
 
-void UPG_TitleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void UPG_LobbyWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
@@ -67,7 +68,7 @@ void UPG_TitleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 }
 
 //PlayerController에 있는 매칭 상태 데이터에 맞춰서 이 후 동작 변경
-void UPG_TitleWidget::HandleGameStartClicked()
+void UPG_LobbyWidget::HandleGameStartClicked()
 {
     switch (ReadyState)
     {
@@ -75,6 +76,8 @@ void UPG_TitleWidget::HandleGameStartClicked()
         SetReadyState(ETitleReadyState::InfoOnly);
         if (ModeSelectButton)
             ModeSelectButton->SetIsEnabled(false);
+        if (GameStartButtonText)
+            GameStartButtonText->SetText(FText::FromString(TEXT("Cancel")));
         break;
     case ETitleReadyState::InfoOnly:
     case ETitleReadyState::Armed:
@@ -90,7 +93,7 @@ void UPG_TitleWidget::HandleGameStartClicked()
 
 }
 
-void UPG_TitleWidget::HandleGameStartHovered()
+void UPG_LobbyWidget::HandleGameStartHovered()
 {
     if (ReadyState == ETitleReadyState::Closed)
         return;
@@ -99,7 +102,7 @@ void UPG_TitleWidget::HandleGameStartHovered()
         GameStartButtonText->SetText(FText::FromString(TEXT("Cancel")));
 }
 
-void UPG_TitleWidget::HandleGameStartUnhovered()
+void UPG_LobbyWidget::HandleGameStartUnhovered()
 {
     if (ReadyState == ETitleReadyState::Closed)
         return;
@@ -108,7 +111,7 @@ void UPG_TitleWidget::HandleGameStartUnhovered()
         GameStartButtonText->SetText(FText::FromString(TEXT("Maching")));
 }
 
-void UPG_TitleWidget::HandleMatchingInfoHovered()
+void UPG_LobbyWidget::HandleMatchingInfoHovered()
 {
     if (ReadyState == ETitleReadyState::Closed)
         return;
@@ -116,7 +119,7 @@ void UPG_TitleWidget::HandleMatchingInfoHovered()
     SetReadyState(ETitleReadyState::Armed);
 }
 
-void UPG_TitleWidget::HandleMatchingInfoUnhovered()
+void UPG_LobbyWidget::HandleMatchingInfoUnhovered()
 {
     if (ReadyState == ETitleReadyState::Closed)
         return;
@@ -124,7 +127,7 @@ void UPG_TitleWidget::HandleMatchingInfoUnhovered()
     SetReadyState(ETitleReadyState::InfoOnly);
 }
 
-void UPG_TitleWidget::HandleMatchingInfoCancelRequested()
+void UPG_LobbyWidget::HandleMatchingInfoCancelRequested()
 {
     SetReadyState(ETitleReadyState::Closed);
 
@@ -135,7 +138,7 @@ void UPG_TitleWidget::HandleMatchingInfoCancelRequested()
         GameStartButtonText->SetText(FText::FromString(TEXT("GameStart")));
 }
 
-void UPG_TitleWidget::StartMoveTo(const FVector2D& TargetPos)
+void UPG_LobbyWidget::StartMoveTo(const FVector2D& TargetPos)
 {
     if (!MatchingInfoButton)
         return;
@@ -149,7 +152,7 @@ void UPG_TitleWidget::StartMoveTo(const FVector2D& TargetPos)
     }
 }
 
-void UPG_TitleWidget::ApplyPosition(const FVector2D& NewPos)
+void UPG_LobbyWidget::ApplyPosition(const FVector2D& NewPos)
 {
     if (!MatchingInfoButton)
         return;
@@ -160,7 +163,7 @@ void UPG_TitleWidget::ApplyPosition(const FVector2D& NewPos)
     }
 }
 
-void UPG_TitleWidget::SetReadyState(ETitleReadyState NewState)
+void UPG_LobbyWidget::SetReadyState(ETitleReadyState NewState)
 {
     if (ReadyState == NewState)
         return;
