@@ -42,6 +42,7 @@ void UConnectSubsystem::ConnectToConfigIp()
 	}
 
 	FString FinalAddress = FString::Printf(TEXT("%s:%s"), *IpAddress, *Port);
+	UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] : %s"),*FinalAddress);
 	ConnectToIpAddress(FinalAddress);
 }
 
