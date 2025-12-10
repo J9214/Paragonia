@@ -21,12 +21,23 @@ void UConnectSubsystem::ConnectToConfigIp()
 			GGameIni
 		);
 
+#if WITH_EDITOR
 		GConfig->GetString(
 			TEXT("/Script/Paragonia.ConnectSubsystem"),
-			TEXT("ServerPort"),
+			TEXT("EditorPort"),
 			Port,
 			GGameIni
 		);
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] Editor Port - [%s]"), *Port);
+#else
+		GConfig->GetString(
+			TEXT("/Script/Paragonia.ConnectSubsystem"),
+			TEXT("ProductionPort"),
+			Port,
+			GGameIni
+		);
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] Production Port - [%s]"), *Port);
+#endif
 	}
 
 	if (IpAddress.IsEmpty())
@@ -37,8 +48,12 @@ void UConnectSubsystem::ConnectToConfigIp()
 
 	if (Port.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] : Port IP is Empty! Using 7777"));
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] : Port IP is Empty! Using Defaults!"));
+#if WITH_EDITOR
+		Port = TEXT("17777");
+#else
 		Port = TEXT("7777");
+#endif
 	}
 
 	FString FinalAddress = FString::Printf(TEXT("%s:%s"), *IpAddress, *Port);
