@@ -6,6 +6,45 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 
+void UConnectSubsystem::ConnectToConfigIp()
+{
+	FString IpAddress;
+	FString Port;
+
+	// DefaultGame.ini 에서 읽어오기
+	if (GConfig)
+	{
+		GConfig->GetString(
+			TEXT("/Script/Paragonia.ConnectSubsystem"),
+			TEXT("ServerIpAddress"),
+			IpAddress,
+			GGameIni
+		);
+
+		GConfig->GetString(
+			TEXT("/Script/Paragonia.ConnectSubsystem"),
+			TEXT("ServerPort"),
+			Port,
+			GGameIni
+		);
+	}
+
+	if (IpAddress.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] : Config IP is Empty! Using Localhost."));
+		IpAddress = TEXT("127.0.0.1");
+	}
+
+	if (Port.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] : Port IP is Empty! Using 7777"));
+		Port = TEXT("7777");
+	}
+
+	FString FinalAddress = FString::Printf(TEXT("%s:%s"), *IpAddress, *Port);
+	ConnectToIpAddress(FinalAddress);
+}
+
 void UConnectSubsystem::ConnectToIpAddress(FString IpAddress)
 {
 	if (IpAddress.IsEmpty() == true)

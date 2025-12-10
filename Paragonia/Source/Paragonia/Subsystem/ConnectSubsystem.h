@@ -16,6 +16,9 @@ class PARAGONIA_API UConnectSubsystem : public UGameInstanceSubsystem
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Network|Client")
+	void ConnectToConfigIp();
+
+	UFUNCTION(BlueprintCallable, Category = "Network|Client")
 	void ConnectToIpAddress(FString IpAddress);
 
 	UFUNCTION(BlueprintCallable, Category = "Network|Server")
