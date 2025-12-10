@@ -23,10 +23,13 @@ class PARAGONIA_API APGPlayerCharacterBase : public ACharacter, public IAbilityS
 public:
 	APGPlayerCharacterBase();
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	UFUNCTION(Client, Reliable)
 	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData);
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void SetSpawnMoveLock(bool bLock);
 
 protected:
 	virtual void BeginPlay() override;
@@ -95,4 +98,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;
+
+private:
+	bool bSpawnMoveLock;
 };

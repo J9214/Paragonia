@@ -73,7 +73,6 @@ void APGPlayerCharacterBase::OnRep_PlayerState()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -98,7 +97,7 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 void APGPlayerCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (!IsLocallyControlled())
+	if (!IsLocallyControlled() || bSpawnMoveLock)
 	{
 		return;
 	}
@@ -254,6 +253,33 @@ void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
 UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
 {
 	return ASC;
+}
+
+void APGPlayerCharacterBase::SetSpawnMoveLock(bool bLock)
+{
+	bSpawnMoveLock = bLock;
+	if (bSpawnMoveLock)
+	{
+		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+	}
+	else
+	{
+		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+	}
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (bSpawnMoveLock)
+	{
+		GetCharacterMovement()->DisableMovement();
+	}
+	else
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
 }
 
 void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData)

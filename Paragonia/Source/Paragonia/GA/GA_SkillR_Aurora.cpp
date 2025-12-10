@@ -41,10 +41,28 @@ void UGA_SkillR_Aurora::ActivateAbility(
 		}
 	}
 
+
 	if (!IsValid(AttackData.Montage))
 	{
 		return;
 	}
+
+	if (HasAuthority(&ActivationInfo))
+	{
+		UAbilityTask_WaitGameplayEvent* HitResultTask =
+			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
+
+		if (IsValid(HitResultTask))
+		{
+			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillR_Aurora::OnHitResultEvent);
+			HitResultTask->ReadyForActivation();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create HitResult Ability Task"));
+		}
+	}
+
 
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
@@ -62,6 +80,7 @@ void UGA_SkillR_Aurora::ActivateAbility(
 
 		Task->ReadyForActivation();
 
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Playing Montage"));
 		if (IsValid(Character))
 		{
 			Character->GetCharacterMovement()->SetMovementMode(MOVE_None);
@@ -71,19 +90,6 @@ void UGA_SkillR_Aurora::ActivateAbility(
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create Ability Task"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-	}
-
-	UAbilityTask_WaitGameplayEvent* HitResultTask =
-		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
-
-	if (IsValid(HitResultTask))
-	{
-		HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillR_Aurora::OnHitResultEvent);
-		HitResultTask->ReadyForActivation();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create HitResult Ability Task"));
 	}
 }
 

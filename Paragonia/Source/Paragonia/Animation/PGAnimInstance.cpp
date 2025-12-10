@@ -51,6 +51,11 @@ void UPGAnimInstance::SetCurrentAttackData(const FAttackData& NewAttackData)
 
 void UPGAnimInstance::AnimNotify_HitCheck()
 {
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
 	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
 	if (IsValid(PlayerCharacter))
 	{
@@ -66,5 +71,53 @@ void UPGAnimInstance::AnimNotify_HitCheck()
 			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
 			EventData
 		);
+	}
+}
+
+void UPGAnimInstance::AnimNotify_DashStart()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = OwnerCharacter;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Aurora.DashStart"),
+		EventData
+	);
+}
+
+void UPGAnimInstance::AnimNotify_DashStop()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = OwnerCharacter;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Aurora.DashStop"),
+		EventData
+	);
+}
+
+void UPGAnimInstance::AnimNotify_SpawnEnd()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
+	if (IsValid(PlayerCharacter))
+	{
+		PlayerCharacter->SetSpawnMoveLock(false);
 	}
 }
