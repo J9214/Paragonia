@@ -68,7 +68,6 @@ void UGA_HitCheck::ActivateAbility(
 		{
 			SpawnedActor->SetActorLocation(ActorInfo->AvatarActor->GetActorLocation());
 			SpawnedActor->SetAttackData(AttackData);
-			UE_LOG(LogTemp, Warning, TEXT("HitCheck Ability: SpawnedActor is valid"));
 		}
 
 		Task->FinishSpawningActor(this, GenericActor);
