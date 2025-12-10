@@ -14,36 +14,47 @@ void UConnectSubsystem::ConnectToConfigIp()
 	// DefaultGame.ini 에서 읽어오기
 	if (GConfig)
 	{
+#if WITH_EDITOR
 		GConfig->GetString(
 			TEXT("/Script/Paragonia.ConnectSubsystem"),
-			TEXT("ServerIpAddress"),
+			TEXT("LocalServerIpAddress"),
 			IpAddress,
 			GGameIni
 		);
 
-#if WITH_EDITOR
 		GConfig->GetString(
 			TEXT("/Script/Paragonia.ConnectSubsystem"),
 			TEXT("EditorPort"),
 			Port,
 			GGameIni
 		);
-		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] Editor Port - [%s]"), *Port);
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] Editor Port - [%s:%s]"), *IpAddress, *Port);
 #else
+		GConfig->GetString(
+			TEXT("/Script/Paragonia.ConnectSubsystem"),
+			TEXT("RealServerIpAddress"),
+			IpAddress,
+			GGameIni
+		);
+
 		GConfig->GetString(
 			TEXT("/Script/Paragonia.ConnectSubsystem"),
 			TEXT("ProductionPort"),
 			Port,
 			GGameIni
 		);
-		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] Production Port - [%s]"), *Port);
+		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] Product Port - [%s:%s]"), *IpAddress, *Port);
 #endif
 	}
 
 	if (IpAddress.IsEmpty())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ConnectToConfigIp] : Config IP is Empty! Using Localhost."));
+#if WITH_EDITOR
 		IpAddress = TEXT("127.0.0.1");
+#else
+		IpAddress = TEXT("127.0.0.1");
+#endif
 	}
 
 	if (Port.IsEmpty())
