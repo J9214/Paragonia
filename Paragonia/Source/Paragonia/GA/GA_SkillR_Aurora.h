@@ -1,16 +1,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
-#include "GA_Attack.generated.h"
+#include "GA/PGGameplayAbilityBase.h"
+#include "Struct/FAttackData.h"
+#include "GA_SkillR_Aurora.generated.h"
 
 UCLASS()
-class PARAGONIA_API UGA_Attack : public UGameplayAbility
+class PARAGONIA_API UGA_SkillR_Aurora : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	
 public:
-	UGA_Attack();
+	UGA_SkillR_Aurora();
 
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
@@ -29,6 +30,9 @@ public:
 
 private:
 	UFUNCTION()
+	void OnHitResultEvent(const FGameplayEventData Payload);
+
+	UFUNCTION()
 	void OnMontageCompleted();
 
 	UFUNCTION()
@@ -37,7 +41,7 @@ private:
 	UFUNCTION()
 	void OnMontageCancelled();
 
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	TObjectPtr<UAnimMontage> AttackMontage;
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	FAttackData AttackData;
 };

@@ -2,6 +2,7 @@
 #include "Character/PGPlayerCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Struct/AttackDataWrapper.h"
 
 void UPGAnimInstance::NativeInitializeAnimation()
 {
@@ -43,15 +44,122 @@ void UPGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	LastRotation = OwnerCharacter->GetActorRotation();
 }
 
+void UPGAnimInstance::SetCurrentAttackData(const FAttackData& NewAttackData)
+{
+	CurrentAttackData = NewAttackData;
+}
+
 void UPGAnimInstance::AnimNotify_HitCheck()
 {
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
 	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
 	if (IsValid(PlayerCharacter))
 	{
+		UAttackDataWrapper* Wrapper = NewObject<UAttackDataWrapper>(this);
+		Wrapper->Data = CurrentAttackData;
+
+		FGameplayEventData EventData;
+		EventData.Instigator = OwnerCharacter;
+		EventData.OptionalObject = Wrapper;
+
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 			OwnerCharacter,
 			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
-			FGameplayEventData()
+			EventData
 		);
 	}
+}
+
+void UPGAnimInstance::AnimNotify_DashStart()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = OwnerCharacter;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Aurora.DashStart"),
+		EventData
+	);
+}
+
+void UPGAnimInstance::AnimNotify_DashStop()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = OwnerCharacter;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Aurora.DashStop"),
+		EventData
+	);
+}
+
+void UPGAnimInstance::AnimNotify_SpawnEnd()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
+	if (IsValid(PlayerCharacter))
+	{
+		PlayerCharacter->SetSpawnMoveLock(false);
+	}
+}
+
+void UPGAnimInstance::AnimNotify_ComboWindowOpened()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Character.ComboWindowOpened"),
+		FGameplayEventData()
+	);
+}
+
+void UPGAnimInstance::AnimNotify_ComboWindowClosed()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Character.ComboWindowClosed"),
+		FGameplayEventData()
+	);
+}
+
+void UPGAnimInstance::AnimNotify_StartNextCombo()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Character.StartNextCombo"),
+		FGameplayEventData()
+	);
 }

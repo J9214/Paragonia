@@ -3,6 +3,9 @@
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "TargetActor/PGTargetActor.h"
 #include "AbilitySystemComponent.h"
+#include "Struct/AttackDataWrapper.h"
+#include "Abilities/GameplayAbilityTypes.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 UGA_HitCheck::UGA_HitCheck()
 {
@@ -29,6 +32,23 @@ void UGA_HitCheck::ActivateAbility(
 		return;
 	}
 
+	if (!TriggerEventData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_HitCheck::ActivateAbility - No TriggerEventData"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
+	const UAttackDataWrapper* Wrapper = Cast<UAttackDataWrapper>(TriggerEventData->OptionalObject);
+	if (!Wrapper)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HitCheck Ability: Wrapper is null"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
+	FAttackData AttackData = Wrapper->Data;
+
 	UAbilityTask_WaitTargetData* Task =
 		UAbilityTask_WaitTargetData::WaitTargetData(
 			this,
@@ -47,6 +67,7 @@ void UGA_HitCheck::ActivateAbility(
 		if (SpawnedActor)
 		{
 			SpawnedActor->SetActorLocation(ActorInfo->AvatarActor->GetActorLocation());
+			SpawnedActor->SetAttackData(AttackData);
 		}
 
 		Task->FinishSpawningActor(this, GenericActor);
@@ -66,43 +87,17 @@ void UGA_HitCheck::EndAbility(
 
 void UGA_HitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
-	TSet<APGPlayerCharacterBase*> UniqueTargets;
-	for (int32 i = 0; i < DataHandle.Num(); ++i)
-	{
-		const FGameplayAbilityTargetData* Data = DataHandle.Get(i);
+	FGameplayEventData EventPayload;
+	EventPayload.Instigator = GetAvatarActorFromActorInfo();
+	EventPayload.TargetData = DataHandle;
 
-		if (const FGameplayAbilityTargetData_SingleTargetHit* HitData = static_cast<const FGameplayAbilityTargetData_SingleTargetHit*>(Data))
-		{
-			APGPlayerCharacterBase* HitActor = Cast<APGPlayerCharacterBase>(HitData->HitResult.GetActor());
-			if (IsValid(HitActor))
-			{
-				UniqueTargets.Add(HitActor);
-			}
-		}
-	}
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		GetAvatarActorFromActorInfo(),
+		FGameplayTag::RequestGameplayTag(FName("Event.Character.HitResult")),
+		EventPayload
+	);
 
-	for (APGPlayerCharacterBase* HitCharacter : UniqueTargets)
-	{
-		if (!IsValid(HitCharacter) || !IsValid(DamageEffectClass))
-		{
-			continue;
-		}
-
-		UAbilitySystemComponent* TargetASC = HitCharacter->GetAbilitySystemComponent();
-		if (IsValid(TargetASC))
-		{
-			ApplyGameplayEffectToTarget(
-				GetCurrentAbilitySpecHandle(),
-				GetCurrentActorInfo(),
-				GetCurrentActivationInfo(),
-				DataHandle,
-				DamageEffectClass,
-				1.0f
-			);
-		}
-	}
-
-	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_HitCheck::OnTargetDataCancelled()

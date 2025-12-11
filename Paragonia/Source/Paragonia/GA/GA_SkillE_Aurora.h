@@ -2,17 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "GA/PGGameplayAbilityBase.h"
-#include "GA_HitCheck.generated.h"
-
-class UGameplayEffect;
+#include "Struct/FAttackData.h"
+#include "GA_SkillE_Aurora.generated.h"
 
 UCLASS()
-class PARAGONIA_API UGA_HitCheck : public UPGGameplayAbilityBase
+class PARAGONIA_API UGA_SkillE_Aurora : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	
 public:
-	UGA_HitCheck();
+	UGA_SkillE_Aurora();
 
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
@@ -31,8 +30,18 @@ public:
 
 private:
 	UFUNCTION()
-	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);
+	void OnHitResultEvent(const FGameplayEventData Payload);
 
 	UFUNCTION()
-	void OnTargetDataCancelled();
+	void OnMontageCompleted();
+
+	UFUNCTION()
+	void OnMontageInterrupted();
+
+	UFUNCTION()
+	void OnMontageCancelled();
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
+	FAttackData AttackData;
 };
