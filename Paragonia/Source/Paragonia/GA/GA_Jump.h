@@ -2,12 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "GA_Jump.generated.h"
 
 struct FHitResult;
 
 UCLASS()
-class PARAGONIA_API UGA_Jump : public UGameplayAbility
+class PARAGONIA_API UGA_Jump : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 
