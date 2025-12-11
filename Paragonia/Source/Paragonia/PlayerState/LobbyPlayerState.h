@@ -15,7 +15,7 @@ enum class EPlayerLobbyState : uint8
 	PLS_SelectedAndReady,
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyStateChangedDelegate, EPlayerLobbyState, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyPlayerStateChangedDelegate, EPlayerLobbyState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterIDChangedDelegate, int32, NewCharacterID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTeamIDChangedDelegate, int32, NewTeamID);
 
@@ -56,7 +56,7 @@ public:
 public:
 	// Delegates
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnLobbyStateChangedDelegate OnLobbyStateChanged;
+	FOnLobbyPlayerStateChangedDelegate OnLobbyPlayerStateChanged;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnCharacterIDChangedDelegate OnCharacterIDChanged;

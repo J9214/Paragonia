@@ -78,9 +78,9 @@ bool ALobbyPlayerState::ServerSetTeamID_Validate(int32 NewTeamID)
 
 void ALobbyPlayerState::OnRep_PlayerLobbyState()
 {
-	if (OnLobbyStateChanged.IsBound())
+	if (OnLobbyPlayerStateChanged.IsBound())
 	{
-		OnLobbyStateChanged.Broadcast(PlayerLobbyState);
+		OnLobbyPlayerStateChanged.Broadcast(PlayerLobbyState);
 	}
 }
 
