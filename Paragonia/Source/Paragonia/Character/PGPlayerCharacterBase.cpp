@@ -42,6 +42,8 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	ASC->SetIsReplicated(true);
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -63,10 +65,8 @@ void APGPlayerCharacterBase::OnRep_PlayerState()
 
 	InitializeActorInfo();
 
-	APGPlayerState* PS = GetPlayerState<APGPlayerState>();
-	if (!IsValid(PS))
+	if (!IsValid(ASC))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributes - PlayerState is not valid"));
 		return;
 	}
 
@@ -244,13 +244,15 @@ void APGPlayerCharacterBase::InitializeAttributes()
 		return;
 	}
 
-	for (UAttributeSet* AttributeSet : PS->GetAllAttributeSets())
+	ASC->AddAttributeSetSubobject<UCharacterAttributeSet>(CharacterAttributeSet);
+
+	/*for (UAttributeSet* AttributeSet : PS->GetAllAttributeSets())
 	{
 		if (IsValid(AttributeSet))
 		{
 			ASC->AddAttributeSetSubobject(AttributeSet);
 		}
-	}
+	}*/
 }
 
 void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)

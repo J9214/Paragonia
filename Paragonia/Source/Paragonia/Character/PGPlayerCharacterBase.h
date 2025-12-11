@@ -12,6 +12,7 @@ class UInputAction;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UWidgetComponent;
+class UCharacterAttributeSet;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -75,6 +76,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> ASC;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
+	TObjectPtr<UCharacterAttributeSet> CharacterAttributeSet;
+
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;
 
@@ -101,7 +105,6 @@ protected:
 
 private:
 	bool bSpawnMoveLock;
-
 
 #pragma region Respawn
 public:

@@ -110,7 +110,7 @@ void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter
 void APGGameModeBase::TickRespawn()
 {
     const float CurrentTime = GetWorld()->GetTimeSeconds();
-    UE_LOG(LogTemp, Warning, TEXT("CurrentTime %f"), CurrentTime);
+    //UE_LOG(LogTemp, Warning, TEXT("CurrentTime %f"), CurrentTime);
 
     for (int32 i = PendingRespawns.Num() - 1; i >= 0; --i)
     {
