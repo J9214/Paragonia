@@ -15,5 +15,30 @@ class PARAGONIA_API ALobbyGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	ALobbyGameModeBase();
+
 	virtual void BeginPlay() override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+public:
+	void CheckAllPlayersReady();
+	void CheckStartingCondition();
+
+protected:
+	void StartGameCountdown();
+	void OnCountdownTimer();
+	void ProcessServerTravel();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
+	int32 PlayerCountToStart;
+
+	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
+	int32 CountdownDuration;
+
+	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
+	int32 NowReadyCount;
+
+protected:
+	FTimerHandle CountdownTimerHandle;
 };
