@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "PlayerState/PGPlayerState.h"
 #include "AttributeSet/CharacterAttributeSet.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
@@ -73,7 +74,6 @@ void APGPlayerCharacterBase::OnRep_PlayerState()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -90,14 +90,15 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::StartJump);
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ThisClass::Attack);
-
 		EnhancedInputComponent->BindAction(SkillQAction, ETriggerEvent::Triggered, this, &ThisClass::SkillQ);
+		EnhancedInputComponent->BindAction(SkillEAction, ETriggerEvent::Triggered, this, &ThisClass::SkillE);
+		EnhancedInputComponent->BindAction(SkillRAction, ETriggerEvent::Triggered, this, &ThisClass::SkillR);
 	}
 }
 
 void APGPlayerCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (!IsLocallyControlled())
+	if (!IsLocallyControlled() || bSpawnMoveLock)
 	{
 		return;
 	}
@@ -140,8 +141,7 @@ void APGPlayerCharacterBase::StartJump(const FInputActionValue& Value)
 		return;
 	}
 
-	FGameplayTag JumpTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.Jump"));
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(JumpTag));
+	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::Jump));
 }
 
 void APGPlayerCharacterBase::StopJump(const FInputActionValue& Value)
@@ -161,8 +161,7 @@ void APGPlayerCharacterBase::Attack(const FInputActionValue& Value)
 		return;
 	}
 
-	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.Attack"));
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(AttackTag));
+	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::Attack));
 }
 
 void APGPlayerCharacterBase::SkillQ(const FInputActionValue& Value)
@@ -172,8 +171,27 @@ void APGPlayerCharacterBase::SkillQ(const FInputActionValue& Value)
 		return;
 	}
 
-	FGameplayTag SkillTag = FGameplayTag::RequestGameplayTag(FName("Character.Ability.SkillQ"));
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(SkillTag));
+	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::SkillQ));
+}
+
+void APGPlayerCharacterBase::SkillE(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::SkillE));
+}
+
+void APGPlayerCharacterBase::SkillR(const FInputActionValue& Value)
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+
+	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::SkillR));
 }
 
 void APGPlayerCharacterBase::InitializeActorInfo()
@@ -183,13 +201,29 @@ void APGPlayerCharacterBase::InitializeActorInfo()
 
 void APGPlayerCharacterBase::InitializeAbilities()
 {
+	if (!IsValid(ASC))
+	{
+		return;
+	}
+
 	for (const TSubclassOf<UGameplayAbility>& AbilityClass : AllAbilities)
 	{
-		if (IsValid(AbilityClass))
+		if (!IsValid(AbilityClass))
 		{
-			FGameplayAbilitySpec Spec(AbilityClass, 1, 0, this);
-			ASC->GiveAbility(Spec);
+			continue;
 		}
+
+		UGameplayAbility* AbilityCDO = AbilityClass->GetDefaultObject<UGameplayAbility>();
+		int32 InputID = 0;
+
+		const UPGGameplayAbilityBase* PGAbility = Cast<UPGGameplayAbilityBase>(AbilityCDO);
+		if (IsValid(PGAbility))
+		{
+			InputID = static_cast<int32>(PGAbility->InputID);
+		}
+
+		FGameplayAbilitySpec Spec(AbilityClass, 1, InputID, this);
+		ASC->GiveAbility(Spec);
 	}
 }
 
@@ -233,6 +267,33 @@ UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() con
 	return ASC;
 }
 
+void APGPlayerCharacterBase::SetSpawnMoveLock(bool bLock)
+{
+	bSpawnMoveLock = bLock;
+	if (bSpawnMoveLock)
+	{
+		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+	}
+	else
+	{
+		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+	}
+
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (bSpawnMoveLock)
+	{
+		GetCharacterMovement()->DisableMovement();
+	}
+	else
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+}
+
 void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData)
 {
 	FVector Center = TraceStart + (TraceEnd - TraceStart) * 0.5f;
@@ -248,7 +309,7 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 				16,
 				DrawColor,
 				false,
-				5.0f
+				3.0f
 			);
 		}
 		break;
@@ -265,7 +326,7 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 				FRotationMatrix::MakeFromZ(Forward).ToQuat(),
 				DrawColor,
 				false,
-				5.0f
+				3.0f
 			);
 		}
 		break;
@@ -294,7 +355,7 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 				GetActorRotation().Quaternion(),
 				DrawColor,
 				false,
-				5.0f
+				3.0f
 			);
 		}
 		break;

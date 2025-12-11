@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
 #include "GA_Attack_Aurora.generated.h"
 
 UCLASS()
-class PARAGONIA_API UGA_Attack_Aurora : public UGameplayAbility
+class PARAGONIA_API UGA_Attack_Aurora : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	
@@ -28,6 +28,12 @@ public:
 		bool bWasCancelled
 	) override;
 
+	virtual void InputPressed(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo
+	) override;
+
 private:
 	UFUNCTION()
 	void OnHitResultEvent(const FGameplayEventData Payload);
@@ -41,7 +47,31 @@ private:
 	UFUNCTION()
 	void OnMontageCancelled();
 
+	UFUNCTION()
+	void OnComboWindowOpen(const FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnComboWindowClose(const FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnStartNextCombo(const FGameplayEventData Payload);
+
+	void PlayCurrentCombo();
+
+	void SetupComboWindowTask();
+
+	void SetupHitResultTask();
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-	FAttackData AttackData;
+	TArray<FAttackData> ComboAttackDatas;
+
+private:
+	int32 CurrentComboIndex = 0;
+
+	bool bComboInputQueued = false;
+
+	bool bCanAcceptNextInput = false;
+
+	bool bIsComboTransition = false;
 };

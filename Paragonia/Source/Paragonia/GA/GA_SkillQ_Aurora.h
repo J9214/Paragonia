@@ -1,12 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
 #include "GA_SkillQ_Aurora.generated.h"
 
+class UAbilityTask_ApplyRootMotionMoveToForce;
+
 UCLASS()
-class PARAGONIA_API UGA_SkillQ_Aurora : public UGameplayAbility
+class PARAGONIA_API UGA_SkillQ_Aurora : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	
@@ -41,7 +43,27 @@ private:
 	UFUNCTION()
 	void OnMontageCancelled();
 
+	UFUNCTION()
+	void OnDashFinished();
+
+	UFUNCTION()
+	void OnDashStartEvent(const FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnDashStopEvent(const FGameplayEventData Payload);
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	FAttackData AttackData;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
+	float DashDistance = 600.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
+	float DashDuration = 0.3f;
+
+private:
+	UPROPERTY()
+	UAbilityTask_ApplyRootMotionMoveToForce* DashTask;
 };

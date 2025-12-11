@@ -23,11 +23,29 @@ protected:
 	UFUNCTION()
 	void AnimNotify_HitCheck();
 
+	UFUNCTION()
+	void AnimNotify_DashStart();
+
+	UFUNCTION()
+	void AnimNotify_DashStop();
+
+	UFUNCTION()
+	void AnimNotify_SpawnEnd();
+
+	UFUNCTION()
+	void AnimNotify_ComboWindowOpened();
+
+	UFUNCTION()
+	void AnimNotify_ComboWindowClosed();
+
+	UFUNCTION()
+	void AnimNotify_StartNextCombo();
+
 protected:
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ACharacter> OwnerCharacter;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCharacterMovementComponent> OwnerCharacterMovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
