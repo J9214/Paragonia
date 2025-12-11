@@ -1,5 +1,6 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Net/UnrealNetwork.h"
+#include "GameplayEffectExtension.h"
 
 UCharacterAttributeSet::UCharacterAttributeSet()
 {
@@ -38,6 +39,24 @@ void UCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& Attri
 	else if (Attribute == GetHealthAttribute())
 	{
 		OnHealthChanged.Broadcast(OldValue, NewValue);
+	}
+}
+
+void UCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	const FGameplayAttribute& Attribute = Data.EvaluatedData.Attribute;
+
+	if (Attribute == GetDamagedAttribute())
+	{
+		float LocalDamage = GetDamaged();
+		SetDamaged(0.f);
+
+		if (LocalDamage > 0.f)
+		{
+			float OldHealth = GetHealth();
+			float NewHealth = FMath::Clamp(OldHealth - LocalDamage, 0.f, GetMaxHealth());
+			SetHealth(NewHealth);
+		}
 	}
 }
 

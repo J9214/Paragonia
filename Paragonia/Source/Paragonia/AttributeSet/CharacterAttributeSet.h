@@ -19,10 +19,13 @@ public:
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, Health);
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, AttackPower);
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, MoveSpeed);
+	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, Damaged);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+
+	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -58,4 +61,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute", ReplicatedUsing = OnRep_MoveSpeed)
 	FGameplayAttributeData MoveSpeed;
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayAttributeData Damaged;
 };
