@@ -42,7 +42,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LobbyData")
 	int32 GetTeamID() const { return TeamID; }
 
-
 	// Client -> Server RPC
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetLobbyState(EPlayerLobbyState NewState);
