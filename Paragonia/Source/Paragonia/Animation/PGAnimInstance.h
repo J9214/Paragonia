@@ -32,6 +32,15 @@ protected:
 	UFUNCTION()
 	void AnimNotify_SpawnEnd();
 
+	UFUNCTION()
+	void AnimNotify_ComboWindowOpened();
+
+	UFUNCTION()
+	void AnimNotify_ComboWindowClosed();
+
+	UFUNCTION()
+	void AnimNotify_StartNextCombo();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ACharacter> OwnerCharacter;

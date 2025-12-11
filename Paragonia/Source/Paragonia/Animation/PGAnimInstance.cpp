@@ -121,3 +121,45 @@ void UPGAnimInstance::AnimNotify_SpawnEnd()
 		PlayerCharacter->SetSpawnMoveLock(false);
 	}
 }
+
+void UPGAnimInstance::AnimNotify_ComboWindowOpened()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Character.ComboWindowOpened"),
+		FGameplayEventData()
+	);
+}
+
+void UPGAnimInstance::AnimNotify_ComboWindowClosed()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Character.ComboWindowClosed"),
+		FGameplayEventData()
+	);
+}
+
+void UPGAnimInstance::AnimNotify_StartNextCombo()
+{
+	if (!IsValid(OwnerCharacter))
+	{
+		return;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+		OwnerCharacter,
+		FGameplayTag::RequestGameplayTag("Event.Character.StartNextCombo"),
+		FGameplayEventData()
+	);
+}

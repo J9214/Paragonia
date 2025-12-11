@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
 #include "GA_SkillR_Aurora.generated.h"
 
 UCLASS()
-class PARAGONIA_API UGA_SkillR_Aurora : public UGameplayAbility
+class PARAGONIA_API UGA_SkillR_Aurora : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	

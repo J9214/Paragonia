@@ -1,14 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
 #include "GA_SkillQ_Aurora.generated.h"
 
 class UAbilityTask_ApplyRootMotionMoveToForce;
 
 UCLASS()
-class PARAGONIA_API UGA_SkillQ_Aurora : public UGameplayAbility
+class PARAGONIA_API UGA_SkillQ_Aurora : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Abilities/GameplayAbility.h"
+#include "GA/PGGameplayAbilityBase.h"
 #include "GA_HitCheck.generated.h"
 
 class UGameplayEffect;
 
 UCLASS()
-class PARAGONIA_API UGA_HitCheck : public UGameplayAbility
+class PARAGONIA_API UGA_HitCheck : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	

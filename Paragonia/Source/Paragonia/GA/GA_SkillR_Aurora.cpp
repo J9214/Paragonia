@@ -80,7 +80,6 @@ void UGA_SkillR_Aurora::ActivateAbility(
 
 		Task->ReadyForActivation();
 
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Playing Montage"));
 		if (IsValid(Character))
 		{
 			Character->GetCharacterMovement()->SetMovementMode(MOVE_None);
