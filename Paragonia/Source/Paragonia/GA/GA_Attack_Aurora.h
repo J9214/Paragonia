@@ -5,6 +5,8 @@
 #include "Struct/FAttackData.h"
 #include "GA_Attack_Aurora.generated.h"
 
+class UAbilityTask_WaitGameplayEvent;
+
 UCLASS()
 class PARAGONIA_API UGA_Attack_Aurora : public UPGGameplayAbilityBase
 {
@@ -66,7 +68,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	TArray<FAttackData> ComboAttackDatas;
 
-private:
+
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitResultTask;
+
 	int32 CurrentComboIndex = 0;
 
 	bool bComboInputQueued = false;

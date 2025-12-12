@@ -27,9 +27,6 @@ protected:
 	void AnimNotify_DashStart();
 
 	UFUNCTION()
-	void AnimNotify_DashStop();
-
-	UFUNCTION()
 	void AnimNotify_SpawnEnd();
 
 	UFUNCTION()

@@ -91,23 +91,6 @@ void UPGAnimInstance::AnimNotify_DashStart()
 	);
 }
 
-void UPGAnimInstance::AnimNotify_DashStop()
-{
-	if (!IsValid(OwnerCharacter))
-	{
-		return;
-	}
-
-	FGameplayEventData EventData;
-	EventData.Instigator = OwnerCharacter;
-
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
-		OwnerCharacter,
-		FGameplayTag::RequestGameplayTag("Event.Aurora.DashStop"),
-		EventData
-	);
-}
-
 void UPGAnimInstance::AnimNotify_SpawnEnd()
 {
 	if (!IsValid(OwnerCharacter))
