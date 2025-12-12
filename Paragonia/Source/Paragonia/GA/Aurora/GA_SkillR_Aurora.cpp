@@ -1,4 +1,4 @@
-#include "GA/GA_SkillR_Aurora.h"
+#include "GA/Aurora/GA_SkillR_Aurora.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Character.h"
