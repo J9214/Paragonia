@@ -32,7 +32,7 @@ public:
 
 protected:
     UPROPERTY()
-    TWeakObjectPtr<ALobbyPlayerState> LobbyPlayerState;
+    TObjectPtr<ALobbyPlayerState> LobbyPlayerState;
 
     UPROPERTY(BlueprintReadOnly, Category = "Matching")
     ETitleReadyState ReadyState = ETitleReadyState::Closed;
@@ -44,7 +44,7 @@ protected:
     TObjectPtr<UButton> GameStartButton;
 
     UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UTextBlock> GameStartButtonText;
+    TObjectPtr<UTextBlock> GameStartButtonText; 
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UButton> ModeSelectButton;
@@ -80,6 +80,7 @@ protected:
     UFUNCTION()
     void HandleMatchingInfoCancelRequested();
 
+    bool CheckPlayerState();
 
     void StartMoveTo(const FVector2D& TargetPos);
     void ApplyPosition(const FVector2D& NewPos);

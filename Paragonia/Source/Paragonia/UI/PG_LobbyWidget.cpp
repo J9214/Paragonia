@@ -15,11 +15,7 @@ void UPG_LobbyWidget::SetInit()
 void UPG_LobbyWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
-
-    if (APlayerController* PC = GetOwningPlayer())
-    {
-        LobbyPlayerState = PC->GetPlayerState<ALobbyPlayerState>();
-    }
+    CheckPlayerState();
 
     if (GameStartButton)
     {
@@ -81,19 +77,19 @@ void UPG_LobbyWidget::HandleGameStartClicked()
     switch (ReadyState)
     {
     case ETitleReadyState::Closed:
-        SetReadyState(ETitleReadyState::InfoOnly);
         if (ModeSelectButton)
             ModeSelectButton->SetIsEnabled(false);
         if (GameStartButtonText)
             GameStartButtonText->SetText(FText::FromString(TEXT("Cancel")));
+        SetReadyState(ETitleReadyState::InfoOnly);
         break;
     case ETitleReadyState::InfoOnly:
     case ETitleReadyState::Armed:
-        SetReadyState(ETitleReadyState::Closed);
         if (ModeSelectButton)
             ModeSelectButton->SetIsEnabled(true);
         if (GameStartButtonText)
             GameStartButtonText->SetText(FText::FromString(TEXT("GameStart")));
+        SetReadyState(ETitleReadyState::Closed);
         break;
     default:
         break;
@@ -146,6 +142,19 @@ void UPG_LobbyWidget::HandleMatchingInfoCancelRequested()
         GameStartButtonText->SetText(FText::FromString(TEXT("GameStart")));
 }
 
+bool UPG_LobbyWidget::CheckPlayerState()
+{
+    if (LobbyPlayerState)
+        return true;
+
+    ALobbyPlayerState* FoundPS = Cast<ALobbyPlayerState>(GetOwningPlayerState());
+    if (!FoundPS)
+        return false;
+
+    LobbyPlayerState = FoundPS;
+    return true;
+}
+
 void UPG_LobbyWidget::StartMoveTo(const FVector2D& TargetPos)
 {
     if (!MatchingInfoButton)
@@ -182,12 +191,20 @@ void UPG_LobbyWidget::SetReadyState(ETitleReadyState NewState)
     {
     case ETitleReadyState::Closed:
         StartMoveTo(MatchingInfoClosedPos);
-        LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_NotReady);
+
+        if (CheckPlayerState())
+            LobbyPlayerState.Get()->ServerSetLobbyState(EPlayerLobbyState::PLS_NotReady);
+        else
+            UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
         break;
 
     case ETitleReadyState::InfoOnly:
         StartMoveTo(MatchingInfoInfoOnlyPos);
-        LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_MatchingReady);
+
+        if(CheckPlayerState())
+            LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_MatchingReady);
+        else
+            UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
         break;
 
     case ETitleReadyState::Armed:
