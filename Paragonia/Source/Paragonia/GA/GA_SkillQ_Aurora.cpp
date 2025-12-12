@@ -59,18 +59,6 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 		DashStartTask->ReadyForActivation();
 	}
 
-	UAbilityTask_WaitGameplayEvent* DashStopTask =
-		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-			this,
-			FGameplayTag::RequestGameplayTag("Event.Aurora.DashStop")
-		);
-
-	if (IsValid(DashStopTask))
-	{
-		DashStopTask->EventReceived.AddDynamic(this, &UGA_SkillQ_Aurora::OnDashStopEvent);
-		DashStopTask->ReadyForActivation();
-	}
-
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
@@ -107,6 +95,12 @@ void UGA_SkillQ_Aurora::EndAbility(
 	if (IsValid(Character))
 	{
 		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+		APlayerController* PC = Cast<APlayerController>(Character->GetController());
+		if (IsValid(PC) && PC->IsLocalController())
+		{
+			PC->SetIgnoreMoveInput(false);
+		}
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -152,6 +146,20 @@ void UGA_SkillQ_Aurora::OnMontageCancelled()
 
 void UGA_SkillQ_Aurora::OnDashFinished()
 {
+	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	if (!IsValid(Character))
+	{
+		return;
+	}
+
+	if (DashTask)
+	{
+		DashTask->EndTask();
+		DashTask = nullptr;
+	}
+
+	Character->GetCharacterMovement()->StopMovementImmediately();
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
@@ -200,34 +208,5 @@ void UGA_SkillQ_Aurora::OnDashStartEvent(const FGameplayEventData Payload)
 		DashTask->OnTimedOut.AddDynamic(this, &UGA_SkillQ_Aurora::OnDashFinished);
 		DashTask->OnTimedOutAndDestinationReached.AddDynamic(this, &UGA_SkillQ_Aurora::OnDashFinished);
 		DashTask->ReadyForActivation();
-	}
-}
-
-void UGA_SkillQ_Aurora::OnDashStopEvent(const FGameplayEventData Payload)
-{
-	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (IsValid(Character))
-	{
-		Character->GetCharacterMovement()->StopMovementImmediately();
-
-		AController* Controller = Character->GetController();
-		if (IsValid(Controller) && Controller->IsLocalController())
-		{
-			if (APlayerController* PC = Cast<APlayerController>(Controller))
-			{
-				PC->SetIgnoreMoveInput(false);
-			}
-		}
-	}
-
-	if (HasAuthority(&CurrentActivationInfo))
-	{
-		if (DashTask)
-		{
-			DashTask->EndTask();
-			DashTask = nullptr;
-		}
-
-		Character->GetCharacterMovement()->StopMovementImmediately();
 	}
 }

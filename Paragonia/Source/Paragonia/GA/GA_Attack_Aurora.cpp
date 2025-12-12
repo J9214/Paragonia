@@ -120,11 +120,19 @@ void UGA_Attack_Aurora::SetupHitResultTask()
 		return;
 	}
 
-	UAbilityTask_WaitGameplayEvent* HitResultTask =
-		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-			this,
-			FGameplayTag::RequestGameplayTag("Event.Character.HitResult")
-		);
+	if (IsValid(HitResultTask))
+	{
+		HitResultTask->EndTask();
+		HitResultTask = nullptr;
+	}
+
+	HitResultTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+		this,
+		FGameplayTag::RequestGameplayTag("Event.Character.HitResult"),
+		nullptr,
+		true,
+		true
+	);
 	if (IsValid(HitResultTask))
 	{
 		HitResultTask->EventReceived.AddDynamic(this, &UGA_Attack_Aurora::OnHitResultEvent);

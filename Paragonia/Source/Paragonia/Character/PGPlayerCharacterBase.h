@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -12,6 +12,7 @@ class UInputAction;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UWidgetComponent;
+class UCharacterAttributeSet;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -40,6 +41,8 @@ protected:
 
 	virtual void OnRep_PlayerState() override;
 
+	virtual void OnRep_Controller() override;
+
 	void Move(const FInputActionValue& Value);
 
 	void Look(const FInputActionValue& Value);
@@ -63,7 +66,15 @@ private:
 
 	void InitializeAttributes();
 
+	void InitializeAttributesData();
+
+	void BindAttributeChangeDelegates();
+
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
+	void OnAttackPowerChanged(const FOnAttributeChangeData& Data);
+
+	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -74,6 +85,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> ASC;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
+	TObjectPtr<UCharacterAttributeSet> CharacterAttributeSet;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;
@@ -99,6 +113,32 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
+	FName CharacterName;
+
 private:
 	bool bSpawnMoveLock;
+
+#pragma region Respawn
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerRPCSetDeadState(uint8 bDead);
+
+	UFUNCTION()
+	void SetDeadState(uint8 bDead);
+protected:
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_Dead();
+
+	void MovePlayerToRespawnPoint(FVector SpawnLocation, FRotator SpawnRotation);
+
+	FVector GetRespawnLocationForController() const;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Dead)
+	uint8 bIsDead;
+#pragma endregion
+
 };
