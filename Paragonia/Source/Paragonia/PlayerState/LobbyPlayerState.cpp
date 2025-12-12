@@ -31,21 +31,6 @@ void ALobbyPlayerState::ServerSetLobbyState_Implementation(EPlayerLobbyState New
 	PlayerLobbyState = NewState;
 
 	OnRep_PlayerLobbyState();
-
-	if (UWorld* World = GetWorld())
-	{
-		if (ALobbyGameModeBase* GM = Cast<ALobbyGameModeBase>(World->GetAuthGameMode()))
-		{
-			if (PlayerLobbyState == EPlayerLobbyState::PLS_MatchingReady)
-			{
-				GM->CheckStartingCondition();
-			}
-			else if (PlayerLobbyState == EPlayerLobbyState::PLS_SelectedAndReady)
-			{
-				GM->CheckAllPlayersReady();
-			}
-		}
-	}
 }
 
 bool ALobbyPlayerState::ServerSetLobbyState_Validate(EPlayerLobbyState NewState)

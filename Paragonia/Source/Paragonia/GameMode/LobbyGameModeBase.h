@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameState/LobbyGameStateBase.h"
 #include "LobbyGameModeBase.generated.h"
 
 /**
@@ -19,6 +20,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 
 public:
 	void CheckAllPlayersReady();
@@ -27,7 +29,10 @@ public:
 protected:
 	void StartGameCountdown();
 	void OnCountdownTimer();
-	void ProcessServerTravel();
+	void GameLevelTravel();
+
+	UFUNCTION()
+	void OnPSLobbyStateChangedHandler(EPlayerLobbyState NewPlayerState);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")

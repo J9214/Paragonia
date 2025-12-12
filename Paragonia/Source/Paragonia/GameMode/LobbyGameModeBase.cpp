@@ -4,7 +4,6 @@
 #include "GameMode/LobbyGameModeBase.h"
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
-#include "GameState/LobbyGameStateBase.h"
 #include "PlayerState/LobbyPlayerState.h"
 #include "Controller/LobbyPlayerController.h"
 #include "Subsystem/ConnectSubsystem.h"
@@ -54,7 +53,22 @@ void ALobbyGameModeBase::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
 
-    UE_LOG(LogTemp, Log, TEXT("현재 접속자 수: %d"), GetNumPlayers());
+    UE_LOG(LogTemp, Log, TEXT("현재 접속자 수: %d"), GetNumPlayers()); 
+
+	if (auto* PS = Cast<ALobbyPlayerState>(NewPlayer->PlayerState))
+	{
+		PS->OnLobbyPlayerStateChanged.AddDynamic(this, &ALobbyGameModeBase::OnPSLobbyStateChangedHandler);
+	}
+}
+
+void ALobbyGameModeBase::Logout(AController* Exiting)
+{
+	if (auto* PS = Cast<ALobbyPlayerState>(Exiting->PlayerState))
+	{
+		PS->OnLobbyPlayerStateChanged.RemoveDynamic(this, &ALobbyGameModeBase::OnPSLobbyStateChangedHandler);
+	}
+
+	Super::Logout(Exiting);
 }
 
 void ALobbyGameModeBase::CheckAllPlayersReady()
@@ -138,12 +152,12 @@ void ALobbyGameModeBase::OnCountdownTimer()
 		else
 		{
 			GetWorldTimerManager().ClearTimer(CountdownTimerHandle);
-			ProcessServerTravel();
+			GameLevelTravel();
 		}
 	}
 }
 
-void ALobbyGameModeBase::ProcessServerTravel()
+void ALobbyGameModeBase::GameLevelTravel()
 {
 	UGameInstance* GameInstance = GetGameInstance();
 	if (IsValid(GameInstance) == false)
@@ -162,5 +176,24 @@ void ALobbyGameModeBase::ProcessServerTravel()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[LobbyGameModeBase] ConnectSubsystem is invalid!"));
+	}
+}
+
+void ALobbyGameModeBase::OnPSLobbyStateChangedHandler(EPlayerLobbyState NewPlayerState)
+{
+	switch (NewPlayerState)
+	{
+	case EPlayerLobbyState::PLS_NotReady:
+		break;
+	case EPlayerLobbyState::PLS_MatchingReady:
+		CheckStartingCondition();
+		break;
+	case EPlayerLobbyState::PLS_Selecting:
+		break;
+	case EPlayerLobbyState::PLS_SelectedAndReady:
+		CheckAllPlayersReady();
+		break;
+	default:
+		break;
 	}
 }
