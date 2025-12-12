@@ -41,9 +41,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
 	int32 CountdownDuration;
 
-	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
-	int32 NowReadyCount;
-
 protected:
 	FTimerHandle CountdownTimerHandle;
 };

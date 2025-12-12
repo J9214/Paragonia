@@ -5,7 +5,8 @@
 #include "Net/UnrealNetwork.h"
 
 ALobbyGameStateBase::ALobbyGameStateBase()
-	:LeftTime(0)
+	:LeftTime(0),
+	MatchingWaitUserCount(0)
 {
 	CurrentLobbyState = EGameLobbyState::GLS_WaitingForPlayers;
 }
@@ -16,6 +17,7 @@ void ALobbyGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(ThisClass, CurrentLobbyState);
 	DOREPLIFETIME(ThisClass, LeftTime);
+	DOREPLIFETIME(ThisClass, MatchingWaitUserCount);
 }
 
 void ALobbyGameStateBase::SetLobbyState(EGameLobbyState NewState)
@@ -36,6 +38,15 @@ void ALobbyGameStateBase::SetLeftTime(int32 NewTime)
 	}
 }
 
+void ALobbyGameStateBase::SetMatchingWaitUserCount(int32 NewCount)
+{
+	if (HasAuthority())
+	{
+		MatchingWaitUserCount = NewCount;
+		OnRep_MatchWaitCount();
+	}
+}
+
 void ALobbyGameStateBase::OnRep_CurrentLobbyState()
 {
 	if (OnLobbyGameStateChanged.IsBound())
@@ -49,5 +60,13 @@ void ALobbyGameStateBase::OnRep_LeftTime()
 	if (OnLeftTimeChanged.IsBound())
 	{
 		OnLeftTimeChanged.Broadcast(LeftTime);
+	}
+}
+
+void ALobbyGameStateBase::OnRep_MatchWaitCount()
+{
+	if (OnMatchWaitCountChanged.IsBound())
+	{
+		OnMatchWaitCountChanged.Broadcast(MatchingWaitUserCount);
 	}
 }

@@ -11,8 +11,7 @@
 
 ALobbyGameModeBase::ALobbyGameModeBase()
 	:PlayerCountToStart(2),
-	CountdownDuration(5),
-	NowReadyCount(0)
+	CountdownDuration(5)
 {
     GameStateClass = ALobbyGameStateBase::StaticClass();
     PlayerStateClass = ALobbyPlayerState::StaticClass();
@@ -111,7 +110,7 @@ void ALobbyGameModeBase::CheckStartingCondition()
 		return;
 	}
 
-	NowReadyCount = 0;
+	int32 NowReadyCount = 0;
 
 	for (APlayerState* PS : GameState->PlayerArray)
 	{
@@ -121,6 +120,8 @@ void ALobbyGameModeBase::CheckStartingCondition()
 			NowReadyCount++;
 		}
 	}
+
+	LobbyGS->SetMatchingWaitUserCount(NowReadyCount);
 
 	if (NowReadyCount >= PlayerCountToStart)
 	{

@@ -16,6 +16,7 @@ enum class EGameLobbyState : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyGameStateChangedDelegate, EGameLobbyState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLeftTimeChangedDelegate, int32, NewTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWaitCountChangedDelegate, int32, NewCount);
 
 /**
  * 
@@ -36,10 +37,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LobbyState")
 	int32 GetLeftTime() const { return LeftTime; }
 
+	UFUNCTION(BlueprintCallable, Category = "LobbyState")
+	int32 GetMatchingWaitUserCount() const { return MatchingWaitUserCount; }
+
 	// Only Server Set
 	void SetLobbyState(EGameLobbyState NewState);
 	void SetLeftTime(int32 NewTime);
-
+	void SetMatchingWaitUserCount(int32 NewCount);
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnLobbyGameStateChangedDelegate OnLobbyGameStateChanged;
@@ -47,6 +51,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnLeftTimeChangedDelegate OnLeftTimeChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnMatchWaitCountChangedDelegate OnMatchWaitCountChanged;
 protected:
 	UFUNCTION()
 	void OnRep_CurrentLobbyState();
@@ -54,10 +60,16 @@ protected:
 	UFUNCTION()
 	void OnRep_LeftTime();
 
+	UFUNCTION()
+	void OnRep_MatchWaitCount();
+
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentLobbyState)
 	EGameLobbyState CurrentLobbyState;
 
 	UPROPERTY(ReplicatedUsing = OnRep_LeftTime)
 	int32 LeftTime;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MatchWaitCount)
+	int32 MatchingWaitUserCount;
 };
