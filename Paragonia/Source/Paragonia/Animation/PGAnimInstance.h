@@ -21,7 +21,7 @@ public:
 
 protected:
 	UFUNCTION()
-	void AnimNotify_HitCheck();
+	virtual void AnimNotify_HitCheck();
 
 	UFUNCTION()
 	void AnimNotify_DashStart();
@@ -72,7 +72,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsFullBody : 1;
 
-private:
+protected:
 	FRotator LastRotation;
 
 	float LeanIntensity;
