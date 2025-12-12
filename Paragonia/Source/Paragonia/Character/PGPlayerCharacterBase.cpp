@@ -278,6 +278,7 @@ void APGPlayerCharacterBase::InitializeAttributesData()
 		CharacterAttributeSet->InitHealth(AttributeData->Health);
 		CharacterAttributeSet->InitAttackPower(AttributeData->AttackPower);
 		CharacterAttributeSet->InitMoveSpeed(AttributeData->MoveSpeed);
+		GetCharacterMovement()->MaxWalkSpeed = AttributeData->MoveSpeed;
 	}
 	else
 	{

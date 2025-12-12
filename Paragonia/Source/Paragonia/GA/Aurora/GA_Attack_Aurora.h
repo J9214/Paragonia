@@ -68,7 +68,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	TArray<FAttackData> ComboAttackDatas;
 
-
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_WaitGameplayEvent> HitResultTask;
 

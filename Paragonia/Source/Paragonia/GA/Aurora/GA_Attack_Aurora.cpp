@@ -8,6 +8,7 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/PGGameplayTags.h"
 
 UGA_Attack_Aurora::UGA_Attack_Aurora()
 {
@@ -199,25 +200,53 @@ void UGA_Attack_Aurora::EndAbility(
 
 void UGA_Attack_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (!ComboAttackDatas.IsValidIndex(CurrentComboIndex))
+	if (Payload.TargetData.Num() == 0)
 	{
 		return;
 	}
 
-	const FAttackData& CurrentData = ComboAttackDatas[CurrentComboIndex];
-	if (!IsValid(CurrentData.DamageEffectClass))
+	if (!IsValid(ComboAttackDatas[CurrentComboIndex].DamageEffectClass))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::OnHitResultEvent - DamageEffectClass is invalid"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - DamageEffectClass is invalid"));
 		return;
 	}
 
-	ApplyGameplayEffectToTarget(
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!IsValid(ASC))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - AbilitySystemComponent is invalid"));
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+	if (!EffectContext.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - EffectContext is invalid"));
+		return;
+	}
+
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
+		ComboAttackDatas[CurrentComboIndex].DamageEffectClass,
+		GetAbilityLevel(),
+		EffectContext
+	);
+	if (!SpecHandle.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - Failed to create GameplayEffectSpec"));
+		return;
+	}
+
+	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage_Base, ComboAttackDatas[CurrentComboIndex].BaseDamage);
+	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage_Multiplier, ComboAttackDatas[CurrentComboIndex].DamageMultiplier);
+
+	ApplyGameplayEffectSpecToTarget(
 		GetCurrentAbilitySpecHandle(),
 		GetCurrentActorInfo(),
 		GetCurrentActivationInfo(),
-		Payload.TargetData,
-		CurrentData.DamageEffectClass,
-		1.0f
+		SpecHandle,
+		Payload.TargetData
 	);
 }
 

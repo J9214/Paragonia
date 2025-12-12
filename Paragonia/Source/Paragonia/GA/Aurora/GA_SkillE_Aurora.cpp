@@ -8,6 +8,7 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/PGGameplayTags.h"
 
 UGA_SkillE_Aurora::UGA_SkillE_Aurora()
 {
@@ -120,13 +121,42 @@ void UGA_SkillE_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
 		return;
 	}
 
-	ApplyGameplayEffectToTarget(
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!IsValid(ASC))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - AbilitySystemComponent is invalid"));
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+	if (!EffectContext.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - EffectContext is invalid"));
+		return;
+	}
+
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
+		AttackData.DamageEffectClass,
+		GetAbilityLevel(),
+		EffectContext
+	);
+	if (!SpecHandle.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - Failed to create GameplayEffectSpec"));
+		return;
+	}
+
+	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage_Base, AttackData.BaseDamage);
+	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage_Multiplier, AttackData.DamageMultiplier);
+
+	ApplyGameplayEffectSpecToTarget(
 		GetCurrentAbilitySpecHandle(),
 		GetCurrentActorInfo(),
 		GetCurrentActivationInfo(),
-		Payload.TargetData,
-		AttackData.DamageEffectClass,
-		1.0f
+		SpecHandle,
+		Payload.TargetData
 	);
 }
 

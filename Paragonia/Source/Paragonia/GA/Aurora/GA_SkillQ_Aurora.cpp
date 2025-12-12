@@ -9,6 +9,7 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/PGGameplayTags.h"
 
 UGA_SkillQ_Aurora::UGA_SkillQ_Aurora()
 {

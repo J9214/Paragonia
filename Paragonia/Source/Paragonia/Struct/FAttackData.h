@@ -26,6 +26,12 @@ public:
     float Radius = 100.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseDamage = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DamageMultiplier = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EPGAttackShape SweepShape = EPGAttackShape::Sphere;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
