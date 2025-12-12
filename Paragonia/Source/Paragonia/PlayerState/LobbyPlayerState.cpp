@@ -6,6 +6,16 @@
 #include "PlayerState/PGPlayerState.h"
 #include "GameMode/LobbyGameModeBase.h"
 
+void ALobbyPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (auto* GS = GetWorld()->GetGameState<ALobbyGameStateBase>())
+	{
+		GS->OnLobbyGameStateChanged.AddDynamic(this, &ALobbyPlayerState::OnGSLobbyStateChangedHandler);
+	}
+}
+
 void ALobbyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -24,6 +34,16 @@ void ALobbyPlayerState::CopyProperties(APlayerState* PlayerState)
 	{
 		// 차후 수정 예정
 	}
+}
+
+void ALobbyPlayerState::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (auto* GS = GetWorld()->GetGameState<ALobbyGameStateBase>())
+	{
+		GS->OnLobbyGameStateChanged.RemoveDynamic(this, &ALobbyPlayerState::OnGSLobbyStateChangedHandler);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void ALobbyPlayerState::ServerSetLobbyState_Implementation(EPlayerLobbyState NewState)
@@ -75,6 +95,23 @@ bool ALobbyPlayerState::ServerSetTeamID_Validate(int32 NewTeamID)
 		return false;
 
 	return true;
+}
+
+void ALobbyPlayerState::OnGSLobbyStateChangedHandler(EGameLobbyState NewState)
+{
+	switch (NewState)
+	{
+	case EGameLobbyState::GLS_WaitingForPlayers:
+		break;
+	case EGameLobbyState::GLS_CharacterSelect:
+		ServerSetLobbyState(EPlayerLobbyState::PLS_Selecting);
+		break;
+	case EGameLobbyState::GLS_GameStarting:
+		ServerSetLobbyState(EPlayerLobbyState::PLS_GameStartWait);
+		break;
+	default:
+		break;
+	}
 }
 
 void ALobbyPlayerState::OnRep_PlayerLobbyState()

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "GameState/LobbyGameStateBase.h"
 #include "LobbyPlayerState.generated.h"
 
 UENUM(BlueprintType)
@@ -13,6 +14,7 @@ enum class EPlayerLobbyState : uint8
 	PLS_MatchingReady,
 	PLS_Selecting,
 	PLS_SelectedAndReady,
+	PLS_GameStartWait,
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyPlayerStateChangedDelegate, EPlayerLobbyState, NewState);
@@ -28,10 +30,13 @@ class PARAGONIA_API ALobbyPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
+	virtual void BeginPlay() override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void CopyProperties(APlayerState* PlayerState) override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	UFUNCTION(BlueprintCallable, Category = "LobbyData")
 	EPlayerLobbyState GetPlayerLobbyState() const { return PlayerLobbyState; }
@@ -52,6 +57,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetTeamID(int32 NewTeamID);
 
+	UFUNCTION()
+	void OnGSLobbyStateChangedHandler(EGameLobbyState NewState);
 public:
 	// Delegates
 	UPROPERTY(BlueprintAssignable, Category = "Events")
