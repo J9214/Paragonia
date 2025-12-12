@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -101,4 +101,28 @@ protected:
 
 private:
 	bool bSpawnMoveLock;
+
+
+#pragma region Respawn
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerRPCSetDeadState(uint8 bDead);
+
+	UFUNCTION()
+	void SetDeadState(uint8 bDead);
+protected:
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_Dead();
+
+	void MovePlayerToRespawnPoint(FVector SpawnLocation, FRotator SpawnRotation);
+
+	FVector GetRespawnLocationForController() const;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Dead)
+	uint8 bIsDead;
+#pragma endregion
+
 };

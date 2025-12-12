@@ -1,4 +1,4 @@
-#include "Character/PGPlayerCharacterBase.h"
+﻿#include "Character/PGPlayerCharacterBase.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -9,6 +9,8 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
+#include "GameMode/PGGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -256,6 +258,9 @@ void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
 	if (Data.NewValue <= 0.0f)
 	{
 		// Call Server RPC (Death Delegate broadcast on server)
+		if (bIsDead == 0.0f) {
+			ServerRPCSetDeadState(true);
+		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::OnHealthChanged - New Health: %f"), Data.NewValue);
@@ -361,3 +366,128 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 		break;
 	}
 }
+
+#pragma region Respawn
+void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(uint8 bDead)
+{
+	SetDeadState(bDead);
+}
+
+void APGPlayerCharacterBase::OnRep_Dead()
+{
+	UE_LOG(LogTemp, Warning, TEXT("PGPlayerCharacterBase: call OnRep_Dead out if"));
+
+	if (bIsDead == 1) { // 사망
+		UE_LOG(LogTemp, Warning, TEXT("OnDeath: %s"), *GetNameSafe(this));
+
+		if (APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Debug_KillMe: call HandleCharacterDeath"));
+			GM->HandleCharacterDeath(this, GetController());
+		}
+
+		// 1) 입력 막기 
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			DisableInput(PC);
+		}
+
+		// 2) 이동 막기 
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			// 완전 정지
+			MoveComp->StopMovementImmediately();
+			MoveComp->DisableMovement();
+		}
+
+		// 3) 충돌 끄기 (총알/근접 공격 맞지 않도록) 
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->SetCollisionProfileName(TEXT("Ragdoll"));
+		}
+
+		// 메시를 숨기고 물리 시체로 만듦
+		//GetMesh()->SetVisibility(false, true);  // 메시 숨기기
+		GetMesh()->SetSimulatePhysics(true);    // 물리 시뮬레이션 활성화 (Ragdoll)
+
+		// 4) 물리 시체 상태로 설정 
+		if (USkeletalMeshComponent* SkelMesh = GetMesh())
+		{
+			SkelMesh->SetCollisionProfileName(TEXT("Ragdoll"));  // 충돌 프로필을 'Ragdoll'로 변경
+			SkelMesh->SetSimulatePhysics(true);  // 물리 시뮬레이션 활성화
+		}
+
+	}
+	else { // 리스폰
+
+		UE_LOG(LogTemp, Warning, TEXT("OnRespawn: %s"), *GetNameSafe(this));
+
+		FVector SpawnLocation = GetRespawnLocationForController();
+		FRotator SpawnRotation = FRotator::ZeroRotator;
+		MovePlayerToRespawnPoint(SpawnLocation, SpawnRotation);
+
+		// 2) 메쉬 다시 보여주기 + 자식까지 전부
+		if (USkeletalMeshComponent* SkelMesh = GetMesh())
+		{
+			SkelMesh->SetVisibility(true, true);
+			SkelMesh->SetSimulatePhysics(false);
+
+			GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+			GetMesh()->SetRelativeLocation({ 0, 0, -90 });
+			GetMesh()->SetRelativeRotation({ 0, -90, 0 });
+
+		}
+
+		// 3) 캡슐, 충돌 다시 활성화
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->SetCollisionProfileName(TEXT("Pawn"));
+		}
+
+		// 4) 이동 다시 켜기	
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->SetMovementMode(MOVE_Walking);
+		}
+
+		// 5) 입력 활성화
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			EnableInput(PC);
+		}
+	}
+}
+
+void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
+{
+	UE_LOG(LogTemp, Warning, TEXT("PGPlayerCharacterBase: call SetDeadState state : %d"), bDead);
+	if (bIsDead == bDead)
+	{
+		return;
+	}
+
+	bIsDead = bDead;
+
+	OnRep_Dead();
+}
+
+void APGPlayerCharacterBase::MovePlayerToRespawnPoint(FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator::ZeroRotator)
+{
+	this->TeleportTo(SpawnLocation, SpawnRotation, false, true);
+}
+
+FVector APGPlayerCharacterBase::GetRespawnLocationForController() const
+{
+	// ************* 원하는 스폰 포인트로 변경해야 함 ************* //
+	FVector Loc = { 0,0,150 };
+	return Loc;
+}
+
+void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APGPlayerCharacterBase, bIsDead);
+}
+
+#pragma endregion
