@@ -67,7 +67,6 @@ void UPG_LobbyWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
     }
 }
 
-//PlayerController에 있는 매칭 상태 데이터에 맞춰서 이 후 동작 변경
 void UPG_LobbyWidget::HandleGameStartClicked()
 {
     switch (ReadyState)

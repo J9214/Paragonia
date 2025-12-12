@@ -7,6 +7,8 @@
 #include "Blueprint/IUserObjectListEntry.h"
 #include "PG_CharacterSelectButton.generated.h"
 
+class UImage;
+class UTextBlock;
 /**
  * 
  */
@@ -17,5 +19,38 @@ class PARAGONIA_API UPG_CharacterSelectButton : public UCommonButtonBase, public
 
 public:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
-	
+
+	virtual void NativeOnInitialized() override;
+
+protected:
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Name;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> IconImage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BackgroundImage;
+
+	UPROPERTY(EditAnywhere, Category = "Style")
+	FLinearColor NormalColor;
+
+	UPROPERTY(EditAnywhere, Category = "Style")
+	FLinearColor HoverColor;
+
+	UPROPERTY(EditAnywhere, Category = "Style")
+	FLinearColor TeamSelectedColor;
+
+	UPROPERTY(EditAnywhere, Category = "Style")
+	FLinearColor MySelectedColor;
+
+	bool Selected = false;
+
+
+	UFUNCTION()
+	void HandleCharacterHovered();
+
+	UFUNCTION()
+	void HandleCharacterUnHovered();
 };
