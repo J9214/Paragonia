@@ -6,11 +6,20 @@
 #include "Components/TextBlock.h"
 #include "CommonButtonBase.h"
 #include "Components/CanvasPanelSlot.h"
+#include "PlayerState/LobbyPlayerState.h"
 
+void UPG_LobbyWidget::SetInit()
+{
+}
 
 void UPG_LobbyWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        LobbyPlayerState = PC->GetPlayerState<ALobbyPlayerState>();
+    }
 
     if (GameStartButton)
     {
@@ -173,10 +182,12 @@ void UPG_LobbyWidget::SetReadyState(ETitleReadyState NewState)
     {
     case ETitleReadyState::Closed:
         StartMoveTo(MatchingInfoClosedPos);
+        LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_NotReady);
         break;
 
     case ETitleReadyState::InfoOnly:
         StartMoveTo(MatchingInfoInfoOnlyPos);
+        LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_MatchingReady);
         break;
 
     case ETitleReadyState::Armed:

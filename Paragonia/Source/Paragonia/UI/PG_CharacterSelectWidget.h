@@ -8,13 +8,18 @@
 
 class UCommonTileView;
 class UPG_CharacterDescription;
+
 /**
  * 
  */
+
 UCLASS()
 class PARAGONIA_API UPG_CharacterSelectWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
+
+public:
+	void SetInit();
 
 protected:
 	UPROPERTY(meta = (BindWidget))

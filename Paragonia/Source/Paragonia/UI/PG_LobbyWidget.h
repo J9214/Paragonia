@@ -9,6 +9,7 @@
 class UCommonButtonBase;
 class UButton;
 class UTextBlock;
+class ALobbyPlayerState;
 
 UENUM(BlueprintType)
 enum class ETitleReadyState : uint8
@@ -26,7 +27,12 @@ class PARAGONIA_API UPG_LobbyWidget : public UCommonActivatableWidget
 {
 	GENERATED_BODY()
 
+public:
+    void SetInit();
+
 protected:
+    UPROPERTY()
+    TWeakObjectPtr<ALobbyPlayerState> LobbyPlayerState;
 
     UPROPERTY(BlueprintReadOnly, Category = "Matching")
     ETitleReadyState ReadyState = ETitleReadyState::Closed;

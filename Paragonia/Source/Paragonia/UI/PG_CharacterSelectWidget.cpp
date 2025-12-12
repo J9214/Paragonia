@@ -18,6 +18,10 @@ void UPG_CharacterSelectWidget::NativeOnInitialized()
     }
 }
 
+void UPG_CharacterSelectWidget::SetInit()
+{
+}
+
 void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
 {
     if (!Item || !CharacterDataTable)
@@ -68,12 +72,11 @@ void UPG_CharacterSelectWidget::InitCharacterList()
         if (!Row)
             continue;
 
-        UCharacterDescriptionWrapper* Wrapper =
-            NewObject<UCharacterDescriptionWrapper>(this); // Outer는 Widget
+        UCharacterDescriptionWrapper* Wrapper = NewObject<UCharacterDescriptionWrapper>(this); 
 
         Wrapper->Data = *Row;
         Items.Add(Wrapper);
     }
 
-    CharacterTileView->SetListItems(Items);
+    CharacterTileView->SetListItems(Items); 
 }
