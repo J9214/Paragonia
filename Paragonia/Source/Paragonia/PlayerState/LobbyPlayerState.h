@@ -20,6 +20,7 @@ enum class EPlayerLobbyState : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyPlayerStateChangedDelegate, EPlayerLobbyState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterIDChangedDelegate, int32, NewCharacterID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTeamIDChangedDelegate, int32, NewTeamID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWaitTimeChangedDelegate, int32, NewTime);
 
 /**
  *
@@ -59,6 +60,7 @@ public:
 
 	UFUNCTION()
 	void OnGSLobbyStateChangedHandler(EGameLobbyState NewState);
+
 public:
 	// Delegates
 	UPROPERTY(BlueprintAssignable, Category = "Events")
@@ -69,6 +71,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnTeamIDChangedDelegate OnTeamIDChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnMatchWaitTimeChangedDelegate OnMatchTimeChanged;
+
 protected:
 	UFUNCTION()
 	void OnRep_PlayerLobbyState();
@@ -79,6 +85,19 @@ protected:
 	UFUNCTION()
 	void OnRep_TeamID();
 
+	UFUNCTION()
+	void OnRep_MatchWaitTime();
+
+protected:
+	UFUNCTION(Category = "Lobby|Matching")
+	void StartMatchingTimer();
+
+	UFUNCTION(Category = "Lobby|Matching")
+	void StopMatchingTimer();
+
+	void IncreaseWaitTime();
+
+	void CheckStateForTimer();
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerLobbyState)
 	EPlayerLobbyState PlayerLobbyState;
@@ -88,4 +107,9 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_TeamID)
 	int32 TeamID;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MatchWaitTime)
+	int32 MatchWaitTime;
+
+	FTimerHandle TimerHandle_MatchWait;
 };

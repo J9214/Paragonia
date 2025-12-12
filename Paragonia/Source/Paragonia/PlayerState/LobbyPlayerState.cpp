@@ -10,6 +10,8 @@ void ALobbyPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
+	MatchWaitTime = 0;
+
 	if (auto* GS = GetWorld()->GetGameState<ALobbyGameStateBase>())
 	{
 		GS->OnLobbyGameStateChanged.AddDynamic(this, &ALobbyPlayerState::OnGSLobbyStateChangedHandler);
@@ -23,6 +25,7 @@ void ALobbyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ThisClass, PlayerLobbyState);
 	DOREPLIFETIME(ThisClass, CharacterID);
 	DOREPLIFETIME(ThisClass, TeamID);
+	DOREPLIFETIME(ThisClass, MatchWaitTime);
 }
 
 void ALobbyPlayerState::CopyProperties(APlayerState* PlayerState)
@@ -51,6 +54,8 @@ void ALobbyPlayerState::ServerSetLobbyState_Implementation(EPlayerLobbyState New
 	PlayerLobbyState = NewState;
 
 	OnRep_PlayerLobbyState();
+
+	CheckStateForTimer();
 }
 
 bool ALobbyPlayerState::ServerSetLobbyState_Validate(EPlayerLobbyState NewState)
@@ -135,5 +140,51 @@ void ALobbyPlayerState::OnRep_TeamID()
 	if (OnTeamIDChanged.IsBound())
 	{
 		OnTeamIDChanged.Broadcast(TeamID);
+	}
+}
+
+void ALobbyPlayerState::OnRep_MatchWaitTime()
+{
+	if (OnMatchTimeChanged.IsBound())
+	{
+		OnMatchTimeChanged.Broadcast(MatchWaitTime);
+	}
+}
+
+void ALobbyPlayerState::StartMatchingTimer()
+{
+	if (HasAuthority())
+	{
+		MatchWaitTime = 0;
+		GetWorldTimerManager().ClearTimer(TimerHandle_MatchWait);
+		GetWorldTimerManager().SetTimer(TimerHandle_MatchWait, this, &ALobbyPlayerState::IncreaseWaitTime, 1.0f, true);
+		OnRep_MatchWaitTime();
+	}
+}
+
+void ALobbyPlayerState::StopMatchingTimer()
+{
+	if (HasAuthority())
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle_MatchWait);
+		MatchWaitTime = 0;
+		OnRep_MatchWaitTime();
+	}
+}
+
+void ALobbyPlayerState::IncreaseWaitTime()
+{
+	MatchWaitTime++;
+}
+
+void ALobbyPlayerState::CheckStateForTimer()
+{
+	if (PlayerLobbyState == EPlayerLobbyState::PLS_MatchingReady)
+	{
+		StartMatchingTimer();
+	}
+	else
+	{
+		StopMatchingTimer();
 	}
 }
