@@ -41,6 +41,8 @@ protected:
 
 	virtual void OnRep_PlayerState() override;
 
+	virtual void OnRep_Controller() override;
+
 	void Move(const FInputActionValue& Value);
 
 	void Look(const FInputActionValue& Value);
@@ -64,7 +66,15 @@ private:
 
 	void InitializeAttributes();
 
+	void InitializeAttributesData();
+
+	void BindAttributeChangeDelegates();
+
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
+	void OnAttackPowerChanged(const FOnAttributeChangeData& Data);
+
+	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -102,6 +112,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
+	FName CharacterName;
 
 private:
 	bool bSpawnMoveLock;
