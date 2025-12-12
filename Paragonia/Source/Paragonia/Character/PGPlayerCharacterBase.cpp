@@ -11,6 +11,8 @@
 #include "Struct/FAttackData.h"
 #include "GameMode/PGGameModeBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Subsystem/PGAttributeDataSubsystem.h"
+#include "Struct/FCharacterAttributeData.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -42,6 +44,8 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	ASC->SetIsReplicated(true);
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -54,23 +58,21 @@ void APGPlayerCharacterBase::PossessedBy(AController* NewController)
 	{
 		InitializeAbilities();
 		InitializeAttributes();
+		InitializeAttributesData();
 	}
 }
 
 void APGPlayerCharacterBase::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
+}
+
+void APGPlayerCharacterBase::OnRep_Controller()
+{
+	Super::OnRep_Controller();
 
 	InitializeActorInfo();
-
-	APGPlayerState* PS = GetPlayerState<APGPlayerState>();
-	if (!IsValid(PS))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributes - PlayerState is not valid"));
-		return;
-	}
-
-	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+	BindAttributeChangeDelegates();
 }
 
 void APGPlayerCharacterBase::BeginPlay()
@@ -244,28 +246,75 @@ void APGPlayerCharacterBase::InitializeAttributes()
 		return;
 	}
 
-	for (UAttributeSet* AttributeSet : PS->GetAllAttributeSets())
+	ASC->AddAttributeSetSubobject<UCharacterAttributeSet>(CharacterAttributeSet);
+
+	BindAttributeChangeDelegates();
+}
+
+void APGPlayerCharacterBase::InitializeAttributesData()
+{
+	if (!HasAuthority())
 	{
-		if (IsValid(AttributeSet))
-		{
-			ASC->AddAttributeSetSubobject(AttributeSet);
-		}
+		return;
 	}
+
+	if (!IsValid(CharacterAttributeSet))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - CharacterAttributeSet is not valid"));
+		return;
+	}
+
+	UPGAttributeDataSubsystem* AttributeSubsystem = GetGameInstance()->GetSubsystem<UPGAttributeDataSubsystem>();
+	if (!IsValid(AttributeSubsystem))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - AttributeSubsystem is not valid"));
+		return;
+	}
+
+	const FCharacterAttributeData* AttributeData = AttributeSubsystem->GetAttributeDataByName(CharacterName);
+	if (AttributeData)
+	{
+		CharacterAttributeSet->InitMaxHealth(AttributeData->MaxHealth);
+		CharacterAttributeSet->InitHealth(AttributeData->Health);
+		CharacterAttributeSet->InitAttackPower(AttributeData->AttackPower);
+		CharacterAttributeSet->InitMoveSpeed(AttributeData->MoveSpeed);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - No AttributeData found for %s"), *CharacterName.ToString());
+	}
+}
+
+void APGPlayerCharacterBase::BindAttributeChangeDelegates()
+{
+	if (!IsValid(ASC))
+	{
+		return;
+	}
+
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetAttackPowerAttribute()).AddUObject(this, &ThisClass::OnAttackPowerChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ThisClass::OnMoveSpeedChanged);
 }
 
 void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
 {
 	if (Data.NewValue <= 0.0f)
 	{
-		// Call Server RPC (Death Delegate broadcast on server)
 		if (bIsDead == 0.0f) {
 			ServerRPCSetDeadState(true);
 		}
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::OnHealthChanged - New Health: %f"), Data.NewValue);
 }
 
+void APGPlayerCharacterBase::OnAttackPowerChanged(const FOnAttributeChangeData& Data)
+{
+}
+
+void APGPlayerCharacterBase::OnMoveSpeedChanged(const FOnAttributeChangeData& Data)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+}
 
 UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
 {

@@ -49,9 +49,6 @@ private:
 	UFUNCTION()
 	void OnDashStartEvent(const FGameplayEventData Payload);
 
-	UFUNCTION()
-	void OnDashStopEvent(const FGameplayEventData Payload);
-
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	FAttackData AttackData;
