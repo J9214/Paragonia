@@ -27,6 +27,12 @@ protected:
 	UFUNCTION(Category = UI)
 	void ShowMatchStart();
 
+	UFUNCTION()
+	void SetupLobbyUI();
+
+	UFUNCTION()
+	void HandleLobbyStateChanged(EGameLobbyState NewState);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI, Meta = (AllowPrivateAccess))
 	TSubclassOf<UPG_LobbyWidget> MatchStartUIWidgetClass;

@@ -5,6 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UI/PG_LobbyWidget.h"
 #include "UI/PG_CharacterSelectWidget.h"
+#include "GameState/LobbyGameStateBase.h"
 
 void ALobbyPlayerController::BeginPlay()
 {
@@ -39,8 +40,7 @@ void ALobbyPlayerController::BeginPlay()
     FInputModeUIOnly InputMode;
     SetInputMode(InputMode);
 
-	// delegate 등록하기
-
+    SetupLobbyUI();
 }
 
 void ALobbyPlayerController::ShowCharacterSelect()
@@ -54,7 +54,7 @@ void ALobbyPlayerController::ShowCharacterSelect()
     {
         CharSelectUIWidgetInstance->SetVisibility(ESlateVisibility::Visible);
 
-        // CharSelectUIWidgetInstance->Init(); 
+        CharSelectUIWidgetInstance->SetInit(); 
     }
 }
 
@@ -68,5 +68,38 @@ void ALobbyPlayerController::ShowMatchStart()
     if (MatchStartUIWidgetInstance)
     {
         MatchStartUIWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void ALobbyPlayerController::SetupLobbyUI()
+{
+    ALobbyGameStateBase* LobbyGS = GetWorld()->GetGameState<ALobbyGameStateBase>();
+
+    if (IsValid(LobbyGS))
+    {
+        LobbyGS->OnLobbyGameStateChanged.AddDynamic(this, &ALobbyPlayerController::HandleLobbyStateChanged);
+
+        HandleLobbyStateChanged(LobbyGS->GetCurrentLobbyState());
+    }
+    else
+    {
+        GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ALobbyPlayerController::SetupLobbyUI);
+    }
+}
+
+void ALobbyPlayerController::HandleLobbyStateChanged(EGameLobbyState NewState)
+{
+    switch (NewState)
+    {
+    case EGameLobbyState::GLS_WaitingForPlayers:
+        ShowMatchStart();
+        break;
+    case EGameLobbyState::GLS_CharacterSelect:
+        ShowCharacterSelect();
+        break;
+    case EGameLobbyState::GLS_GameStarting:
+        break;
+    default:
+        break;
     }
 }
