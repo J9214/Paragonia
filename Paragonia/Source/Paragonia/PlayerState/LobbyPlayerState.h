@@ -49,13 +49,13 @@ public:
 	int32 GetTeamID() const { return TeamID; }
 
 	// Client -> Server RPC
-	UFUNCTION(Server, Reliable, WithValidation)
+	UFUNCTION(Server, Reliable)
 	void ServerSetLobbyState(EPlayerLobbyState NewState);
 
-	UFUNCTION(Server, Reliable, WithValidation)
+	UFUNCTION(Server, Reliable)
 	void ServerSetCharacterID(int32 NewID);
 
-	UFUNCTION(Server, Reliable, WithValidation)
+	UFUNCTION(Server, Reliable)
 	void ServerSetTeamID(int32 NewTeamID);
 
 	UFUNCTION()

@@ -51,6 +51,9 @@ void ALobbyPlayerState::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ALobbyPlayerState::ServerSetLobbyState_Implementation(EPlayerLobbyState NewState)
 {
+	if (NewState == PlayerLobbyState)
+		return;
+
 	PlayerLobbyState = NewState;
 
 	OnRep_PlayerLobbyState();
@@ -58,48 +61,30 @@ void ALobbyPlayerState::ServerSetLobbyState_Implementation(EPlayerLobbyState New
 	CheckStateForTimer();
 }
 
-bool ALobbyPlayerState::ServerSetLobbyState_Validate(EPlayerLobbyState NewState)
-{
-	if(NewState == PlayerLobbyState)
-		return false;
-
-	return true;
-}
-
 void ALobbyPlayerState::ServerSetCharacterID_Implementation(int32 NewID)
 {
+	if (NewID < 0)
+		return;
+
+	if (NewID == CharacterID)
+		return;
+
 	CharacterID = NewID;
 
 	OnRep_CharacterID();
 }
 
-bool ALobbyPlayerState::ServerSetCharacterID_Validate(int32 NewID)
-{
-	if (NewID < 0)
-		return false;
-
-	if (NewID == CharacterID)
-		return false;
-
-	return true;
-}
-
 void ALobbyPlayerState::ServerSetTeamID_Implementation(int32 NewTeamID)
 {
+	if (NewTeamID < 0)
+		return;
+
+	if (NewTeamID == TeamID)
+		return;
+
 	TeamID = NewTeamID;
 
 	OnRep_TeamID();
-}
-
-bool ALobbyPlayerState::ServerSetTeamID_Validate(int32 NewTeamID)
-{
-	if (NewTeamID < 0)
-		return false;
-
-	if (NewTeamID == TeamID)
-		return false;
-
-	return true;
 }
 
 void ALobbyPlayerState::OnGSLobbyStateChangedHandler(EGameLobbyState NewState)
