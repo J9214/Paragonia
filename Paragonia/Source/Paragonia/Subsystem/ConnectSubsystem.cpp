@@ -163,7 +163,7 @@ void UConnectSubsystem::ServerTravelToLevel(FString LevelName)
 		return;
 	}
 
-	FString Url = FString::Printf(TEXT("/Game/Paragonia/Maps/%s?listen"), *LevelName);
+	FString Url = FString::Printf(TEXT("%s?listen"), *LevelName);
 
 	UE_LOG(LogTemp, Log, TEXT("[Server] ServerTravel to: %s"), *Url);
 
