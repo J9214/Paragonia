@@ -17,8 +17,6 @@ void UPG_CharacterSelectWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    CheckPlayerState();
-
     if (UGameInstance* GI = GetGameInstance())
     {
         CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
@@ -46,6 +44,7 @@ void UPG_CharacterSelectWidget::NativeOnInitialized()
 
 void UPG_CharacterSelectWidget::SetInit()
 {
+    CheckPlayerState();
 }
 
 void UPG_CharacterSelectWidget::SetPlayerCharacterIcon(int index, int CharacterUID)
