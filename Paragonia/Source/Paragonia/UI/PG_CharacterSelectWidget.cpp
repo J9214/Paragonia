@@ -113,7 +113,13 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
     }
 
     RefreshCharacterTileView();
-    ////임시 선택도 서버에서 관리하는거 있었으면 함
+
+    if (CheckPlayerState())
+    {
+        LobbyPlayerState->ServerSetCharacterID(Entry->Data.UID);
+    }
+    else
+        UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
 
     CharacterDescription->InitDescription(*DetailRow);
 
@@ -139,7 +145,9 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
 void UPG_CharacterSelectWidget::HandlePlayerReadyClicked()
 {
     if (CheckPlayerState())
-        LobbyPlayerState->ServerSetCharacterID(SelectedCharacterUID);
+    {
+        LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_SelectedAndReady);
+    }
     else
         UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
 
@@ -165,21 +173,31 @@ void UPG_CharacterSelectWidget::HandlePlayerReadyClicked()
 
 void UPG_CharacterSelectWidget::HandleAnyCharacterIDChanged(int32 NewCharacterID)
 {
+    if (Player1Icon)
+    {
+        Player1Icon->SetPlayerIcon(NewCharacterID);
+    }
+
+    RefreshCharacterTileView();
+}
+
+void UPG_CharacterSelectWidget::HandlePlayerSelected(EPlayerLobbyState LobbyState)
+{
+    if (LobbyState != EPlayerLobbyState::PLS_SelectedAndReady)
+        return;
+
     TArray<UObject*> Items = CharacterTileView->GetListItems();
 
     for (UObject* Item : Items)
     {
-        if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
-            RowItem->bTeamSelected = (RowItem->Data.UID == NewCharacterID);
+        //if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+            //RowItem->bTeamSelected = (RowItem->Data.UID == NewCharacterID);
     }
 
     if (Player1Icon)
     {
-        Player1Icon->SetPlayerIcon(NewCharacterID);
         Player1Icon->ApplyIcon();
     }
-
-    RefreshCharacterTileView();
 }
 
 void UPG_CharacterSelectWidget::RefreshCharacterTileView()
@@ -242,6 +260,9 @@ bool UPG_CharacterSelectWidget::CheckPlayerState()
         if (!LPS || LPS == LobbyPlayerState) continue;
 
         LPS->OnCharacterIDChanged.AddUniqueDynamic(this, &ThisClass::HandleAnyCharacterIDChanged);
+        LPS->OnLobbyPlayerStateChanged.AddUniqueDynamic(this, &ThisClass::HandlePlayerSelected);
+        //OnLobbyPlayerStateChanged에 어떤 캐릭터 선택했는지도 알수 있었으면 합니다 ㅠ
+        //PlayerState 전부 순회하면서 선택된거 for문돌리면 기능은 구현 가능한데 많이 과한거 같아서요... 
     }
     return true;
 }

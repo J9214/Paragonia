@@ -65,6 +65,9 @@ protected:
 	void HandleAnyCharacterIDChanged(int32 NewCharacterID);
 
 	UFUNCTION()
+	void HandlePlayerSelected(EPlayerLobbyState LobbyState);
+
+	UFUNCTION()
 	void RefreshCharacterTileView();
 
 	void InitCharacterList();
