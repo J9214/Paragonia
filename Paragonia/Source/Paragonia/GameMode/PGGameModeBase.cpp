@@ -8,6 +8,8 @@
 #include "TimerManager.h"
 #include "GameState/PGGameStateBase.h"
 #include "Controller/PGPlayerController.h"
+#include "EngineUtils.h"
+#include "Object/PGNexus.h"
 
 APGGameModeBase::APGGameModeBase()
 {
@@ -58,6 +60,15 @@ void APGGameModeBase::BeginPlay()
         0.5f,
         true
     );
+
+    for (TActorIterator<APGNexus> It(GetWorld()); It; ++It)
+    {
+        APGNexus* Nexus = *It;
+        if (Nexus && Nexus->ActorHasTag(FName("Nexus")))
+        {
+            Nexus->OnNexusDestroyed.AddDynamic(this, &APGGameModeBase::OnObjectiveDestroyed);
+        }
+    }
 }
 
 #pragma region DeathAndRespawn
@@ -68,9 +79,6 @@ void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter
     {
         return;
     }
-
-    UE_LOG(LogTemp, Warning, TEXT("HandleCharacterDeath: %s died"),
-        *GetNameSafe(DeadCharacter));
 
 
     AController* DeadController = DeadCharacter->GetController();
@@ -102,7 +110,6 @@ void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter
         Info.RespawnTime = GetWorld()->GetTimeSeconds() + RespawnDelay;
 
         PendingRespawns.Add(Info);
-        UE_LOG(LogTemp, Warning, TEXT("PendingRespawn Size %d"), PendingRespawns.Num());
     }
 }
 
@@ -110,7 +117,6 @@ void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter
 void APGGameModeBase::TickRespawn()
 {
     const float CurrentTime = GetWorld()->GetTimeSeconds();
-    //UE_LOG(LogTemp, Warning, TEXT("CurrentTime %f"), CurrentTime);
 
     for (int32 i = PendingRespawns.Num() - 1; i >= 0; --i)
     {
@@ -123,9 +129,6 @@ void APGGameModeBase::TickRespawn()
 
         if (CurrentTime >= Info.RespawnTime)
         {
-            UE_LOG(LogTemp, Warning, TEXT("TickRespawn: Respawning %s"),
-                *GetNameSafe(Info.Controller.Get()));
-
             RespawnPlayer(Info.Controller.Get());
             PendingRespawns.RemoveAt(i);
         }
@@ -139,7 +142,6 @@ void APGGameModeBase::RespawnPlayer(APGPlayerController* Controller)
     {
         return;
     }
-    UE_LOG(LogTemp, Warning, TEXT("RespawnPlayer: %s"), *GetNameSafe(Controller));
 
     if (APGPlayerCharacterBase* PGChar = Cast<APGPlayerCharacterBase>(Controller->GetPawn()))
     {
@@ -150,4 +152,25 @@ void APGGameModeBase::RespawnPlayer(APGPlayerController* Controller)
     DeadPlayerControllers.Remove(Controller);
     AlivePlayerControllers.AddUnique(Cast<APGPlayerController>(Controller));
 }
+
 #pragma endregion DeathAndRespawn
+
+#pragma region EndGame
+
+void APGGameModeBase::OnObjectiveDestroyed(AActor* DestroyedActor)
+{
+    APGGameStateBase* GS = GetGameState<APGGameStateBase>();
+    if (!GS) return;
+
+    if (!HasAuthority()) return;
+
+    if (DestroyedActor->ActorHasTag("Team1Nexus"))
+        GS->TeamResult = ETeamResult::Team2Win;
+    else if (DestroyedActor->ActorHasTag("Team2Nexus"))
+        GS->TeamResult = ETeamResult::Team1Win;
+
+    UE_LOG(LogTemp, Warning, TEXT("Nexus destroyed, TeamResult updated on server."));
+}
+
+
+#pragma endregion EndGame

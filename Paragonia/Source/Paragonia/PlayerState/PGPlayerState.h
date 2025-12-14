@@ -1,14 +1,31 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "PGPlayerState.generated.h"
 
+UENUM(BlueprintType)
+enum class ETeamType : uint8 { None, Team1, Team2 };
+
 UCLASS()
-class PARAGONIA_API APGPlayerState : public APlayerState
+class PARAGONIA_API APGPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-	
+
 public:
 	APGPlayerState();
+
+	virtual void BeginPlay() override;
+
+#pragma region Team
+public:
+	UFUNCTION()
+	void OnRep_TeamType();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_TeamType)
+	ETeamType TeamType = ETeamType::None;
+
+#pragma endregion Team
 };

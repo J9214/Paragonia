@@ -8,6 +8,7 @@ class APGPlayerCharacterBase;
 class APGPlayerController;
 class AController;
 class APGPlayerState;
+class APGNexus;
 
 USTRUCT(BlueprintType)
 struct FPGRespawnInfo
@@ -64,5 +65,18 @@ protected:
     //UPROPERTY(EditDefaultsOnly, Category = "PG|Respawn")
     //float RespawnTimePerLevel = 1.f;
 #pragma endregion DeathAndRespawn
+
+#pragma region Nexus
+public: 
+    // 사실상 GameOver
+    UFUNCTION()
+    void OnObjectiveDestroyed(AActor* DestroyedActor);
+
+protected:
+    UPROPERTY()
+    bool bIsGameWin;
+
+
+#pragma endregion
 
 };
