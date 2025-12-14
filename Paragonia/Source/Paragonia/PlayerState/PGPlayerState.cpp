@@ -5,7 +5,6 @@
 
 APGPlayerState::APGPlayerState()
 {
-	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 }
 
 void APGPlayerState::BeginPlay()
@@ -13,25 +12,7 @@ void APGPlayerState::BeginPlay()
 	Super::BeginPlay();
 
 	TeamType = ETeamType::Team1;
-	AllAttributeSets.Add(CharacterAttributeSet);
 }
-
-UAbilitySystemComponent* APGPlayerState::GetAbilitySystemComponent() const
-{
-	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(GetPawn());
-	if (PlayerCharacter)
-	{
-		return PlayerCharacter->GetAbilitySystemComponent();
-	}
-
-	return nullptr;
-}
-
-TArray<UAttributeSet*> APGPlayerState::GetAllAttributeSets() const
-{
-	return AllAttributeSets;
-}
-
 
 #pragma region Team
 
