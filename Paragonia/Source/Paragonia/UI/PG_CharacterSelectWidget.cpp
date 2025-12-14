@@ -3,47 +3,127 @@
 
 #include "UI/PG_CharacterSelectWidget.h"
 #include "CommonTileView.h"
-#include "Struct/CharacterDescriptionWrapper.h"
 #include "UI/PG_CharacterDescription.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Subsystem/PGCharacterDescriptionSubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Struct/CharacterDescriptionWrapper.h"
+#include "PG_PlayerIcon.h"
+#include "Components/Button.h"
+#include "PG_CharacterSelectButton.h"
+#include "PlayerState/LobbyPlayerState.h"
 
 void UPG_CharacterSelectWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    InitCharacterList();
+    CheckPlayerState();
+
+    if (UGameInstance* GI = GetGameInstance())
+    {
+        CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
+    }
+
+    if (!CharacterDescSubsys)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CharacterDescSubsys is null (PGCharacterDescriptionSubsystem)."));
+        return;
+    }
+
     if (CharacterTileView)
     {
         CharacterTileView->OnItemClicked().AddUObject(this, &ThisClass::HandleCharacterItemClicked);
     }
+
+    if (ReadyButton)
+    {
+        ReadyButton->OnClicked.AddDynamic(this, &ThisClass::HandlePlayerReadyClicked);
+        ReadyButton->SetIsEnabled(false);
+    }
+
+    InitCharacterList();
 }
 
 void UPG_CharacterSelectWidget::SetInit()
 {
 }
 
+void UPG_CharacterSelectWidget::SetPlayerCharacterIcon(int index, int CharacterUID)
+{
+    switch (index)
+    {
+    case 0:
+        Player0Icon->SetPlayerIcon(CharacterUID);
+        break;
+    case 1:
+        Player1Icon->SetPlayerIcon(CharacterUID);
+        break;
+    case 2:
+        Player2Icon->SetPlayerIcon(CharacterUID);
+        break;
+    default:
+        break;
+    }
+}
+
+void UPG_CharacterSelectWidget::SetPlayerReady(int index)
+{
+    switch (index)
+    {
+    case 0:
+        Player0Icon->ApplyIcon();
+        break;
+    case 1:
+        Player1Icon->ApplyIcon();
+        break;
+    case 2:
+        Player2Icon->ApplyIcon();
+        break;
+    default:
+        break;
+    }
+}
+
 void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
 {
-    if (!Item || !CharacterDataTable)
+    if (!Item || !CharacterDescSubsys || !CharacterDescription)
         return;
 
     UCharacterDescriptionWrapper* Entry = Cast<UCharacterDescriptionWrapper>(Item);
     if (!Entry)
         return;
 
-    FName RowName = Entry->Data.Id;
+    ReadyButton->SetIsEnabled(true);
 
-    const FCharacterDescription* DetailRow =
-        CharacterDataTable->FindRow<FCharacterDescription>(RowName, TEXT("CharacterSelect"));
+    const FCharacterDescription* DetailRow = CharacterDescSubsys->GetCharacterDescription(Entry->RowName);
 
     if (!DetailRow)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Character row '%s' not found in CharacterDataTable"),
-            *RowName.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("Character row '%s' not found in CharacterDataTable"), *(Entry->RowName).ToString());
         return;
     }
 
+    TArray<UObject*> Items = CharacterTileView->GetListItems();
+    for (UObject* Item : Items)
+    {
+        if (UCharacterDescriptionWrapper* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        {
+            int RowUID = RowItem->Data.UID;
+            RowItem->bSelected = (RowUID == Entry->Data.UID);
+        }
+    }
+
+    RefreshCharacterTileView();
+    ////임시 선택도 서버에서 관리하는거 있었으면 함
+
     CharacterDescription->InitDescription(*DetailRow);
+
+    SelectedCharacterUID = Entry->Data.UID;
+
+    if (Player0Icon)
+    {
+        Player0Icon->SetPlayerIcon(Entry->RowName);
+    }
 
     if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(CharacterDescription->Slot))
     {
@@ -55,28 +135,115 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
         }
     }
 }
+    
+
+void UPG_CharacterSelectWidget::HandlePlayerReadyClicked()
+{
+    if (CheckPlayerState())
+        LobbyPlayerState->ServerSetCharacterID(SelectedCharacterUID);
+    else
+        UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
+
+    TArray<UObject*> Items = CharacterTileView->GetListItems();
+
+    for (UObject* Item : Items)
+    {
+        if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        {
+            RowItem->bPlayerSelected = (RowItem->Data.UID == SelectedCharacterUID);
+            RowItem->bCheckCanSelected = false;
+        }
+    }
+
+    if (Player0Icon)
+    {
+        Player0Icon->ApplyIcon();
+    }
+
+    RefreshCharacterTileView();
+    ReadyButton->SetIsEnabled(false);
+}
+
+void UPG_CharacterSelectWidget::HandleAnyCharacterIDChanged(int32 NewCharacterID)
+{
+    TArray<UObject*> Items = CharacterTileView->GetListItems();
+
+    for (UObject* Item : Items)
+    {
+        if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+            RowItem->bTeamSelected = (RowItem->Data.UID == NewCharacterID);
+    }
+
+    if (Player1Icon)
+    {
+        Player1Icon->SetPlayerIcon(NewCharacterID);
+        Player1Icon->ApplyIcon();
+    }
+
+    RefreshCharacterTileView();
+}
+
+void UPG_CharacterSelectWidget::RefreshCharacterTileView()
+{
+    TArray<UUserWidget*> Displayed;
+    Displayed = CharacterTileView->GetDisplayedEntryWidgets();
+
+    for (UUserWidget* Widget : Displayed)
+    {
+        if (UPG_CharacterSelectButton* Btn = Cast<UPG_CharacterSelectButton>(Widget))
+        {
+            UObject* ListItemObj = Btn->GetListItem();
+
+            if (UCharacterDescriptionWrapper* Wrap = Cast<UCharacterDescriptionWrapper>(ListItemObj))
+            {
+                Btn->ApplySelectedVisual(Wrap);
+            }
+        }
+    }
+}
 
 void UPG_CharacterSelectWidget::InitCharacterList()
 {
-    if (!CharacterTileView || !CharacterDataTable)
+    if (!CharacterTileView || !CharacterDescSubsys)
         return;
 
     TArray<UObject*> Items;
 
-    const TMap<FName, uint8*>& RowMap = CharacterDataTable->GetRowMap();
+    const TArray<FName> RowNames = CharacterDescSubsys->GetAllRowNames();
 
-    for (const TPair<FName, uint8*>& Pair : RowMap)
+    for (const FName& RowName : RowNames)
     {
-        const FName RowName = Pair.Key;
-        FCharacterDescription* Row = reinterpret_cast<FCharacterDescription*>(Pair.Value);
-        if (!Row)
-            continue;
+        const FCharacterDescription* Row = CharacterDescSubsys->GetCharacterDescription(RowName);
+        if (!Row) continue;
 
-        UCharacterDescriptionWrapper* Wrapper = NewObject<UCharacterDescriptionWrapper>(this); 
-
-        Wrapper->Data = *Row;
+        UCharacterDescriptionWrapper* Wrapper = NewObject<UCharacterDescriptionWrapper>(this);
+        Wrapper->RowName = RowName;
+        Wrapper->Data = *Row; 
         Items.Add(Wrapper);
     }
 
-    CharacterTileView->SetListItems(Items); 
+    CharacterTileView->SetListItems(Items);
 }
+
+bool UPG_CharacterSelectWidget::CheckPlayerState()
+{
+    if (LobbyPlayerState)
+        return true;
+
+    ALobbyPlayerState* FoundPS = Cast<ALobbyPlayerState>(GetOwningPlayerState());
+    if (!FoundPS)
+        return false;
+
+    LobbyPlayerState = FoundPS;
+
+    ALobbyGameStateBase* GS = GetWorld()->GetGameState<ALobbyGameStateBase>();
+    for (APlayerState* PS : GS->PlayerArray)
+    {
+        ALobbyPlayerState* LPS = Cast<ALobbyPlayerState>(PS);
+        if (!LPS || LPS == LobbyPlayerState) continue;
+
+        LPS->OnCharacterIDChanged.AddUniqueDynamic(this, &ThisClass::HandleAnyCharacterIDChanged);
+    }
+    return true;
+}
+

@@ -184,7 +184,7 @@ void UPG_LobbyWidget::SetReadyState(ETitleReadyState NewState)
 {
     if (ReadyState == NewState)
         return;
-
+    ETitleReadyState originState = ReadyState;
     ReadyState = NewState;
 
     switch (ReadyState)
@@ -200,6 +200,9 @@ void UPG_LobbyWidget::SetReadyState(ETitleReadyState NewState)
 
     case ETitleReadyState::InfoOnly:
         StartMoveTo(MatchingInfoInfoOnlyPos);
+
+        if (originState == ETitleReadyState::Armed)
+            return;
 
         if(CheckPlayerState())
             LobbyPlayerState->ServerSetLobbyState(EPlayerLobbyState::PLS_MatchingReady);

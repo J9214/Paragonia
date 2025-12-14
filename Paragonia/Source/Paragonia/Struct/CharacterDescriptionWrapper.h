@@ -14,7 +14,22 @@ UCLASS()
 class PARAGONIA_API UCharacterDescriptionWrapper : public UObject
 {
 	GENERATED_BODY()
-
 public:
+	UPROPERTY()
+	FName RowName;
+
+	UPROPERTY()
 	FCharacterDescription Data;
+
+	UPROPERTY()
+	bool bSelected = false;
+
+	UPROPERTY()
+	bool bTeamSelected = false;
+
+	UPROPERTY()
+	bool bPlayerSelected = false;
+
+	UPROPERTY()
+	bool bCheckCanSelected = true;
 };

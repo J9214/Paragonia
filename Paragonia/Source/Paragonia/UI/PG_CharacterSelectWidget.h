@@ -7,7 +7,11 @@
 #include "PG_CharacterSelectWidget.generated.h"
 
 class UCommonTileView;
+class UButton;
 class UPG_CharacterDescription;
+class UPGCharacterDescriptionSubsystem;
+class UPG_PlayerIcon;
+class ALobbyPlayerState;
 
 /**
  * 
@@ -21,6 +25,9 @@ class PARAGONIA_API UPG_CharacterSelectWidget : public UCommonActivatableWidget
 public:
 	void SetInit();
 
+	void SetPlayerCharacterIcon(int index, int CharacterUID);
+	void SetPlayerReady(int index);
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonTileView> CharacterTileView;
@@ -28,17 +35,44 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_CharacterDescription> CharacterDescription;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Data")
-	TObjectPtr<UDataTable> CharacterDataTable;
+	UPROPERTY(meta= (BindWidget))
+	TObjectPtr<UPG_PlayerIcon> Player0Icon;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_PlayerIcon> Player1Icon;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_PlayerIcon> Player2Icon;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ReadyButton;
+
+	UPROPERTY()
+	TObjectPtr<ALobbyPlayerState> LobbyPlayerState;
+
+	UPROPERTY()
+	TObjectPtr<UPGCharacterDescriptionSubsystem> CharacterDescSubsys;
 
 	virtual void NativeOnInitialized() override;
 
 	UFUNCTION()
 	void HandleCharacterItemClicked(UObject* Item);
 
+	UFUNCTION()
+	void HandlePlayerReadyClicked();
+
+	UFUNCTION()
+	void HandleAnyCharacterIDChanged(int32 NewCharacterID);
+
+	UFUNCTION()
+	void RefreshCharacterTileView();
+
 	void InitCharacterList();
+
+	bool CheckPlayerState();
 
 	UPROPERTY(EditAnywhere, Category = "Description")
 	FVector2D DescriptionPos;
 
+	int32 SelectedCharacterUID;
 };

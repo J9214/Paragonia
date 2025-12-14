@@ -9,6 +9,8 @@
 
 class UImage;
 class UTextBlock;
+class UCharacterDescriptionWrapper;
+
 /**
  * 
  */
@@ -22,6 +24,8 @@ public:
 
 	virtual void NativeOnInitialized() override;
 
+	UFUNCTION()
+	void ApplySelectedVisual(UCharacterDescriptionWrapper* Warp);
 protected:
 
 	UPROPERTY(meta = (BindWidget))
@@ -32,6 +36,12 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> BackgroundImage;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> OutLineImage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Cover;
 
 	UPROPERTY(EditAnywhere, Category = "Style")
 	FLinearColor NormalColor;
@@ -40,17 +50,26 @@ protected:
 	FLinearColor HoverColor;
 
 	UPROPERTY(EditAnywhere, Category = "Style")
+	FLinearColor SelectedColor;
+
+	UPROPERTY(EditAnywhere, Category = "Style")
 	FLinearColor TeamSelectedColor;
 
 	UPROPERTY(EditAnywhere, Category = "Style")
 	FLinearColor MySelectedColor;
-
-	bool Selected = false;
-
 
 	UFUNCTION()
 	void HandleCharacterHovered();
 
 	UFUNCTION()
 	void HandleCharacterUnHovered();
+
+	UFUNCTION()
+	void HandleCharacterSelected();
+
+	int32 CharacterUID;
+	bool bSelected;
+	bool bTeamSelected;
+	bool bPlayerSelected;
+	bool bCheckCanSelected;
 };

@@ -12,7 +12,7 @@ struct FCharacterDescription : public FTableRowBase
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Id;
+    int32 UID;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FText DisplayName;
