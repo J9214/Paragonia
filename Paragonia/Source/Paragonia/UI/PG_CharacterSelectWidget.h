@@ -12,7 +12,7 @@ class UPG_CharacterDescription;
 class UPGCharacterDescriptionSubsystem;
 class UPG_PlayerIcon;
 class ALobbyPlayerState;
-
+class APG_LobbyPreviewCharacter;
 /**
  * 
  */
@@ -27,6 +27,9 @@ public:
 
 	void SetPlayerCharacterIcon(int index, int CharacterUID);
 	void SetPlayerReady(int index);
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnPreviewActorIfNeeded();
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -52,6 +55,12 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UPGCharacterDescriptionSubsystem> CharacterDescSubsys;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Preview")
+	TSubclassOf<APG_LobbyPreviewCharacter> PreviewActorClass;
+
+	UPROPERTY()
+	TObjectPtr<APG_LobbyPreviewCharacter> PreviewActorInstance;
 
 	virtual void NativeOnInitialized() override;
 

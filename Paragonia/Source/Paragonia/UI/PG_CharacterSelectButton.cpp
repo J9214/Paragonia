@@ -7,9 +7,22 @@
 #include "Components/TextBlock.h"
 #include "PlayerState/LobbyPlayerState.h"
 #include "GameState/LobbyGameStateBase.h"
+#include "Subsystem/PGStringTableSubsystem.h"
 
 void UPG_CharacterSelectButton::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
+
+    if (UGameInstance* GI = GetGameInstance())
+    {
+        StringTableSubsys = GI->GetSubsystem<UPGStringTableSubsystem>();
+    }
+
+    if ( !StringTableSubsys)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CharacterDescSubsys is null (PGStringTableSubsystem)."));
+        return;
+    }
+
     auto* Entry = Cast<UCharacterDescriptionWrapper>(ListItemObject);
     if (!Entry)
         return;
@@ -29,7 +42,7 @@ void UPG_CharacterSelectButton::NativeOnListItemObjectSet(UObject* ListItemObjec
     }
 
     if (Name)
-        Name->SetText(Desc.DisplayName);
+        Name->SetText(StringTableSubsys->GetText(ELanguageType::English, Desc.DisplayName));
 
     if(BackgroundImage)
         BackgroundImage->SetColorAndOpacity(NormalColor);

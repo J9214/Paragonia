@@ -9,6 +9,7 @@
 
 class UButton;
 class UTextBlock;
+class UPGStringTableSubsystem;
 
 /**
  * 
@@ -22,6 +23,9 @@ public:
 	void InitDescription(const FCharacterDescription& InDesc);
 
 protected:
+
+	UPROPERTY()
+	TObjectPtr<UPGStringTableSubsystem> StringTableSubsys;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> CharacterName;

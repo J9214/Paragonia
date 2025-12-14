@@ -15,30 +15,48 @@ public:
     int32 UID;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText DisplayName;
+    FName DisplayName;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText Skill1Name;
+    FName Skill1Name;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText Skill1Description;
+    FName Skill1Description;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText Skill2Name;
+    FName Skill2Name;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText Skill2Description;
+    FName Skill2Description;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText Skill3Name;
+    FName Skill3Name;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FText Skill3Description;
+    FName Skill3Description;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<UTexture2D> BoxIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<UTexture2D> CircleIcon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<USkeletalMesh> LobbyMesh;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftClassPtr<UAnimInstance> LobbyAnimBP;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> IntroMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> Skill1Montage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> Skill2Montage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> Skill3Montage;
 };
 

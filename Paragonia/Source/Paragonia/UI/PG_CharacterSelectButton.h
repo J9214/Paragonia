@@ -10,7 +10,7 @@
 class UImage;
 class UTextBlock;
 class UCharacterDescriptionWrapper;
-
+class UPGStringTableSubsystem;
 /**
  * 
  */
@@ -27,6 +27,9 @@ public:
 	UFUNCTION()
 	void ApplySelectedVisual(UCharacterDescriptionWrapper* Warp);
 protected:
+
+	UPROPERTY()
+	TObjectPtr<UPGStringTableSubsystem> StringTableSubsys;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Name;

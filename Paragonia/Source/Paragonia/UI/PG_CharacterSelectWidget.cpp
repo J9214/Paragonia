@@ -12,6 +12,7 @@
 #include "Components/Button.h"
 #include "PG_CharacterSelectButton.h"
 #include "PlayerState/LobbyPlayerState.h"
+#include "Character/PG_LobbyPreviewCharacter.h"
 
 void UPG_CharacterSelectWidget::NativeOnInitialized()
 {
@@ -80,6 +81,29 @@ void UPG_CharacterSelectWidget::SetPlayerReady(int index)
         break;
     default:
         break;
+    }
+}
+
+void UPG_CharacterSelectWidget::SpawnPreviewActorIfNeeded()
+{
+    if (PreviewActorInstance || !PreviewActorClass)
+        return;
+
+    if (UWorld* World = GetWorld())
+    {
+        const FVector SpawnLocation = FVector(0.f, 0.f, 100.f);
+        const FRotator SpawnRotation = FRotator::ZeroRotator;
+
+        FActorSpawnParameters Params;
+        Params.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        PreviewActorInstance = World->SpawnActor<APG_LobbyPreviewCharacter>(
+            PreviewActorClass,
+            SpawnLocation,
+            SpawnRotation,
+            Params
+        );
     }
 }
 
