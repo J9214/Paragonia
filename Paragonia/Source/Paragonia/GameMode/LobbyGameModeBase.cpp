@@ -123,6 +123,8 @@ void ALobbyGameModeBase::CheckStartingCondition()
 
 	LobbyGS->SetMatchingWaitUserCount(NowReadyCount);
 
+	UE_LOG(LogTemp, Log, TEXT("[CheckStartingCondition] NowReadyCount : %d!"),NowReadyCount);
+
 	if (NowReadyCount >= PlayerCountToStart)
 	{
 		LobbyGS->SetLobbyState(EGameLobbyState::GLS_CharacterSelect);

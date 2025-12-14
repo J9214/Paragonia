@@ -36,6 +36,9 @@ void ALobbyPlayerState::CopyProperties(APlayerState* PlayerState)
 	if (TargetPS)
 	{
 		// 차후 수정 예정
+		UE_LOG(LogTemp, Log, TEXT("[CopyProperties] Name : %s, CharacterID : %d, TeamID : %d!"), *GetPlayerName(), CharacterID, TeamID);
+		TargetPS->SetCharID(CharacterID);
+		TargetPS->SetTeamID(TeamID);
 	}
 }
 
