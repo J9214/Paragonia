@@ -163,6 +163,10 @@ void ALobbyPlayerState::StopMatchingTimer()
 void ALobbyPlayerState::IncreaseWaitTime()
 {
 	MatchWaitTime++;
+	UE_LOG(LogTemp, Warning, TEXT("[ALobbyPlayerState] Player Name: %s | Wait Time: %d"),
+		*GetPlayerName(),
+		MatchWaitTime
+	);
 }
 
 void ALobbyPlayerState::CheckStateForTimer()
