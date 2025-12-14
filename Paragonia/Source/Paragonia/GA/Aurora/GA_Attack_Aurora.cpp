@@ -200,54 +200,8 @@ void UGA_Attack_Aurora::EndAbility(
 
 void UGA_Attack_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (Payload.TargetData.Num() == 0)
-	{
-		return;
-	}
-
-	if (!IsValid(ComboAttackDatas[CurrentComboIndex].DamageEffectClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - DamageEffectClass is invalid"));
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (!IsValid(ASC))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - AbilitySystemComponent is invalid"));
-		return;
-	}
-
-	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-	if (!EffectContext.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - EffectContext is invalid"));
-		return;
-	}
-
-	EffectContext.AddSourceObject(this);
-
-	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(
-		ComboAttackDatas[CurrentComboIndex].DamageEffectClass,
-		GetAbilityLevel(),
-		EffectContext
-	);
-	if (!SpecHandle.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - Failed to create GameplayEffectSpec"));
-		return;
-	}
-
-	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage_Base, ComboAttackDatas[CurrentComboIndex].BaseDamage);
-	SpecHandle.Data->SetSetByCallerMagnitude(TAG_Data_Damage_Multiplier, ComboAttackDatas[CurrentComboIndex].DamageMultiplier);
-
-	ApplyGameplayEffectSpecToTarget(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		SpecHandle,
-		Payload.TargetData
-	);
+	const FAttackData& CurrentData = ComboAttackDatas[CurrentComboIndex];
+	ApplyAttackDataEffects_OnHit(CurrentData, Payload);
 }
 
 void UGA_Attack_Aurora::OnComboWindowOpen(const FGameplayEventData Payload)

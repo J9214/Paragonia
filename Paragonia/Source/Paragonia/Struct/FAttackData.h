@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Struct/FAttackEffectEntry.h"
 #include "FAttackData.generated.h"
 
 class UGameplayEffect;
@@ -37,6 +38,16 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UAnimMontage* Montage = nullptr;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FAttackEffectEntry> DamageEffects;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FAttackEffectEntry> BuffEffects;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FAttackEffectEntry> DebuffEffects;
+
+	// Deprecated: Use DamageEffects instead
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<UGameplayEffect> DamageEffectClass = nullptr;
 };

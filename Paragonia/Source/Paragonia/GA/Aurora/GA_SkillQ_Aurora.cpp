@@ -109,25 +109,7 @@ void UGA_SkillQ_Aurora::EndAbility(
 
 void UGA_SkillQ_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (Payload.TargetData.Num() == 0)
-	{
-		return;
-	}
-
-	if (!IsValid(AttackData.DamageEffectClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::OnHitResultEvent - DamageEffectClass is invalid"));
-		return;
-	}
-
-	ApplyGameplayEffectToTarget(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		Payload.TargetData,
-		AttackData.DamageEffectClass,
-		1.0f
-	);
+	// Add Damage Logic Here If Needed
 }
 
 void UGA_SkillQ_Aurora::OnMontageCompleted()
@@ -160,6 +142,8 @@ void UGA_SkillQ_Aurora::OnDashFinished()
 	}
 
 	Character->GetCharacterMovement()->StopMovementImmediately();
+
+	ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
