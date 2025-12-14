@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LobbyData")
 	int32 GetTeamID() const { return TeamID; }
 
+	UFUNCTION(BlueprintCallable, Category = "LobbyData")
+	int32 GetMatchWaitTime() const { return MatchWaitTime; }
+
 	// Client -> Server RPC
 	UFUNCTION(Server, Reliable)
 	void ServerSetLobbyState(EPlayerLobbyState NewState);
