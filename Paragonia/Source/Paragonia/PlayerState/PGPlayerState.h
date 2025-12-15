@@ -12,8 +12,6 @@ class PARAGONIA_API APGPlayerState : public APlayerState
 public:
 	APGPlayerState();
 
-	virtual void BeginPlay() override;
-
 	void SetCharID(int32 NewCharID);
 	void SetTeamID(int32 NewTeamID);
 
