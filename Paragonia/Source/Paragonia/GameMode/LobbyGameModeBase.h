@@ -22,6 +22,7 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 
+	virtual void HandleSeamlessTravelPlayer(AController*& C) override;
 public:
 	void CheckAllPlayersReady();
 	void CheckStartingCondition();
@@ -42,7 +43,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
 	int32 CountdownDuration;
-
 
 	int32 PlayerIDCounter;
 

@@ -84,6 +84,30 @@ void ALobbyGameModeBase::Logout(AController* Exiting)
 	Super::Logout(Exiting);
 }
 
+void ALobbyGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
+{
+	Super::HandleSeamlessTravelPlayer(C);
+
+	if (auto* PS = Cast<ALobbyPlayerState>(C->PlayerState))
+	{
+		PS->OnLobbyPlayerStateChanged.AddDynamic(this, &ALobbyGameModeBase::OnPSLobbyStateChangedHandler);
+		PS->SetPlayerNumberId(PlayerIDCounter);
+		PlayerIDCounter++;
+
+		const int TeamSize = PlayerCountToStart / 2;
+		int32 CurrentTeam0Count = GetCurrentPlayerTeamCount(0, PS);
+
+		if (CurrentTeam0Count < TeamSize)
+		{
+			PS->ServerSetTeamID(0);
+		}
+		else
+		{
+			PS->ServerSetTeamID(1);
+		}
+	}
+}
+
 void ALobbyGameModeBase::CheckAllPlayersReady()
 {
 	ALobbyGameStateBase* LobbyGS = GetGameState<ALobbyGameStateBase>();
@@ -186,6 +210,7 @@ void ALobbyGameModeBase::GameLevelTravel()
 	UConnectSubsystem* ConnectSubsystem = GameInstance->GetSubsystem<UConnectSubsystem>();
 	if (IsValid(ConnectSubsystem))
 	{
+		PlayerIDCounter = 0;
 		UE_LOG(LogTemp, Log, TEXT("[LobbyGameModeBase] Travel to Game Level"));
 		ConnectSubsystem->TravelToGame();
 	}
