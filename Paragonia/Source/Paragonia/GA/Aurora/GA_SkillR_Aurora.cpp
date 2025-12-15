@@ -1,4 +1,4 @@
-#include "GA/GA_SkillE_Aurora.h"
+#include "GA/Aurora/GA_SkillR_Aurora.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Character.h"
@@ -8,15 +8,16 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/PGGameplayTags.h"
 
-UGA_SkillE_Aurora::UGA_SkillE_Aurora()
+UGA_SkillR_Aurora::UGA_SkillR_Aurora()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
 }
 
-void UGA_SkillE_Aurora::ActivateAbility(
+void UGA_SkillR_Aurora::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
@@ -41,6 +42,7 @@ void UGA_SkillE_Aurora::ActivateAbility(
 		}
 	}
 
+
 	if (!IsValid(AttackData.Montage))
 	{
 		return;
@@ -53,14 +55,15 @@ void UGA_SkillE_Aurora::ActivateAbility(
 
 		if (IsValid(HitResultTask))
 		{
-			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillE_Aurora::OnHitResultEvent);
+			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillR_Aurora::OnHitResultEvent);
 			HitResultTask->ReadyForActivation();
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::ActivateAbility - Failed to create HitResult Ability Task"));
+			UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create HitResult Ability Task"));
 		}
 	}
+
 
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
@@ -72,9 +75,9 @@ void UGA_SkillE_Aurora::ActivateAbility(
 
 	if (IsValid(Task))
 	{
-		Task->OnCompleted.AddDynamic(this, &UGA_SkillE_Aurora::OnMontageCompleted);
-		Task->OnInterrupted.AddDynamic(this, &UGA_SkillE_Aurora::OnMontageInterrupted);
-		Task->OnCancelled.AddDynamic(this, &UGA_SkillE_Aurora::OnMontageCancelled);
+		Task->OnCompleted.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageCompleted);
+		Task->OnInterrupted.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageInterrupted);
+		Task->OnCancelled.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageCancelled);
 
 		Task->ReadyForActivation();
 
@@ -85,12 +88,12 @@ void UGA_SkillE_Aurora::ActivateAbility(
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::ActivateAbility - Failed to create Ability Task"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create Ability Task"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 }
 
-void UGA_SkillE_Aurora::EndAbility(
+void UGA_SkillR_Aurora::EndAbility(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
@@ -107,40 +110,22 @@ void UGA_SkillE_Aurora::EndAbility(
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UGA_SkillE_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
+void UGA_SkillR_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (Payload.TargetData.Num() == 0)
-	{
-		return;
-	}
-
-	if (!IsValid(AttackData.DamageEffectClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::OnHitResultEvent - DamageEffectClass is invalid"));
-		return;
-	}
-
-	ApplyGameplayEffectToTarget(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		Payload.TargetData,
-		AttackData.DamageEffectClass,
-		1.0f
-	);
+	ApplyAttackDataEffects_OnHit(AttackData, Payload);
 }
 
-void UGA_SkillE_Aurora::OnMontageCompleted()
+void UGA_SkillR_Aurora::OnMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
-void UGA_SkillE_Aurora::OnMontageInterrupted()
+void UGA_SkillR_Aurora::OnMontageInterrupted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
-void UGA_SkillE_Aurora::OnMontageCancelled()
+void UGA_SkillR_Aurora::OnMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }

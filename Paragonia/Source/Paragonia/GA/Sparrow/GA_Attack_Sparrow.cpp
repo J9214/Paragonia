@@ -1,4 +1,4 @@
-#include "GA/GA_Attack_Sparrow.h"
+#include "GA/Sparrow/GA_Attack_Sparrow.h"
 
 #include "Animation/PGRangedAnimInstance.h"
 #include "Character/PGPlayerCharacterBase.h"

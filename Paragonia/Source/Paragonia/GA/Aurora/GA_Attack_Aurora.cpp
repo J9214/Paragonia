@@ -1,4 +1,4 @@
-#include "GA/GA_Attack_Aurora.h"
+#include "GA/Aurora/GA_Attack_Aurora.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Character.h"
@@ -8,6 +8,7 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/PGGameplayTags.h"
 
 UGA_Attack_Aurora::UGA_Attack_Aurora()
 {
@@ -199,26 +200,8 @@ void UGA_Attack_Aurora::EndAbility(
 
 void UGA_Attack_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (!ComboAttackDatas.IsValidIndex(CurrentComboIndex))
-	{
-		return;
-	}
-
 	const FAttackData& CurrentData = ComboAttackDatas[CurrentComboIndex];
-	if (!IsValid(CurrentData.DamageEffectClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::OnHitResultEvent - DamageEffectClass is invalid"));
-		return;
-	}
-
-	ApplyGameplayEffectToTarget(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		Payload.TargetData,
-		CurrentData.DamageEffectClass,
-		1.0f
-	);
+	ApplyAttackDataEffects_OnHit(CurrentData, Payload);
 }
 
 void UGA_Attack_Aurora::OnComboWindowOpen(const FGameplayEventData Payload)
