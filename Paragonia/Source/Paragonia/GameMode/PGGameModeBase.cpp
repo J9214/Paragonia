@@ -61,6 +61,22 @@ void APGGameModeBase::BeginPlay()
     );
 }
 
+void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
+{
+    Super::HandleSeamlessTravelPlayer(C);
+
+    APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
+    if (IsValid(NewPlayerController) == true)
+    {
+        AlivePlayerControllers.Add(NewPlayerController);
+    }
+
+    if (auto* PS = Cast<APGPlayerState>(C->PlayerState))
+    {
+        // TODO
+    }
+}
+
 #pragma region DeathAndRespawn
 // 캐릭터 사망 처리
 void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter, AController* InstigatorController)
