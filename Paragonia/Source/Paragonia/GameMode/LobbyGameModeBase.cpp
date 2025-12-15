@@ -14,6 +14,7 @@ ALobbyGameModeBase::ALobbyGameModeBase()
 	CountdownDuration(5),
 	PlayerIDCounter(0)
 {
+	bUseSeamlessTravel = true;
     GameStateClass = ALobbyGameStateBase::StaticClass();
     PlayerStateClass = ALobbyPlayerState::StaticClass();
     PlayerControllerClass = ALobbyPlayerController::StaticClass();
@@ -185,7 +186,6 @@ void ALobbyGameModeBase::GameLevelTravel()
 	UConnectSubsystem* ConnectSubsystem = GameInstance->GetSubsystem<UConnectSubsystem>();
 	if (IsValid(ConnectSubsystem))
 	{
-		bUseSeamlessTravel = true;
 		UE_LOG(LogTemp, Log, TEXT("[LobbyGameModeBase] Travel to Game Level"));
 		ConnectSubsystem->TravelToGame();
 	}
