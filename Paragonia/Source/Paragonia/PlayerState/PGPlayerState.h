@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
@@ -28,4 +28,11 @@ public:
 	ETeamType TeamType = ETeamType::None;
 
 #pragma endregion Team
+
+	void SetCharID(int32 NewCharID);
+	void SetTeamID(int32 NewTeamID);
+
+protected:
+	int32 CharacterID;
+	int32 TeamID;
 };

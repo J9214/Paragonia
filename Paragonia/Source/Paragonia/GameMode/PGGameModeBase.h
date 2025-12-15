@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
@@ -35,6 +35,8 @@ public:
     virtual void Logout(AController* Exiting) override;
 
     virtual void BeginPlay() override;
+
+    virtual void HandleSeamlessTravelPlayer(AController*& C) override;
 
 #pragma region DeathAndRespawn
 public:
