@@ -20,6 +20,10 @@ class PARAGONIA_API ALobbyPlayerController : public APlayerController
 public:
 	virtual void BeginPlay() override;
 
+public:
+	UFUNCTION(BlueprintCallable, Category = UI)
+	UPG_CharacterSelectWidget* GetCharSelectUIInst() { return CharSelectUIWidgetInstance; }
+
 protected:
 	UFUNCTION(Category = UI)
 	void ShowCharacterSelect();
@@ -32,9 +36,6 @@ protected:
 
 	UFUNCTION()
 	void HandleLobbyStateChanged(EGameLobbyState NewState);
-
-	UFUNCTION(BlueprintCallable, Category = UI)
-	UPG_CharacterSelectWidget* GetCharSelectUIInst() { return CharSelectUIWidgetInstance; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI, Meta = (AllowPrivateAccess))
