@@ -3,7 +3,7 @@
 #include "Character/PGPlayerCharacterBase.h"
 #include "TargetActor/PGTargetActor.h"
 #include "Struct/BulletDataWrapper.h"
-#include "Bullet/PGNormalBullet_Sparrow.h"
+#include "Bullet/PGCreateTargetActorBullet.h"
 
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
@@ -46,6 +46,8 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		return;
 	}
 
+	bIsEndAbility = true;
+
 	const UBulletDataWrapper* Wrapper = Cast<UBulletDataWrapper>(TriggerEventData->OptionalObject);
 	if (!Wrapper)
 	{
@@ -54,7 +56,7 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		return;
 	}
 
-	FAttackData AttackData = Wrapper->Data;
+	CurrentAttackData = Wrapper->Data;
 	TSubclassOf<AActor> BulletClass = Wrapper->BulletClass;
 
 	if (!IsValid(BulletClass))
@@ -64,7 +66,6 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		return;
 	}
 
-	FName SocketName = FName(TEXT("BowEmitterSocket"));
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
@@ -74,35 +75,37 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 	}
 
 	UWorld* World = GetWorld();
-	FTransform SpawnTransform = Character->GetMesh()->GetSocketTransform(SocketName);
+	FTransform SpawnTransform = Wrapper->BulletSpawnTransform;
 	SpawnTransform.SetRotation(FQuat(Character->FindComponentByClass<UCameraComponent>()->GetComponentRotation()));
 	FActorSpawnParameters Param;
 	Param.Owner = GetAvatarActorFromActorInfo();
 	AActor* NewBullet = GetWorld()->SpawnActor(BulletClass, &SpawnTransform, Param);
 	if (!IsValid(NewBullet))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NewBullet: NewBullet is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow: NewBullet is not valid"));
 		EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, true);
 		return;
 	}
 
 	//EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
 
+	CurrentConfimationType = Wrapper->ConfimationType;
 	UAbilityTask_WaitTargetData* Task =
 		UAbilityTask_WaitTargetData::WaitTargetData(
 			this,
 			TEXT("SpawnBulletTask"),
-			EGameplayTargetingConfirmation::Instant,
+			CurrentConfimationType,
 			APGTargetActor::StaticClass()
 		);
 
 	Task->ValidData.AddDynamic(this, &ThisClass::OnTargetDataReceived);
 	Task->ReadyForActivation();
 
-	APGNormalBullet_Sparrow* NormalBullet = Cast<APGNormalBullet_Sparrow>(NewBullet);
-	if (IsValid(NormalBullet))
+	APGCreateTargetActorBullet* CreatingBullet = Cast<APGCreateTargetActorBullet>(NewBullet);
+	if (IsValid(CreatingBullet))
 	{
-		NormalBullet->InitBullet(this, Task, AttackData);
+		CurrentTargetActor = CreatingBullet;
+		CurrentTargetActor->InitBullet(this, Task, CurrentAttackData);
 	}
 }
 
@@ -117,6 +120,11 @@ void UGA_SpawnBullet_Sparrow::EndAbility(
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+void UGA_SpawnBullet_Sparrow::SetIsEndAbility(const uint8& InIsEndAbility)
+{
+	bIsEndAbility = InIsEndAbility;
+}
+
 void UGA_SpawnBullet_Sparrow::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
 	FGameplayEventData EventPayload;
@@ -129,7 +137,32 @@ void UGA_SpawnBullet_Sparrow::OnTargetDataReceived(const FGameplayAbilityTargetD
 		EventPayload
 	);
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::OnTargetDataReceived"));
+
+	if (bIsEndAbility)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::OnTargetDataReceived - EndAbility"));
+
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+	else
+	{
+		UAbilityTask_WaitTargetData* Task =
+			UAbilityTask_WaitTargetData::WaitTargetData(
+				this,
+				TEXT("SpawnBulletTask"),
+				CurrentConfimationType,
+				APGTargetActor::StaticClass()
+			);
+
+		Task->ValidData.AddDynamic(this, &ThisClass::OnTargetDataReceived);
+		Task->ReadyForActivation();
+
+		if (IsValid(CurrentTargetActor))
+		{
+			CurrentTargetActor->InitBullet(this, Task, CurrentAttackData);
+		}
+	}
 }
 
 void UGA_SpawnBullet_Sparrow::OnTargetDataCancelled()

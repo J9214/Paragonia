@@ -18,6 +18,9 @@ void UPGRangedAnimInstance::AnimNotify_HitCheck()
 		UBulletDataWrapper* Wrapper = NewObject<UBulletDataWrapper>(this);
 		Wrapper->Data = CurrentAttackData;
 		Wrapper->BulletClass = BulletClass;
+		Wrapper->TimeWaited = TimeWaited;
+		Wrapper->BulletSpawnTransform = BulletSpawnTransform;
+		Wrapper->ConfimationType = ConfimationType;
 
 		FGameplayEventData EventData;
 		EventData.Instigator = OwnerCharacter;
@@ -39,4 +42,14 @@ void UPGRangedAnimInstance::SetBulletClass(TSubclassOf<AActor> NewBulletClass)
 void UPGRangedAnimInstance::SetTimeWaited(const float& InTimeWaited)
 {
 	TimeWaited = InTimeWaited;
+}
+
+void UPGRangedAnimInstance::SetBulletSpawnTransform(const FTransform& InTransform)
+{
+	BulletSpawnTransform = InTransform;
+}
+
+void UPGRangedAnimInstance::SetConfimationType(const EGameplayTargetingConfirmation::Type& InConfimationType)
+{
+	ConfimationType = InConfimationType;
 }

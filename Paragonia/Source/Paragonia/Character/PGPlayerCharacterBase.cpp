@@ -425,14 +425,11 @@ void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(uint8 bDead)
 
 void APGPlayerCharacterBase::OnRep_Dead()
 {
-	UE_LOG(LogTemp, Warning, TEXT("PGPlayerCharacterBase: call OnRep_Dead out if"));
-
-	if (bIsDead == 1) { // 사망
-		UE_LOG(LogTemp, Warning, TEXT("OnDeath: %s"), *GetNameSafe(this));
+	if (bIsDead == 1) 
+	{ // 사망
 
 		if (APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Debug_KillMe: call HandleCharacterDeath"));
 			GM->HandleCharacterDeath(this, GetController());
 		}
 
@@ -510,7 +507,6 @@ void APGPlayerCharacterBase::OnRep_Dead()
 
 void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
 {
-	UE_LOG(LogTemp, Warning, TEXT("PGPlayerCharacterBase: call SetDeadState state : %d"), bDead);
 	if (bIsDead == bDead)
 	{
 		return;

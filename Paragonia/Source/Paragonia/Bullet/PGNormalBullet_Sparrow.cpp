@@ -1,19 +1,15 @@
 #include "Bullet/PGNormalBullet_Sparrow.h"
 
-#include "TargetActor/PGRangedTargetActor.h"
-
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemBlueprintLibrary.h"
 
 APGNormalBullet_Sparrow::APGNormalBullet_Sparrow()
+	: APGCreateTargetActorBullet()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(SceneRoot);
 
@@ -37,12 +33,6 @@ void APGNormalBullet_Sparrow::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBeginOverlap);
-
-	if (HasAuthority())
-	{
-		SetReplicates(true);
-		SetReplicateMovement(true);
-	}
 }
 
 void APGNormalBullet_Sparrow::OnBeginOverlap(
@@ -85,69 +75,14 @@ void APGNormalBullet_Sparrow::OnBeginOverlap(
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Ability is Not Valid"));
 		Destroy();
 	}
+	else if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
+	{
+		CreateTargetActor();
+		if (!bIsPierce)
+			Destroy();
+	}
 	else
 	{
-		UAbilitySystemComponent* From = Owner->GetComponentByClass<UAbilitySystemComponent>();
-		UAbilitySystemComponent* To = OtherActor->GetComponentByClass<UAbilitySystemComponent>();
-
-		if (!IsValid(From))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - UAbilitySystemComponent is Not Valid"));
-			Destroy();
-		}
-		else if (!IsValid(To))
-		{
-			Ability->CancelAbility(Ability->GetCurrentAbilitySpecHandle(), Ability->GetCurrentActorInfo(), Ability->GetCurrentActivationInfo(), true);
-			Destroy();
-		}
-		//if (!IsValid(From) || !IsValid(To))
-		//{
-		//	UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - UAbilitySystemComponent is Not Valid"));
-		//}
-		else
-		{
-			//FGameplayEffectContextHandle EffectContextHandle = From->MakeEffectContext();
-			//FGameplayEffectSpecHandle SpecHandle = From->MakeOutgoingSpec(EffectClass, 1.0f, EffectContextHandle);
-
-			//From->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), To);
-
-			AGameplayAbilityTargetActor* GenericActor = nullptr;
-			if (Task->BeginSpawningActor(Ability, APGRangedTargetActor::StaticClass(), GenericActor))
-			{
-				if (IsValid(GenericActor))
-				{
-					APGRangedTargetActor* SpawnedActor = Cast<APGRangedTargetActor>(GenericActor);
-					if (IsValid(SpawnedActor))
-					{
-						SpawnedActor->SourceActor = this;
-						SpawnedActor->SetActorLocation(GetActorLocation());
-						SpawnedActor->SetAttackData(AttackData);
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Cast To APGRangedTargetActor Failed"));
-					}
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Generic Target Actor not Valid"));
-				}
-
-				Task->FinishSpawningActor(Ability, GenericActor);
-
-				//UE_LOG(LogTemp, Warning, TEXT("%s Attack %s"), *From->GetAvatarActor()->GetFName().ToString(), *To->GetAvatarActor()->GetFName().ToString());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Target Actor Spawn Failed"));
-			}
-		}
+		Destroy();
 	}
-}
-
-void APGNormalBullet_Sparrow::InitBullet(UGameplayAbility* InAbility, UAbilityTask_WaitTargetData* InTask, const FAttackData& InAttackData)
-{
-	Ability = InAbility;
-	Task = InTask;
-	AttackData = InAttackData;
 }

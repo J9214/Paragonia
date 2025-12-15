@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
@@ -8,6 +8,7 @@ class APGPlayerCharacterBase;
 class APGPlayerController;
 class AController;
 class APGPlayerState;
+class APGNexus;
 
 USTRUCT(BlueprintType)
 struct FPGRespawnInfo
@@ -34,6 +35,8 @@ public:
     virtual void Logout(AController* Exiting) override;
 
     virtual void BeginPlay() override;
+
+    virtual void HandleSeamlessTravelPlayer(AController*& C) override;
 
 #pragma region DeathAndRespawn
 public:
@@ -64,5 +67,18 @@ protected:
     //UPROPERTY(EditDefaultsOnly, Category = "PG|Respawn")
     //float RespawnTimePerLevel = 1.f;
 #pragma endregion DeathAndRespawn
+
+#pragma region Nexus
+public: 
+    // 사실상 GameOver
+    UFUNCTION()
+    void OnObjectiveDestroyed(AActor* DestroyedActor);
+
+protected:
+    UPROPERTY()
+    bool bIsGameWin;
+
+
+#pragma endregion
 
 };

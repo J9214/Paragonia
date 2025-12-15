@@ -22,6 +22,10 @@ public class Paragonia : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",
+
+			// NetWork
+            "Sockets",
+			"Networking"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
