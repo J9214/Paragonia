@@ -1,4 +1,4 @@
-﻿// PGGameMode.cpp
+// PGGameMode.cpp
 
 #include "PGGameModeBase.h"
 #include "Character/PGPlayerCharacterBase.h"
@@ -13,6 +13,7 @@
 
 APGGameModeBase::APGGameModeBase()
 {
+    bUseSeamlessTravel = true;
     // 기본 Pawn, PlayerController 클래스 설정은 여기서
 }
 
@@ -68,6 +69,22 @@ void APGGameModeBase::BeginPlay()
         {
             Nexus->OnNexusDestroyed.AddDynamic(this, &APGGameModeBase::OnObjectiveDestroyed);
         }
+    }
+}
+
+void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
+{
+    Super::HandleSeamlessTravelPlayer(C);
+
+    APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
+    if (IsValid(NewPlayerController) == true)
+    {
+        AlivePlayerControllers.Add(NewPlayerController);
+    }
+
+    if (auto* PS = Cast<APGPlayerState>(C->PlayerState))
+    {
+        // TODO
     }
 }
 

@@ -1,4 +1,4 @@
-﻿#include "PlayerState/PGPlayerState.h"
+#include "PlayerState/PGPlayerState.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "Character/PGPlayerCharacterBase.h"
@@ -29,3 +29,12 @@ void APGPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 }
 
 #pragma endregion Team
+void APGPlayerState::SetCharID(int32 NewCharID)
+{
+	this->CharacterID = NewCharID;
+}
+
+void APGPlayerState::SetTeamID(int32 NewTeamID)
+{
+	this->TeamID = NewTeamID;
+}
