@@ -51,6 +51,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LobbyData")
 	int32 GetMatchWaitTime() const { return MatchWaitTime; }
 
+	UFUNCTION(BlueprintCallable, Category = "LobbyData")
+	int32 GetPlayerNumberId() const { return PlayerNumberId; }
+
 	// Client -> Server RPC
 	UFUNCTION(Server, Reliable)
 	void ServerSetLobbyState(EPlayerLobbyState NewState);
@@ -60,6 +63,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetTeamID(int32 NewTeamID);
+
+	// PlayerID는 접속시에 한 번 정해지기에 Setter
+	void SetPlayerNumberId(int32 NewID);
 
 	UFUNCTION()
 	void OnGSLobbyStateChangedHandler(EGameLobbyState NewState);
@@ -113,6 +119,9 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchWaitTime)
 	int32 MatchWaitTime;
+
+	UPROPERTY(Replicated)
+	int32 PlayerNumberId;
 
 	FTimerHandle TimerHandle_MatchWait;
 };

@@ -26,6 +26,7 @@ void ALobbyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ThisClass, CharacterID);
 	DOREPLIFETIME(ThisClass, TeamID);
 	DOREPLIFETIME(ThisClass, MatchWaitTime);
+	DOREPLIFETIME(ThisClass, PlayerNumberId);
 }
 
 void ALobbyPlayerState::CopyProperties(APlayerState* PlayerState)
@@ -87,6 +88,11 @@ void ALobbyPlayerState::ServerSetTeamID_Implementation(int32 NewTeamID)
 	TeamID = NewTeamID;
 
 	OnRep_TeamID();
+}
+
+void ALobbyPlayerState::SetPlayerNumberId(int32 NewID)
+{
+	PlayerNumberId = NewID;
 }
 
 void ALobbyPlayerState::OnGSLobbyStateChangedHandler(EGameLobbyState NewState)
