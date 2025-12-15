@@ -33,6 +33,9 @@ protected:
 	UFUNCTION()
 	void HandleLobbyStateChanged(EGameLobbyState NewState);
 
+	UFUNCTION(BlueprintCallable, Category = UI)
+	UPG_CharacterSelectWidget* GetCharSelectUIInst() { return CharSelectUIWidgetInstance; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI, Meta = (AllowPrivateAccess))
 	TSubclassOf<UPG_LobbyWidget> MatchStartUIWidgetClass;
