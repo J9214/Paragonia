@@ -34,12 +34,17 @@ protected:
 	UFUNCTION()
 	void OnPSLobbyStateChangedHandler(EPlayerLobbyState NewPlayerState);
 
+	int32 GetCurrentPlayerTeamCount(int32 TeamIDToCheck, APlayerState* ExcludePS);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
 	int32 PlayerCountToStart;
 
 	UPROPERTY(EditDefaultsOnly, Category = "LobbySetting")
 	int32 CountdownDuration;
+
+
+	int32 PlayerIDCounter;
 
 protected:
 	FTimerHandle CountdownTimerHandle;

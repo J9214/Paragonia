@@ -11,7 +11,8 @@
 
 ALobbyGameModeBase::ALobbyGameModeBase()
 	:PlayerCountToStart(2),
-	CountdownDuration(5)
+	CountdownDuration(5),
+	PlayerIDCounter(0)
 {
     GameStateClass = ALobbyGameStateBase::StaticClass();
     PlayerStateClass = ALobbyPlayerState::StaticClass();
@@ -55,6 +56,20 @@ void ALobbyGameModeBase::PostLogin(APlayerController* NewPlayer)
 	if (auto* PS = Cast<ALobbyPlayerState>(NewPlayer->PlayerState))
 	{
 		PS->OnLobbyPlayerStateChanged.AddDynamic(this, &ALobbyGameModeBase::OnPSLobbyStateChangedHandler);
+		PS->SetPlayerNumberId(PlayerIDCounter);
+		PlayerIDCounter++;
+
+		const int TeamSize = PlayerCountToStart / 2;
+		int32 CurrentTeam0Count = GetCurrentPlayerTeamCount(0, PS);
+
+		if (CurrentTeam0Count < TeamSize)
+		{
+			PS->ServerSetTeamID(0);
+		}
+		else
+		{
+			PS->ServerSetTeamID(1);
+		}
 	}
 }
 
@@ -197,4 +212,27 @@ void ALobbyGameModeBase::OnPSLobbyStateChangedHandler(EPlayerLobbyState NewPlaye
 	default:
 		break;
 	}
+}
+
+int32 ALobbyGameModeBase::GetCurrentPlayerTeamCount(int32 TeamIDToCheck, APlayerState* ExcludePS)
+{
+	int32 Count = 0;
+	if (GameState)
+	{
+		for (APlayerState* PS : GameState->PlayerArray)
+		{
+			if (PS == ExcludePS) 
+				continue;
+
+			ALobbyPlayerState* LobbyPS = Cast<ALobbyPlayerState>(PS);
+
+			if (IsValid(LobbyPS) &&
+				LobbyPS->GetTeamID() == TeamIDToCheck)
+			{
+				Count++;
+			}
+		}
+	}
+
+	return Count;
 }
