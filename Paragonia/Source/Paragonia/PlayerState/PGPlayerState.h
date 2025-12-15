@@ -8,7 +8,7 @@ UENUM(BlueprintType)
 enum class ETeamType : uint8 { None, Team1, Team2 };
 
 UCLASS()
-class PARAGONIA_API APGPlayerState : public APlayerState, public IAbilitySystemInterface
+class PARAGONIA_API APGPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 

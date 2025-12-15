@@ -168,8 +168,6 @@ void APGGameModeBase::OnObjectiveDestroyed(AActor* DestroyedActor)
         GS->TeamResult = ETeamResult::Team2Win;
     else if (DestroyedActor->ActorHasTag("Team2Nexus"))
         GS->TeamResult = ETeamResult::Team1Win;
-
-    UE_LOG(LogTemp, Warning, TEXT("Nexus destroyed, TeamResult updated on server."));
 }
 
 
