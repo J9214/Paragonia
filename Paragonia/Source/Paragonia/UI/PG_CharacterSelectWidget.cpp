@@ -7,7 +7,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "Engine/GameInstance.h"
-#include "Struct/CharacterDescriptionWrapper.h"
+#include "Struct/CharacterInfoWrapper.h"
 #include "PG_PlayerIcon.h"
 #include "Components/Button.h"
 #include "PG_CharacterSelectButton.h"
@@ -148,7 +148,7 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
     if (!Item || !CharacterDescSubsys || !CharacterDescription)
         return;
 
-    UCharacterDescriptionWrapper* Entry = Cast<UCharacterDescriptionWrapper>(Item);
+    UCharacterInfoWrapper* Entry = Cast<UCharacterInfoWrapper>(Item);
     if (!Entry)
         return;
 
@@ -165,10 +165,10 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
     TArray<UObject*> Items = CharacterTileView->GetListItems();
     for (UObject* Item : Items)
     {
-        if (UCharacterDescriptionWrapper* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        if (UCharacterInfoWrapper* RowItem = Cast<UCharacterInfoWrapper>(Item))
         {
-            int RowUID = RowItem->Data.UID;
-            RowItem->bSelected = (RowUID == Entry->Data.UID);
+            int RowUID = RowItem->DescriptionData.UID;
+            RowItem->bSelected = (RowUID == Entry->DescriptionData.UID);
         }
     }
 
@@ -176,7 +176,7 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
 
     if (CheckPlayerState())
     {
-        LobbyPlayerState->ServerSetCharacterID(Entry->Data.UID);
+        LobbyPlayerState->ServerSetCharacterID(Entry->DescriptionData.UID);
     }
     else
     {
@@ -184,13 +184,13 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
     }
 
     CharacterDescription->InitDescription(*DetailRow);
-    SelectedCharacterUID = Entry->Data.UID;
+    SelectedCharacterUID = Entry->DescriptionData.UID;
 
     if (SpawnPreviewActorIfNeeded())
     {
-        USkeletalMesh* Mesh = Entry->Data.LobbyMesh.LoadSynchronous();
-        UAnimMontage* IntroMontage = Entry->Data.IntroMontage.LoadSynchronous();
-        UClass* ABP = Entry->Data.LobbyAnimBP.LoadSynchronous();
+        USkeletalMesh* Mesh = Entry->ResourceData.LobbyMesh.LoadSynchronous();
+        UAnimMontage* IntroMontage = Entry->ResourceData.IntroMontage.LoadSynchronous();
+        UClass* ABP = Entry->ResourceData.LobbyAnimBP.LoadSynchronous();
 
         if (Mesh && IntroMontage && ABP)
         {
@@ -230,9 +230,9 @@ void UPG_CharacterSelectWidget::HandlePlayerReadyClicked()
 
     for (UObject* Item : Items)
     {
-        if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        if (auto* RowItem = Cast<UCharacterInfoWrapper>(Item))
         {
-            RowItem->bPlayerSelected = (RowItem->Data.UID == SelectedCharacterUID);
+            RowItem->bPlayerSelected = (RowItem->DescriptionData.UID == SelectedCharacterUID);
             RowItem->bCheckCanSelected = false;
         }
     }
@@ -274,11 +274,11 @@ void UPG_CharacterSelectWidget::HandlePlayerSelected(EPlayerLobbyState LobbyStat
     TArray<UObject*> Items = CharacterTileView->GetListItems();
     for (UObject* Item : Items)
     {
-        if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        if (auto* RowItem = Cast<UCharacterInfoWrapper>(Item))
         {
             if (RowItem->bTeamSelected == false)
             {
-                RowItem->bTeamSelected = (RowItem->Data.UID == SelectedCharacterID);
+                RowItem->bTeamSelected = (RowItem->DescriptionData.UID == SelectedCharacterID);
             }
         }
     }
@@ -295,7 +295,7 @@ void UPG_CharacterSelectWidget::RefreshCharacterTileView()
         {
             UObject* ListItemObj = Btn->GetListItem();
 
-            if (UCharacterDescriptionWrapper* Wrap = Cast<UCharacterDescriptionWrapper>(ListItemObj))
+            if (UCharacterInfoWrapper* Wrap = Cast<UCharacterInfoWrapper>(ListItemObj))
             {
                 Btn->ApplySelectedVisual(Wrap);
             }
@@ -314,12 +314,15 @@ void UPG_CharacterSelectWidget::InitCharacterList()
 
     for (const FName& RowName : RowNames)
     {
-        const FCharacterDescription* Row = CharacterDescSubsys->GetCharacterDescription(RowName);
-        if (!Row) continue;
+        const FCharacterDescription* DescriptionRow = CharacterDescSubsys->GetCharacterDescription(RowName);
+        if (!DescriptionRow) continue;
+        const FCharacterResourceInfo* ResourceRow = CharacterDescSubsys->GetCharacterResource(RowName);
+        if (!ResourceRow) continue;
 
-        UCharacterDescriptionWrapper* Wrapper = NewObject<UCharacterDescriptionWrapper>(this);
+        UCharacterInfoWrapper* Wrapper = NewObject<UCharacterInfoWrapper>(this);
         Wrapper->RowName = RowName;
-        Wrapper->Data = *Row; 
+        Wrapper->DescriptionData = *DescriptionRow;
+        Wrapper->ResourceData = *ResourceRow;
         Items.Add(Wrapper);
     }
 

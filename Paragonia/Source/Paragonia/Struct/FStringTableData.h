@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "FStringTableData.generated.h"
 
 UENUM(BlueprintType)

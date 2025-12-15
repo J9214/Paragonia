@@ -2,7 +2,7 @@
 
 
 #include "UI/PG_PlayerIcon.h"
-#include "Struct/FCharacterDescription.h"
+#include "Struct/FCharacterResourceInfo.h"
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Components/Image.h"
@@ -59,16 +59,16 @@ void UPG_PlayerIcon::SetPlayerIcon(const int32 CharacterUID)
 	if (!CharacterDescSubsys)
 		return;
 
-	const FCharacterDescription* Desc = CharacterDescSubsys->GetCharacterDescription(CharacterUID);
-	if (!Desc)
+	const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(CharacterUID);
+	if (!ResourceInfo)
 		return;
 
 	UTexture2D* Tex = nullptr;
 
-	if (Desc->CircleIcon.IsValid())
-		Tex = Desc->CircleIcon.Get();
+	if (ResourceInfo->CircleIcon.IsValid())
+		Tex = ResourceInfo->CircleIcon.Get();
 	else
-		Tex = Desc->CircleIcon.LoadSynchronous();
+		Tex = ResourceInfo->CircleIcon.LoadSynchronous();
 
 	ApplyIconTexture(Tex);
 }
@@ -84,16 +84,16 @@ void UPG_PlayerIcon::SetPlayerIcon(const FName& CharacterName)
 	if (!CharacterDescSubsys)
 		return;
 
-	const FCharacterDescription* Desc = CharacterDescSubsys->GetCharacterDescription(CharacterName);
-	if (!Desc)
+	const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(CharacterName);
+	if (!ResourceInfo)
 		return;
 
 	UTexture2D* Tex = nullptr;
 
-	if (Desc->CircleIcon.IsValid())
-		Tex = Desc->CircleIcon.Get();
+	if (ResourceInfo->CircleIcon.IsValid())
+		Tex = ResourceInfo->CircleIcon.Get();
 	else
-		Tex = Desc->CircleIcon.LoadSynchronous();
+		Tex = ResourceInfo->CircleIcon.LoadSynchronous();
 
 	ApplyIconTexture(Tex);
 }

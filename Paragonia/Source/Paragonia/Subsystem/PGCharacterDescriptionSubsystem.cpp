@@ -4,6 +4,7 @@
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "PGCharacterDescriptionSubsystem.h"
 #include "Struct/FCharacterDescription.h"
+#include "Struct/FCharacterResourceInfo.h"
 
 UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem()
 {
@@ -14,7 +15,17 @@ UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UPGAttributeDataSubsystem::UPGAttributeDataSubsystem - Failed to find CharacterAttributeDataTable at specified path."));
+		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem - Failed to find CharacterDescriptiopn at specified path."));
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_ResourceInfo(TEXT("/Game/Paragonia/Data/DT_CharacterResourceInfo.DT_CharacterResourceInfo"));
+	if (DT_ResourceInfo.Succeeded())
+	{
+		CharacterResourceInfoDataTable = DT_ResourceInfo.Object;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem - Failed to find CharacterResourceInfo at specified path."));
 	}
 }
 
@@ -24,7 +35,13 @@ void UPGCharacterDescriptionSubsystem::Initialize(FSubsystemCollectionBase& Coll
 
 	if (!IsValid(CharacterDescriptionDataTable))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UPGAttributeDataSubsystem::Initialize - CharacterAttributeDataTable is null. Check path."));
+		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::Initialize - CharacterDescriptionDataTable is null. Check path."));
+		return;
+	}
+
+	if (!IsValid(CharacterResourceInfoDataTable))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::Initialize - CharacterResourceInfoDataTable is null. Check path."));
 		return;
 	}
 
@@ -74,6 +91,37 @@ const FCharacterDescription* UPGCharacterDescriptionSubsystem::GetCharacterDescr
 
 	return CharacterDescriptionDataTable->FindRow<FCharacterDescription>(*FoundRowName, TEXT("GetCharacterDescriptionByUID"));
 
+}
+
+const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterResource(const FName& CharacterName) const
+{
+	if (CharacterName.IsNone())
+	{
+		return nullptr;
+	}
+
+	if (!IsValid(CharacterResourceInfoDataTable))
+	{
+		return nullptr;
+	}
+
+	return CharacterResourceInfoDataTable->FindRow<FCharacterResourceInfo>(CharacterName, TEXT("GetCharacterResourceInfoByName"));
+
+}
+
+const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterResource(const int32 UID) const
+{
+	if (UID <= 0) // UID 규칙 없으면 이 체크는 빼도 됨
+		return nullptr;
+
+	if (!IsValid(CharacterResourceInfoDataTable))
+		return nullptr;
+
+	const FName* FoundRowName = UIDToRowName.Find(UID);
+	if (!FoundRowName)
+		return nullptr;
+
+	return CharacterResourceInfoDataTable->FindRow<FCharacterResourceInfo>(*FoundRowName, TEXT("GetCharacterResourceInfoByUID"));
 }
 
 TArray<FName> UPGCharacterDescriptionSubsystem::GetAllRowNames() const
