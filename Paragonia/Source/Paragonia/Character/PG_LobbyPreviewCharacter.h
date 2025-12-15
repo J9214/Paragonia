@@ -16,10 +16,10 @@ public:
 	APG_LobbyPreviewCharacter();
 
     UFUNCTION(BlueprintCallable)
-    void SetCharacterMesh(USkeletalMesh* NewMesh);
+    void SetCharacterMesh(USkeletalMesh* NewMesh, UClass* AnimInstance);
 
     UFUNCTION(BlueprintCallable)
-    void PlayIntroMontage(UAnimMontage* Montage);
+    void PlayMontage(UAnimMontage* Montage);
 
 protected:
     UPROPERTY(VisibleAnywhere)

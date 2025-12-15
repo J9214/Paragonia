@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -14,7 +14,29 @@ class PARAGONIA_API ALobbyPawn : public APawn
 public:
 	ALobbyPawn();
 
+	void StartMoveToTarget();
+
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
+	FVector TargetLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
+	FRotator StartRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
+	FRotator TargetRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
+	float MoveSpeed = 3000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
+	float RotationInterpSpeed = 5.f;
+protected:
+	virtual void Tick(float DeltaSeconds) override;
+
+private:
+	bool bIsMovingToTarget = false;
+	float ArriveTolerance = 5.f;   // 오차 허용
 };

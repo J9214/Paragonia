@@ -29,9 +29,14 @@ public:
 	void SetPlayerReady(int index);
 
 	UFUNCTION(BlueprintCallable)
-	void SpawnPreviewActorIfNeeded();
+	bool SpawnPreviewActorIfNeeded();
 
+	void SetUI();
 protected:
+
+	UPROPERTY(Transient, meta = (BindWidgetAnimOptional))
+	TObjectPtr<UWidgetAnimation> ShowAnim;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonTileView> CharacterTileView;
 
@@ -85,6 +90,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Description")
 	FVector2D DescriptionPos;
+
+	UPROPERTY(EditAnywhere, Category = "Spawn")
+	FVector SpawnLocation;
+
+	UPROPERTY(EditAnywhere, Category = "Spawn")
+	FRotator SpawnRotation;
 
 	int32 SelectedCharacterUID;
 };

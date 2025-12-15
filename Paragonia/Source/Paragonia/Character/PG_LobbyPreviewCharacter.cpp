@@ -16,15 +16,18 @@ APG_LobbyPreviewCharacter::APG_LobbyPreviewCharacter()
     MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void APG_LobbyPreviewCharacter::SetCharacterMesh(USkeletalMesh* NewMesh)
+void APG_LobbyPreviewCharacter::SetCharacterMesh(USkeletalMesh* NewMesh, UClass* AnimInstance)
 {
     if (NewMesh)
     {
         MeshComp->SetSkeletalMesh(NewMesh);
+
+        MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+        MeshComp->SetAnimInstanceClass(AnimInstance);
     }
 }
 
-void APG_LobbyPreviewCharacter::PlayIntroMontage(UAnimMontage* Montage)
+void APG_LobbyPreviewCharacter::PlayMontage(UAnimMontage* Montage)
 {
     if (!Montage) return;
 

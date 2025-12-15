@@ -13,6 +13,7 @@
 #include "PG_CharacterSelectButton.h"
 #include "PlayerState/LobbyPlayerState.h"
 #include "Character/PG_LobbyPreviewCharacter.h"
+#include "Pawn/LobbyPawn.h"
 
 void UPG_CharacterSelectWidget::NativeOnInitialized()
 {
@@ -46,6 +47,18 @@ void UPG_CharacterSelectWidget::NativeOnInitialized()
 void UPG_CharacterSelectWidget::SetInit()
 {
     CheckPlayerState();
+    SpawnPreviewActorIfNeeded();
+
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        if (APawn* Pawn = PC->GetPawn())
+        {
+            if (ALobbyPawn* LobbyChar = Cast<ALobbyPawn>(Pawn))
+            {
+                LobbyChar->StartMoveToTarget();
+            }
+        }
+    }
 }
 
 void UPG_CharacterSelectWidget::SetPlayerCharacterIcon(int index, int CharacterUID)
@@ -84,16 +97,16 @@ void UPG_CharacterSelectWidget::SetPlayerReady(int index)
     }
 }
 
-void UPG_CharacterSelectWidget::SpawnPreviewActorIfNeeded()
+bool UPG_CharacterSelectWidget::SpawnPreviewActorIfNeeded()
 {
-    if (PreviewActorInstance || !PreviewActorClass)
-        return;
+    if (!PreviewActorClass)
+        return false;
+
+    if (PreviewActorInstance)
+        return true;
 
     if (UWorld* World = GetWorld())
     {
-        const FVector SpawnLocation = FVector(0.f, 0.f, 100.f);
-        const FRotator SpawnRotation = FRotator::ZeroRotator;
-
         FActorSpawnParameters Params;
         Params.SpawnCollisionHandlingOverride =
             ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -104,7 +117,12 @@ void UPG_CharacterSelectWidget::SpawnPreviewActorIfNeeded()
             SpawnRotation,
             Params
         );
+
+        PreviewActorInstance->SetActorHiddenInGame(true);
+        return true;
     }
+
+    return false;
 }
 
 void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
@@ -146,8 +164,21 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
         UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
 
     CharacterDescription->InitDescription(*DetailRow);
-
     SelectedCharacterUID = Entry->Data.UID;
+
+    if (SpawnPreviewActorIfNeeded())
+    {
+        USkeletalMesh* Mesh = Entry->Data.LobbyMesh.LoadSynchronous();
+        UAnimMontage* IntroMontage = Entry->Data.IntroMontage.LoadSynchronous();
+        UClass* ABP = Entry->Data.LobbyAnimBP.LoadSynchronous();
+
+        if (Mesh && IntroMontage && ABP)
+        {
+            PreviewActorInstance->SetActorHiddenInGame(false);
+            PreviewActorInstance->SetCharacterMesh(Mesh, ABP);
+            PreviewActorInstance->PlayMontage(IntroMontage);
+        }
+    }
 
     if (Player0Icon)
     {
@@ -289,5 +320,14 @@ bool UPG_CharacterSelectWidget::CheckPlayerState()
         //PlayerState 전부 순회하면서 선택된거 for문돌리면 기능은 구현 가능한데 많이 과한거 같아서요... 
     }
     return true;
+}
+
+void UPG_CharacterSelectWidget::SetUI()
+{
+    if (ShowAnim)
+    {
+        PlayAnimation(ShowAnim);
+    }
+
 }
 
