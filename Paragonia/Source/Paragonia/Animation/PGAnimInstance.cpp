@@ -28,6 +28,9 @@ void UPGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	Velocity = OwnerCharacterMovementComponent->Velocity;
+	const FRotator ActorRotation = OwnerCharacter->GetActorRotation();
+	LocalVelocity = ActorRotation.UnrotateVector(Velocity);
+
 	GroundSpeed = FVector(Velocity.X, Velocity.Y, 0.f).Size();
 	bIsFalling = OwnerCharacterMovementComponent->IsFalling();
 
