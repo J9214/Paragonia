@@ -1,8 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Struct/FAttackData.h"
 #include "Abilities/GameplayAbility.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
 #include "GA_SpawnBullet_Sparrow.generated.h"
+
+class APGCreateTargetActorBullet;
 
 UCLASS()
 class PARAGONIA_API UGA_SpawnBullet_Sparrow : public UGameplayAbility
@@ -27,10 +31,18 @@ public:
 		bool bWasCancelled
 	) override;
 
+	void SetIsEndAbility(const uint8& InIsEndAbility);
+
 private:
 	UFUNCTION()
 	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);
 
 	UFUNCTION()
 	void OnTargetDataCancelled();
+
+protected:
+	uint8 bIsEndAbility;
+	FAttackData CurrentAttackData;
+	TObjectPtr<APGCreateTargetActorBullet> CurrentTargetActor;
+	EGameplayTargetingConfirmation::Type CurrentConfimationType;
 };
