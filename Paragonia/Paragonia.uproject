@@ -12,8 +12,9 @@
 				"Engine",
 				"AIModule",
 				"UMG",
+				"CoreUObject",
 				"GameplayAbilities",
-				"CoreUObject"
+				"CommonUI"
 			]
 		}
 	],
@@ -27,6 +28,10 @@
 		},
 		{
 			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "CommonUI",
 			"Enabled": true
 		}
 	]
