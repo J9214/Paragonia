@@ -118,6 +118,11 @@ void ALobbyPlayerState::OnRep_PlayerLobbyState()
 	{
 		OnLobbyPlayerStateChanged.Broadcast(PlayerLobbyState);
 	}
+
+	if (OnLobbyPlayerStateChangedHelperUI.IsBound())
+	{
+		OnLobbyPlayerStateChangedHelperUI.Broadcast(PlayerLobbyState, PlayerNumberId);
+	}
 }
 
 void ALobbyPlayerState::OnRep_CharacterID()

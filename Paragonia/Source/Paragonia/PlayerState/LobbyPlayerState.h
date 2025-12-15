@@ -22,6 +22,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterIDChangedDelegate, int32
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTeamIDChangedDelegate, int32, NewTeamID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchWaitTimeChangedDelegate, int32, NewTime);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLobbyUIHelperDelegate, EPlayerLobbyState, NewState, int32, PlayerUID);
+
 /**
  *
  */
@@ -83,6 +85,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnMatchWaitTimeChangedDelegate OnMatchTimeChanged;
+
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnLobbyUIHelperDelegate OnLobbyPlayerStateChangedHelperUI;
 
 protected:
 	UFUNCTION()
