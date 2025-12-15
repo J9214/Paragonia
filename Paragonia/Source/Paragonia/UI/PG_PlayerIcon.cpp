@@ -8,6 +8,11 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 
+void UPG_PlayerIcon::SetPlayerNumberId(int32 InPlayerNumberID) 
+{ 
+	PlayerNumberID = InPlayerNumberID; 
+}
+
 void UPG_PlayerIcon::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
@@ -31,16 +36,20 @@ void UPG_PlayerIcon::ApplyIconTexture(UTexture2D* Tex)
 	IconImage->SetOpacity(0.5f);
 }
 
-void UPG_PlayerIcon::ApplyIcon()
+int32 UPG_PlayerIcon::ApplyIcon()
 {
 	if (IconImage)
 	{
 		IconImage->SetOpacity(1.f);
 	}
+
+	return SelectCharacterID;
 }
 
 void UPG_PlayerIcon::SetPlayerIcon(const int32 CharacterUID)
 {
+	SelectCharacterID = CharacterUID;
+
 	if (!CharacterDescSubsys)
 	{
 		if (UGameInstance* GI = GetGameInstance())
@@ -56,10 +65,10 @@ void UPG_PlayerIcon::SetPlayerIcon(const int32 CharacterUID)
 
 	UTexture2D* Tex = nullptr;
 
-	if (Desc->BoxIcon.IsValid())
-		Tex = Desc->BoxIcon.Get();
+	if (Desc->CircleIcon.IsValid())
+		Tex = Desc->CircleIcon.Get();
 	else
-		Tex = Desc->BoxIcon.LoadSynchronous();
+		Tex = Desc->CircleIcon.LoadSynchronous();
 
 	ApplyIconTexture(Tex);
 }
@@ -81,10 +90,10 @@ void UPG_PlayerIcon::SetPlayerIcon(const FName& CharacterName)
 
 	UTexture2D* Tex = nullptr;
 
-	if (Desc->BoxIcon.IsValid())
-		Tex = Desc->BoxIcon.Get();
+	if (Desc->CircleIcon.IsValid())
+		Tex = Desc->CircleIcon.Get();
 	else
-		Tex = Desc->BoxIcon.LoadSynchronous();
+		Tex = Desc->CircleIcon.LoadSynchronous();
 
 	ApplyIconTexture(Tex);
 }

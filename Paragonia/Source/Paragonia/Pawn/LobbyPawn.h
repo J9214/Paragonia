@@ -29,7 +29,7 @@ protected:
 	FRotator TargetRotation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
-	float MoveSpeed = 3000.f;
+	float MoveSpeed = 1500.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Lobby")
 	float RotationInterpSpeed = 5.f;

@@ -25,8 +25,9 @@ class PARAGONIA_API UPG_CharacterSelectWidget : public UCommonActivatableWidget
 public:
 	void SetInit();
 
-	void SetPlayerCharacterIcon(int index, int CharacterUID);
-	void SetPlayerReady(int index);
+	void SetPlayerNumberID(int32 index, int32 PlayerNumberID);
+	void SetPlayerCharacterIcon(int32 PlayerNumberID , int32 CharacterUID);
+	int32 SetPlayerReady(int32 PlayerNumberID);
 
 	UFUNCTION(BlueprintCallable)
 	bool SpawnPreviewActorIfNeeded();
@@ -79,7 +80,7 @@ protected:
 	void HandleAnyCharacterIDChanged(int32 NewCharacterID);
 
 	UFUNCTION()
-	void HandlePlayerSelected(EPlayerLobbyState LobbyState);
+	void HandlePlayerSelected(EPlayerLobbyState LobbyState , int32 PlayerUID);
 
 	UFUNCTION()
 	void RefreshCharacterTileView();
@@ -98,4 +99,5 @@ protected:
 	FRotator SpawnRotation;
 
 	int32 SelectedCharacterUID;
+
 };

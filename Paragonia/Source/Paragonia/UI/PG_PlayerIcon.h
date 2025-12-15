@@ -18,13 +18,19 @@ class PARAGONIA_API UPG_PlayerIcon : public UCommonUserWidget
 	GENERATED_BODY()
 
 public:
-	void ApplyIcon();
+	int32 ApplyIcon();
 
 	void SetPlayerIcon(const int32 CharacterUID);
 	void SetPlayerIcon(const FName& CharacterName);
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerIcon")
 	void SetPlayerNameText(const FText& InName);
+
+	UFUNCTION(BlueprintCallable, Category = "LobbyData")
+	int32 GetPlayerNumberId() const { return PlayerNumberID; }
+
+	UFUNCTION(BlueprintCallable, Category = "LobbyData")
+	void SetPlayerNumberId(int32 InPlayerNumberID);
 
 protected:
 	virtual void NativeOnInitialized() override;
@@ -39,4 +45,6 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UPGCharacterDescriptionSubsystem> CharacterDescSubsys;
 
+	int32 PlayerNumberID;
+	int32 SelectCharacterID;
 };

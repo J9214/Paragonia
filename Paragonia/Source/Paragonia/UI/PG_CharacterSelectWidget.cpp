@@ -61,40 +61,58 @@ void UPG_CharacterSelectWidget::SetInit()
     }
 }
 
-void UPG_CharacterSelectWidget::SetPlayerCharacterIcon(int index, int CharacterUID)
+
+void UPG_CharacterSelectWidget::SetPlayerNumberID(int32 index, int32 PlayerNumberID)
 {
     switch (index)
     {
     case 0:
-        Player0Icon->SetPlayerIcon(CharacterUID);
+        Player0Icon->SetPlayerNumberId(PlayerNumberID);
         break;
     case 1:
-        Player1Icon->SetPlayerIcon(CharacterUID);
+        Player1Icon->SetPlayerNumberId(PlayerNumberID);
         break;
     case 2:
-        Player2Icon->SetPlayerIcon(CharacterUID);
+        Player2Icon->SetPlayerNumberId(PlayerNumberID);
         break;
     default:
         break;
     }
 }
 
-void UPG_CharacterSelectWidget::SetPlayerReady(int index)
+void UPG_CharacterSelectWidget::SetPlayerCharacterIcon(int32 PlayerNumberID, int32 CharacterUID)
 {
-    switch (index)
+    if (Player0Icon->GetPlayerNumberId() == PlayerNumberID)
     {
-    case 0:
-        Player0Icon->ApplyIcon();
-        break;
-    case 1:
-        Player1Icon->ApplyIcon();
-        break;
-    case 2:
-        Player2Icon->ApplyIcon();
-        break;
-    default:
-        break;
+        Player0Icon->SetPlayerIcon(CharacterUID);
     }
+    if (Player1Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        Player1Icon->SetPlayerIcon(CharacterUID);
+    }
+    if (Player2Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        Player2Icon->SetPlayerIcon(CharacterUID);
+    }
+
+}
+
+int32 UPG_CharacterSelectWidget::SetPlayerReady(int32 PlayerNumberID)
+{
+    if (Player0Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        return Player0Icon->ApplyIcon();
+    }
+    if (Player1Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        return Player1Icon->ApplyIcon();
+    }
+    if (Player2Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        return Player2Icon->ApplyIcon();
+    }
+
+    return -1;
 }
 
 bool UPG_CharacterSelectWidget::SpawnPreviewActorIfNeeded()
@@ -161,7 +179,9 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
         LobbyPlayerState->ServerSetCharacterID(Entry->Data.UID);
     }
     else
+    {
         UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
+    }
 
     CharacterDescription->InitDescription(*DetailRow);
     SelectedCharacterUID = Entry->Data.UID;
@@ -228,30 +248,39 @@ void UPG_CharacterSelectWidget::HandlePlayerReadyClicked()
 
 void UPG_CharacterSelectWidget::HandleAnyCharacterIDChanged(int32 NewCharacterID)
 {
-    if (Player1Icon)
+    ALobbyGameStateBase* GS = GetWorld()->GetGameState<ALobbyGameStateBase>();
+    for (APlayerState* PS : GS->PlayerArray)
     {
-        Player1Icon->SetPlayerIcon(NewCharacterID);
-    }
+        ALobbyPlayerState* LPS = Cast<ALobbyPlayerState>(PS);
 
-    RefreshCharacterTileView();
+        if (!LPS)
+            continue;
+        if (LPS == LobbyPlayerState)
+            continue;
+        if (LPS->GetTeamID() != LobbyPlayerState->GetTeamID())
+            continue;
+        if (LPS->GetPlayerLobbyState() == EPlayerLobbyState::PLS_SelectedAndReady)
+            continue;
+        SetPlayerCharacterIcon(LPS->GetPlayerNumberId(), LPS->GetCharacterID());
+    }
 }
 
-void UPG_CharacterSelectWidget::HandlePlayerSelected(EPlayerLobbyState LobbyState)
+void UPG_CharacterSelectWidget::HandlePlayerSelected(EPlayerLobbyState LobbyState, int32 PlayerUID)
 {
     if (LobbyState != EPlayerLobbyState::PLS_SelectedAndReady)
         return;
+    int32 SelectedCharacterID = SetPlayerReady(PlayerUID);
 
     TArray<UObject*> Items = CharacterTileView->GetListItems();
-
     for (UObject* Item : Items)
     {
-        //if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
-            //RowItem->bTeamSelected = (RowItem->Data.UID == NewCharacterID);
-    }
-
-    if (Player1Icon)
-    {
-        Player1Icon->ApplyIcon();
+        if (auto* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        {
+            if (RowItem->bTeamSelected == false)
+            {
+                RowItem->bTeamSelected = (RowItem->Data.UID == SelectedCharacterID);
+            }
+        }
     }
 }
 
@@ -307,20 +336,29 @@ bool UPG_CharacterSelectWidget::CheckPlayerState()
         return false;
 
     LobbyPlayerState = FoundPS;
+    int IconIndex = 0;
+
+    SetPlayerNumberID(IconIndex++, LobbyPlayerState->GetPlayerNumberId());
 
     ALobbyGameStateBase* GS = GetWorld()->GetGameState<ALobbyGameStateBase>();
     for (APlayerState* PS : GS->PlayerArray)
     {
         ALobbyPlayerState* LPS = Cast<ALobbyPlayerState>(PS);
-        if (!LPS || LPS == LobbyPlayerState) continue;
+        if (!LPS)
+            continue;
+        if(LPS == LobbyPlayerState)
+            continue;
+        if (LPS->GetTeamID() != LobbyPlayerState->GetTeamID())
+            continue;
 
         LPS->OnCharacterIDChanged.AddUniqueDynamic(this, &ThisClass::HandleAnyCharacterIDChanged);
-        LPS->OnLobbyPlayerStateChanged.AddUniqueDynamic(this, &ThisClass::HandlePlayerSelected);
-        //OnLobbyPlayerStateChanged에 어떤 캐릭터 선택했는지도 알수 있었으면 합니다 ㅠ
-        //PlayerState 전부 순회하면서 선택된거 for문돌리면 기능은 구현 가능한데 많이 과한거 같아서요... 
+        LPS->OnLobbyPlayerStateChangedHelperUI.AddUniqueDynamic(this, &ThisClass::HandlePlayerSelected);
+
+        SetPlayerNumberID(IconIndex++, LPS->GetPlayerNumberId());
     }
     return true;
 }
+
 
 void UPG_CharacterSelectWidget::SetUI()
 {
@@ -328,6 +366,5 @@ void UPG_CharacterSelectWidget::SetUI()
     {
         PlayAnimation(ShowAnim);
     }
-
 }
 
