@@ -22,8 +22,6 @@ void ALobbyGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-    UE_LOG(LogTemp, Warning, TEXT("Start Lobby!"));
-
 	if (HasAuthority())
 	{
         bool bCanBindAll = true;

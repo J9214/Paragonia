@@ -35,7 +35,6 @@ void ALobbyPlayerState::CopyProperties(APlayerState* PlayerState)
 	APGPlayerState* TargetPS = Cast<APGPlayerState>(PlayerState);
 	if (TargetPS)
 	{
-		// 차후 수정 예정
 		UE_LOG(LogTemp, Log, TEXT("[CopyProperties] Name : %s, CharacterID : %d, TeamID : %d!"), *GetPlayerName(), CharacterID, TeamID);
 		TargetPS->SetCharID(CharacterID);
 		TargetPS->SetTeamID(TeamID);
@@ -163,10 +162,6 @@ void ALobbyPlayerState::StopMatchingTimer()
 void ALobbyPlayerState::IncreaseWaitTime()
 {
 	MatchWaitTime++;
-	UE_LOG(LogTemp, Warning, TEXT("[ALobbyPlayerState] Player Name: %s | Wait Time: %d"),
-		*GetPlayerName(),
-		MatchWaitTime
-	);
 }
 
 void ALobbyPlayerState::CheckStateForTimer()
