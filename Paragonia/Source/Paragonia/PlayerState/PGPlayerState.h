@@ -29,6 +29,9 @@ public:
 
 #pragma endregion Team
 
+public:
+	int32 GetCharID() const { return CharacterID; }
+	int32 GetTeamID() const { return TeamID; }
 	void SetCharID(int32 NewCharID);
 	void SetTeamID(int32 NewTeamID);
 
