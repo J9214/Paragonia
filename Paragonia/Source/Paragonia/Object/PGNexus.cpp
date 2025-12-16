@@ -9,16 +9,6 @@
 APGNexus::APGNexus()
 {
 	Tags.Add(FName("Nexus"));
-    //Tags.Add(FName("Team2Nexus"));
-    
-
-    OverlapSphere = CreateDefaultSubobject<USphereComponent>(TEXT("OverlapSphere"));
-    OverlapSphere->InitSphereRadius(200.0f);
-    OverlapSphere->SetCollisionProfileName(TEXT("Trigger"));
-    OverlapSphere->SetupAttachment(RootComponent);
-
-    // BeginOverlap에 함수 바인딩
-    OverlapSphere->OnComponentBeginOverlap.AddDynamic(this, &APGNexus::OnOverlapBegin);
 }
 
 void APGNexus::BeginPlay()
@@ -41,17 +31,4 @@ void APGNexus::Destroyed()
             GM->OnObjectiveDestroyed(this);
         }
     }
-
-	this->Destroy();
 }
-
-void APGNexus::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-    bool bFromSweep, const FHitResult& SweepResult)
-{
-    if (!OtherActor || OtherActor == this) return;
-
-    // 여기서 플레이어나 원하는 액터인지 체크 가능
-    Destroyed();
-}
-

@@ -1,8 +1,7 @@
 #include "GA/Sparrow/GA_SkillR_Sparrow.h"
 
 UGA_SkillR_Sparrow::UGA_SkillR_Sparrow()
+	: UPGSelfBuffAbility()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
+	Duration = 5.0f;
 }

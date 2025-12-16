@@ -39,7 +39,6 @@ void APGPlayerController::BeginPlay()
     if (const UEnum* EnumPtr = StaticEnum<decltype(MyPS->TeamType)>())
     {
         FString EnumName = EnumPtr->GetNameStringByValue(static_cast<int64>(MyPS->TeamType));
-        UE_LOG(LogTemp, Warning, TEXT("Your Team is %s"), *EnumName);
     }
     
 
@@ -77,12 +76,10 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         // UI 업데이트 및 게임 종료 처리 예시
         if (bIsWinner)
         {
-            UE_LOG(LogTemp, Warning, TEXT("You Win!"));
             ShowWinWidget(1);
         }
         else if (GS->TeamResult != ETeamResult::None)
         {
-            UE_LOG(LogTemp, Warning, TEXT("You Lose!"));
             ShowWinWidget(0);
         }
     }

@@ -4,10 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "AbilitySystemInterface.h"
 #include "PGObject.generated.h"
 
+class UAbilitySystemComponent;
+class UObjectAttributeSet;
+struct FOnAttributeChangeData;
+
 UCLASS()
-class PARAGONIA_API APGObject : public AActor
+class PARAGONIA_API APGObject : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -15,9 +20,30 @@ public:
 	// Sets default values for this actor's properties
 	APGObject();
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void InitializeActorInfo();
 
+	void InitializeAttributes();
+
+	void InitializeAttributesData();
+
+	void BindAttributeChangeDelegates();
+
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
+	void HandleHealthDepleted();
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr<UAbilitySystemComponent> ASC;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
+	TObjectPtr<UObjectAttributeSet> ObjectAttributeSet;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
+	FName ObjectName;
 };

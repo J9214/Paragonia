@@ -2,6 +2,8 @@
 
 #include "Bullet/PGNormalBullet_Sparrow.h"
 
+#include "AbilitySystemComponent.h"
+
 #include "DrawDebugHelpers.h"
 
 APGRangedTargetActor::APGRangedTargetActor()
@@ -34,7 +36,7 @@ void APGRangedTargetActor::ConfirmTargetingAndContinue()
 
 		TargetDataReadyDelegate.Broadcast(DataHandle);
 
-		APGNormalBullet_Sparrow* Bullet = Cast<APGNormalBullet_Sparrow>(SourceActor);
+		APGCreateTargetActorBullet* Bullet = Cast<APGCreateTargetActorBullet>(SourceActor);
 		if (IsValid(Bullet))
 		{
 			FColor DrawColor = bHit ? FColor::Green : FColor::Red;
@@ -51,8 +53,6 @@ void APGRangedTargetActor::ConfirmTargetingAndContinue()
 				false,
 				5.0f
 			);
-
-			Bullet->Destroy();
 		}
 	}
 }
@@ -78,6 +78,20 @@ bool APGRangedTargetActor::SphereTrace(TArray<FHitResult>& OutHitResults) const
 		FCollisionShape::MakeSphere(AttackData.Radius),
 		Params
 	);
+
+	for (int i = 0; i < OutHitResults.Num(); )
+	{
+		FHitResult Result = OutHitResults[i];
+		UAbilitySystemComponent* ASC = Result.GetActor()->GetComponentByClass<UAbilitySystemComponent>();
+		if (!IsValid(ASC))
+		{
+			OutHitResults.RemoveAt(i);
+		}
+		else
+		{
+			++i;
+		}
+	}
 
 	return bHit;
 }
