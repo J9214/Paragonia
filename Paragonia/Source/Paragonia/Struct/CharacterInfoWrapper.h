@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Struct/FCharacterDescription.h"
-#include "CharacterDescriptionWrapper.generated.h"
+#include "Struct/FCharacterResourceInfo.h"
+#include "CharacterInfoWrapper.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PARAGONIA_API UCharacterDescriptionWrapper : public UObject
+class PARAGONIA_API UCharacterInfoWrapper : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -19,7 +20,10 @@ public:
 	FName RowName;
 
 	UPROPERTY()
-	FCharacterDescription Data;
+	FCharacterDescription DescriptionData;
+
+	UPROPERTY()
+	FCharacterResourceInfo ResourceData;
 
 	UPROPERTY()
 	bool bSelected = false;

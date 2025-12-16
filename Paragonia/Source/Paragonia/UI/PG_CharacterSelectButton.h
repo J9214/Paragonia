@@ -9,7 +9,7 @@
 
 class UImage;
 class UTextBlock;
-class UCharacterDescriptionWrapper;
+class UCharacterInfoWrapper;
 class UPGStringTableSubsystem;
 /**
  * 
@@ -25,7 +25,7 @@ public:
 	virtual void NativeOnInitialized() override;
 
 	UFUNCTION()
-	void ApplySelectedVisual(UCharacterDescriptionWrapper* Warp);
+	void ApplySelectedVisual(UCharacterInfoWrapper* Warp);
 protected:
 
 	UPROPERTY()
