@@ -2,7 +2,7 @@
 
 
 #include "UI/PG_CharacterSelectButton.h"
-#include "Struct/CharacterDescriptionWrapper.h"
+#include "Struct/CharacterInfoWrapper.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "PlayerState/LobbyPlayerState.h"
@@ -23,20 +23,21 @@ void UPG_CharacterSelectButton::NativeOnListItemObjectSet(UObject* ListItemObjec
         return;
     }
 
-    auto* Entry = Cast<UCharacterDescriptionWrapper>(ListItemObject);
+    auto* Entry = Cast<UCharacterInfoWrapper>(ListItemObject);
     if (!Entry)
         return;
 
-    const FCharacterDescription& Desc = Entry->Data;
+    const FCharacterDescription& Desc = Entry->DescriptionData;
+    const FCharacterResourceInfo& Resorce = Entry->ResourceData;
 
     if (IconImage)
     {
         UTexture2D* Tex = nullptr;
 
-        if (Desc.BoxIcon.IsValid())
-            Tex = Desc.BoxIcon.Get();
+        if (Resorce.BoxIcon.IsValid())
+            Tex = Resorce.BoxIcon.Get();
         else
-            Tex = Desc.BoxIcon.LoadSynchronous();
+            Tex = Resorce.BoxIcon.LoadSynchronous();
 
         IconImage->SetBrushFromTexture(Tex, true);
     }
@@ -101,7 +102,7 @@ void UPG_CharacterSelectButton::HandleCharacterSelected()
     OutLineImage->SetColorAndOpacity(SelectedColor);
 }
 
-void UPG_CharacterSelectButton::ApplySelectedVisual(UCharacterDescriptionWrapper* Warp)
+void UPG_CharacterSelectButton::ApplySelectedVisual(UCharacterInfoWrapper* Warp)
 {
     bTeamSelected = Warp->bTeamSelected;
     bSelected = Warp->bSelected;

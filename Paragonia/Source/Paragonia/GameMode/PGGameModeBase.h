@@ -38,6 +38,17 @@ public:
 
     virtual void HandleSeamlessTravelPlayer(AController*& C) override;
 
+    virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, Category = "Character")
+    TMap<int32, TSubclassOf<APawn>> CharacterIDToPawnClass;
+
+
+
+
+
+
 #pragma region DeathAndRespawn
 public:
     /** 캐릭터 사망 시 호출 (Character에서 HandleDeath에서 호출) */

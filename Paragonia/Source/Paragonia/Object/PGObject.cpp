@@ -50,7 +50,7 @@ void APGObject::InitializeAttributes()
 {
 	if (!IsValid(ASC))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributes - ASC is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("APGObject::InitializeAttributes - ASC is not valid"));
 		return;
 	}
 
@@ -68,14 +68,14 @@ void APGObject::InitializeAttributesData()
 
 	if (!IsValid(ObjectAttributeSet))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - ObjectAttributeSet is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("APGObject::InitializeAttributesData - ObjectAttributeSet is not valid"));
 		return;
 	}
 
 	UPGObjectAttributeDataSubsystem* AttributeSubsystem = GetGameInstance()->GetSubsystem<UPGObjectAttributeDataSubsystem>();
 	if (!IsValid(AttributeSubsystem))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - AttributeSubsystem is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("APGObject::InitializeAttributesData - AttributeSubsystem is not valid"));
 		return;
 	}
 
@@ -89,7 +89,7 @@ void APGObject::InitializeAttributesData()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - No AttributeData found for %s"), *ObjectName.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("APGObject::InitializeAttributesData - No AttributeData found for %s"), *ObjectName.ToString());
 	}
 }
 
