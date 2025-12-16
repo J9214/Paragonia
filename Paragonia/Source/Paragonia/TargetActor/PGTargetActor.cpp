@@ -7,7 +7,6 @@
 
 APGTargetActor::APGTargetActor()
 {
-	bReplicates = true;
 	ShouldProduceTargetDataOnServer = true;
 }
 
