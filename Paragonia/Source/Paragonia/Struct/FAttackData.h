@@ -46,8 +46,4 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<FAttackEffectEntry> DebuffEffects;
-
-	// Deprecated: Use DamageEffects instead
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TSubclassOf<UGameplayEffect> DamageEffectClass = nullptr;
 };

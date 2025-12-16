@@ -101,11 +101,6 @@ void UGA_Attack_Aurora::PlayCurrentCombo()
 		Task->OnCancelled.AddDynamic(this, &UGA_Attack_Aurora::OnMontageCancelled);
 
 		Task->ReadyForActivation();
-
-		if (IsValid(Character))
-		{
-			Character->GetCharacterMovement()->SetMovementMode(MOVE_None);
-		}
 	}
 	else
 	{
@@ -189,12 +184,6 @@ void UGA_Attack_Aurora::EndAbility(
 	bool bWasCancelled
 )
 {
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (IsValid(Character))
-	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	}
-
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -230,12 +219,6 @@ void UGA_Attack_Aurora::OnStartNextCombo(const FGameplayEventData Payload)
 
 void UGA_Attack_Aurora::OnMontageCompleted()
 {
-	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (IsValid(Character))
-	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	}
-
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
@@ -247,12 +230,6 @@ void UGA_Attack_Aurora::OnMontageInterrupted()
 		return;
 	}
 
-	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (IsValid(Character))
-	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	}
-
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
@@ -262,12 +239,6 @@ void UGA_Attack_Aurora::OnMontageCancelled()
 	{
 		bIsComboTransition = false;
 		return;
-	}
-
-	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-	if (IsValid(Character))
-	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);

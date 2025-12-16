@@ -11,14 +11,17 @@ struct FCharacterAttributeData : public FTableRowBase
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxHealth = 200.f;
+	float MaxHealth = 200.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Health = 200.f;
+	float Health = 200.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float AttackPower = 20.f;
+	float Defense = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MoveSpeed = 500.f;
+	float AttackPower = 20.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MoveSpeed = 500.0f;
 };
