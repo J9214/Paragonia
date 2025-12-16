@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"  
-#include "FCharacterDescription.generated.h"
+#include "FCharacterResourceInfo.generated.h"
 
 USTRUCT(BlueprintType)
-struct FCharacterDescription : public FTableRowBase
+struct PARAGONIA_API FCharacterResourceInfo : public FTableRowBase
 {
     GENERATED_BODY()
 
@@ -16,25 +16,26 @@ public:
     int32 UID;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName DisplayName;
+    TSoftObjectPtr<UTexture2D> BoxIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Skill1Name;
+    TSoftObjectPtr<UTexture2D> CircleIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Skill1Description;
+    TSoftObjectPtr<USkeletalMesh> LobbyMesh;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Skill2Name;
+    TSoftClassPtr<UAnimInstance> LobbyAnimBP;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Skill2Description;
+    TSoftObjectPtr<UAnimMontage> IntroMontage;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Skill3Name;
+    TSoftObjectPtr<UAnimMontage> Skill1Montage;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FName Skill3Description;
+    TSoftObjectPtr<UAnimMontage> Skill2Montage;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UAnimMontage> Skill3Montage;
 };
-
