@@ -163,9 +163,9 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
     }
 
     TArray<UObject*> Items = CharacterTileView->GetListItems();
-    for (UObject* Item : Items)
+    for (UObject* ObjectItem : Items)
     {
-        if (UCharacterDescriptionWrapper* RowItem = Cast<UCharacterDescriptionWrapper>(Item))
+        if (UCharacterDescriptionWrapper* RowItem = Cast<UCharacterDescriptionWrapper>(ObjectItem))
         {
             int RowUID = RowItem->Data.UID;
             RowItem->bSelected = (RowUID == Entry->Data.UID);

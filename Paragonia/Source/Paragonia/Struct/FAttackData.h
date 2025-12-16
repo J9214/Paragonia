@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Struct/FAttackEffectEntry.h"
 #include "FAttackData.generated.h"
 
 class UGameplayEffect;
@@ -26,11 +27,23 @@ public:
     float Radius = 100.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseDamage = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float DamageMultiplier = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EPGAttackShape SweepShape = EPGAttackShape::Sphere;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UAnimMontage* Montage = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TSubclassOf<UGameplayEffect> DamageEffectClass = nullptr;
+    TArray<FAttackEffectEntry> DamageEffects;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FAttackEffectEntry> BuffEffects;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FAttackEffectEntry> DebuffEffects;
 };

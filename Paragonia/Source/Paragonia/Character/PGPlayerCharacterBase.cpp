@@ -34,7 +34,7 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 400.0f;
+	SpringArm->TargetArmLength = 500.0f;
 	SpringArm->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -263,7 +263,7 @@ void APGPlayerCharacterBase::InitializeAttributesData()
 		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacterBase::InitializeAttributesData - CharacterAttributeSet is not valid"));
 		return;
 	}
-
+	
 	UPGAttributeDataSubsystem* AttributeSubsystem = GetGameInstance()->GetSubsystem<UPGAttributeDataSubsystem>();
 	if (!IsValid(AttributeSubsystem))
 	{
@@ -276,8 +276,10 @@ void APGPlayerCharacterBase::InitializeAttributesData()
 	{
 		CharacterAttributeSet->InitMaxHealth(AttributeData->MaxHealth);
 		CharacterAttributeSet->InitHealth(AttributeData->Health);
+		CharacterAttributeSet->InitDefense(AttributeData->Defense);
 		CharacterAttributeSet->InitAttackPower(AttributeData->AttackPower);
 		CharacterAttributeSet->InitMoveSpeed(AttributeData->MoveSpeed);
+		GetCharacterMovement()->MaxWalkSpeed = AttributeData->MoveSpeed;
 	}
 	else
 	{
@@ -293,6 +295,7 @@ void APGPlayerCharacterBase::BindAttributeChangeDelegates()
 	}
 
 	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetDefenseAttribute()).AddUObject(this, &ThisClass::OnDefenseChanged);
 	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetAttackPowerAttribute()).AddUObject(this, &ThisClass::OnAttackPowerChanged);
 	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ThisClass::OnMoveSpeedChanged);
 }
@@ -305,6 +308,10 @@ void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
 			ServerRPCSetDeadState(true);
 		}
 	}
+}
+
+void APGPlayerCharacterBase::OnDefenseChanged(const FOnAttributeChangeData& Data)
+{
 }
 
 void APGPlayerCharacterBase::OnAttackPowerChanged(const FOnAttributeChangeData& Data)

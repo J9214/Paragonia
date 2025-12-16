@@ -1,4 +1,4 @@
-#include "GA/GA_Attack_Sparrow.h"
+#include "GA/Sparrow/GA_Attack_Sparrow.h"
 
 #include "Animation/PGRangedAnimInstance.h"
 #include "Character/PGPlayerCharacterBase.h"
@@ -43,6 +43,8 @@ void UGA_Attack_Sparrow::ActivateAbility(
 			{
 				PGAnimInstance->SetCurrentAttackData(AttackData);
 				PGAnimInstance->SetBulletClass(SpawnActorClass);
+				PGAnimInstance->SetBulletSpawnTransform(Character->GetMesh()->GetSocketTransform(FName(TEXT("BowEmitterSocket"))));
+				PGAnimInstance->SetConfimationType(ConfimationType);
 			}
 		}
 	}
@@ -90,25 +92,7 @@ void UGA_Attack_Sparrow::ActivateAbility(
 
 void UGA_Attack_Sparrow::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (Payload.TargetData.Num() == 0)
-	{
-		return;
-	}
-
-	if (!IsValid(AttackData.DamageEffectClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Sparrow::OnHitResultEvent - DamageEffectClass is invalid"));
-		return;
-	}
-
-	ApplyGameplayEffectToTarget(
-		GetCurrentAbilitySpecHandle(),
-		GetCurrentActorInfo(),
-		GetCurrentActivationInfo(),
-		Payload.TargetData,
-		AttackData.DamageEffectClass,
-		1.0f
-	);
+	ApplyAttackDataEffects_OnHit(AttackData, Payload);
 }
 
 void UGA_Attack_Sparrow::OnMontageCompleted()

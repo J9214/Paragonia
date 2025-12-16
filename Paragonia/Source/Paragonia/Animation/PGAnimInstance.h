@@ -49,6 +49,9 @@ protected:
 	FVector Velocity;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector LocalVelocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float GroundSpeed;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
