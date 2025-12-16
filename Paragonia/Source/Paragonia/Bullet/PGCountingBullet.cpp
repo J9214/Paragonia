@@ -32,11 +32,6 @@ void APGCountingBullet::OnCreateTargetActor()
 		UE_LOG(LogTemp, Warning, TEXT("APGCountingBullet::OnCreateTargetActor - Not Valid Owner"));
 		Destroy();
 	}
-	else if (!IsValid(EffectClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGCountingBullet::OnCreateTargetActor - Not Valid Effect Class"));
-		Destroy();
-	}
 	else if (!IsValid(Task))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGCountingBullet::OnCreateTargetActor - Task is Not Valid"));

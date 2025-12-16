@@ -23,6 +23,8 @@ void UPGSelfBuffAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		UAbilityTask_WaitDelay::WaitDelay(this, Duration);
 
 	DelayTask->OnFinish.AddDynamic(this, &ThisClass::OnFinishDelay);
+
+	DelayTask->ReadyForActivation();
 }
 
 void UPGSelfBuffAbility::OnFinishDelay()
