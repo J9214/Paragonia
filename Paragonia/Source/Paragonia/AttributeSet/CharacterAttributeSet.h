@@ -17,6 +17,7 @@ public:
 
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, MaxHealth);
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, Health);
+	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, Defense);
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, AttackPower);
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, MoveSpeed);
 	ATTRIBUTE_ACCESSORS_BASIC(ThisClass, Damaged);
@@ -43,6 +44,9 @@ private:
 	void OnRep_Health(const FGameplayAttributeData& OldHealth);
 
 	UFUNCTION()
+	void OnRep_Defense(const FGameplayAttributeData& OldDefense);
+
+	UFUNCTION()
 	void OnRep_AttackPower(const FGameplayAttributeData& OldAttackPower);
 
 	UFUNCTION()
@@ -55,9 +59,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attribute", ReplicatedUsing = OnRep_Defense)
+	FGameplayAttributeData Defense;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute", ReplicatedUsing = OnRep_AttackPower)
 	FGameplayAttributeData AttackPower;
-
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute", ReplicatedUsing = OnRep_MoveSpeed)
 	FGameplayAttributeData MoveSpeed;

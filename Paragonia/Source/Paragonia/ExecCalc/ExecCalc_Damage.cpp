@@ -5,10 +5,12 @@
 struct FDamageCapture
 {
     DECLARE_ATTRIBUTE_CAPTUREDEF(AttackPower);
+    DECLARE_ATTRIBUTE_CAPTUREDEF(Defense);
 
     FDamageCapture()
     {
         DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, AttackPower, Source, true);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UCharacterAttributeSet, Defense, Target, true);
     }
 };
 
@@ -21,6 +23,7 @@ static const FDamageCapture& GetDamageCapture()
 UExecCalc_Damage::UExecCalc_Damage()
 {
     RelevantAttributesToCapture.Add(GetDamageCapture().AttackPowerDef);
+    RelevantAttributesToCapture.Add(GetDamageCapture().DefenseDef);
 }
 
 void UExecCalc_Damage::Execute_Implementation(
@@ -31,6 +34,7 @@ void UExecCalc_Damage::Execute_Implementation(
     const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 
     FAggregatorEvaluateParameters EvaluationParams;
+
     float AttackPower = 0.0f;
     ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(
         GetDamageCapture().AttackPowerDef,
@@ -38,10 +42,21 @@ void UExecCalc_Damage::Execute_Implementation(
         AttackPower
     );
 
-	const float BaseDamage = Spec.GetSetByCallerMagnitude(TAG_Data_Damage_Base, false, 0.0f);
-    const float Multiplier = Spec.GetSetByCallerMagnitude(TAG_Data_Damage_Multiplier, false, 0.0f);
+	float Defense = 0.0f;
+    ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(
+        GetDamageCapture().DefenseDef,
+        EvaluationParams,
+        Defense
+	);
 
-	const float TotalDamage = FMath::Max(0.0f, BaseDamage + (AttackPower * Multiplier));
+	const float AbilityBaseDamage = Spec.GetSetByCallerMagnitude(TAG_Data_Damage_Base, false, 0.0f);
+    const float AttackPowerMultiplier = Spec.GetSetByCallerMagnitude(TAG_Data_Damage_Multiplier, false, 0.0f);
+	const float RawDamage = FMath::Max(0.0f, AbilityBaseDamage + (AttackPower * AttackPowerMultiplier));
 
-    OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UCharacterAttributeSet::GetDamagedAttribute(), EGameplayModOp::Additive, TotalDamage));
+	const float SafeDefense = FMath::Max(0.0f, Defense);
+	const float DamageMultiplier = K / (K + SafeDefense);
+
+	const float FinalDamage = RawDamage * DamageMultiplier;
+
+    OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UCharacterAttributeSet::GetDamagedAttribute(), EGameplayModOp::Additive, FinalDamage));
 }

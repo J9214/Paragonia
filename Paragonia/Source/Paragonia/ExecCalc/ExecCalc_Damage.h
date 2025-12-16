@@ -16,5 +16,8 @@ public:
 		const FGameplayEffectCustomExecutionParameters& ExecutionParams,
 		FGameplayEffectCustomExecutionOutput& OutExecutionOutput
 	) const override;
+
+private:
+	const float K = 100; // 방어력 감쇠 계수
 };
 	

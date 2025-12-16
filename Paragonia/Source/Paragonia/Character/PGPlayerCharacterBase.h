@@ -72,6 +72,8 @@ private:
 
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
 
+	void OnDefenseChanged(const FOnAttributeChangeData& Data);
+
 	void OnAttackPowerChanged(const FOnAttributeChangeData& Data);
 
 	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
