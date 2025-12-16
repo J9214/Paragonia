@@ -92,12 +92,10 @@ void APGNormalBullet_Sparrow::OnBeginOverlap(
 	else if (!IsValid(Task))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Task is Not Valid"));
-		Destroy();
 	}
 	else if (!IsValid(Ability))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Ability is Not Valid"));
-		Destroy();
 	}
 	else if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
 	{

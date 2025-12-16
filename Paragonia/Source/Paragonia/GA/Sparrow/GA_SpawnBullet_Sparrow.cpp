@@ -117,7 +117,6 @@ void UGA_SpawnBullet_Sparrow::EndAbility(
 	bool bWasCancelled
 )
 {
-	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::OnTargetDataReceived - EndAbility"));
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -137,8 +136,6 @@ void UGA_SpawnBullet_Sparrow::OnTargetDataReceived(const FGameplayAbilityTargetD
 		FGameplayTag::RequestGameplayTag(FName("Event.Character.HitResult")),
 		EventPayload
 	);
-
-	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::OnTargetDataReceived"));
 
 	if (bIsEndAbility)
 	{
