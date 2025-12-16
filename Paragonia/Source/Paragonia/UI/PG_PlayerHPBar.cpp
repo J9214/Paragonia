@@ -10,3 +10,15 @@ void UPG_PlayerHPBar::NativeOnInitialized()
 
 
 }
+
+void UPG_PlayerHPBar::HandleHealthChanged(float OldValue, float NewValue)
+{
+	NowHPValue = NewValue;
+    HPBar->SetPercent(MaxHPValue > 0.f ? NewValue / MaxHPValue : 0.f);
+}
+
+void UPG_PlayerHPBar::HandleMaxHealthChanged(float OldValue, float NewValue)
+{
+	MaxHPValue = NewValue;
+	HPBar->SetPercent(NewValue > 0.f ? NowHPValue / NewValue : 0.f);
+}

@@ -18,7 +18,18 @@ class PARAGONIA_API UPG_PlayerHPBar : public UCommonUserWidget
 public:
 	virtual void NativeOnInitialized() override;
 
+	UFUNCTION()
+	void HandleHealthChanged(float OldValue, float NewValue);
+
+	UFUNCTION()
+	void HandleMaxHealthChanged(float OldValue, float NewValue);
+
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UProgressBar> Name;
+	TObjectPtr<UProgressBar> HPBar;
+
+	UPROPERTY()
+	float NowHPValue;
+	UPROPERTY()
+	float MaxHPValue;
 };
