@@ -1,4 +1,4 @@
-﻿#include "Character/PGPlayerCharacterBase.h"
+#include "Character/PGPlayerCharacterBase.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -73,6 +73,12 @@ void APGPlayerCharacterBase::OnRep_Controller()
 
 	InitializeActorInfo();
 	BindAttributeChangeDelegates();
+
+	FInputModeGameOnly InputMode;
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->SetInputMode(InputMode);
+	}
 }
 
 void APGPlayerCharacterBase::BeginPlay()

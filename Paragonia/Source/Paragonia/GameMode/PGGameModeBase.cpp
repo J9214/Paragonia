@@ -90,6 +90,8 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
     {
         // TODO
     }
+
+    RestartPlayer(C);
 }
 
 UClass* APGGameModeBase::GetDefaultPawnClassForController_Implementation(AController* InController)
