@@ -32,6 +32,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void SetSpawnMoveLock(bool bLock);
 
+	UFUNCTION(BlueprintCallable)
+	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -127,7 +130,7 @@ public:
 	void ServerRPCSetDeadState(uint8 bDead);
 
 	UFUNCTION()
-	void SetDeadState(uint8 bDead);
+	void SetDeadState(uint8 bDead); 
 protected:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
