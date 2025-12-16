@@ -10,6 +10,7 @@
 #include "Controller/PGPlayerController.h"
 #include "EngineUtils.h"
 #include "Object/PGNexus.h"
+#include "Character/PGPlayerCharacterBase.h"
 
 APGGameModeBase::APGGameModeBase()
 {
@@ -33,6 +34,9 @@ void APGGameModeBase::PostLogin(APlayerController* NewPlayer)
     {
         AlivePlayerControllers.Add(NewPlayerController);
     }
+
+    RestartPlayer(NewPlayer);
+
 }
 
 // 로그아웃 시 플레이어 컨트롤러를 생존자 목록에서 제거하고 사망자 목록에 추가
@@ -86,6 +90,19 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
     {
         // TODO
     }
+}
+
+UClass* APGGameModeBase::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+    if (APGPlayerState* PS = InController ? InController->GetPlayerState<APGPlayerState>() : nullptr)
+    {
+        if (TSubclassOf<APawn>* Found = CharacterIDToPawnClass.Find(PS->GetCharID()))
+        {
+            return Found->Get();
+        }
+    }
+
+    return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
 
 #pragma region DeathAndRespawn
