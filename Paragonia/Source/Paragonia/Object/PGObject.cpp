@@ -3,9 +3,9 @@
 
 #include "PGObject.h"
 #include "AbilitySystemComponent.h"
-#include "AttributeSet/ObjectAttributeSet.h"
-#include "Subsystem/PGObjectAttributeDataSubsystem.h"
-#include "Struct/FObjectAttributeData.h"
+#include "AttributeSet/CharacterAttributeSet.h"
+#include "Subsystem/PGAttributeDataSubsystem.h"
+#include "Struct/FCharacterAttributeData.h"
 
 
 // Sets default values
@@ -17,7 +17,7 @@ APGObject::APGObject()
 	ASC->SetIsReplicated(true);
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	ObjectAttributeSet = CreateDefaultSubobject<UObjectAttributeSet>(TEXT("ObjectAttributeSet"));
+	ObjectAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 
 }
 
@@ -54,7 +54,7 @@ void APGObject::InitializeAttributes()
 		return;
 	}
 
-	ASC->AddAttributeSetSubobject<UObjectAttributeSet>(ObjectAttributeSet);
+	ASC->AddAttributeSetSubobject<UCharacterAttributeSet>(ObjectAttributeSet);
 
 	BindAttributeChangeDelegates();
 }
@@ -72,18 +72,19 @@ void APGObject::InitializeAttributesData()
 		return;
 	}
 
-	UPGObjectAttributeDataSubsystem* AttributeSubsystem = GetGameInstance()->GetSubsystem<UPGObjectAttributeDataSubsystem>();
+	UPGAttributeDataSubsystem* AttributeSubsystem = GetGameInstance()->GetSubsystem<UPGAttributeDataSubsystem>();
 	if (!IsValid(AttributeSubsystem))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGObject::InitializeAttributesData - AttributeSubsystem is not valid"));
 		return;
 	}
 
-	const FObjectAttributeData* AttributeData = AttributeSubsystem->GetAttributeDataByName(ObjectName);
+	const FCharacterAttributeData* AttributeData = AttributeSubsystem->GetAttributeDataByName(ObjectName);
 	if (AttributeData)
 	{
 		ObjectAttributeSet->InitMaxHealth(AttributeData->MaxHealth);
 		ObjectAttributeSet->InitHealth(AttributeData->Health);
+		ObjectAttributeSet->InitDefense(AttributeData->Defense);
 		ObjectAttributeSet->InitAttackPower(AttributeData->AttackPower);
 		ObjectAttributeSet->InitMoveSpeed(AttributeData->MoveSpeed);
 	}
@@ -100,7 +101,8 @@ void APGObject::BindAttributeChangeDelegates()
 		return;
 	}
 
-	ASC->GetGameplayAttributeValueChangeDelegate(UObjectAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetDefenseAttribute()).AddUObject(this, &ThisClass::OnDefenceChanged);
 }
 
 void APGObject::OnHealthChanged(const FOnAttributeChangeData& Data)
@@ -109,6 +111,10 @@ void APGObject::OnHealthChanged(const FOnAttributeChangeData& Data)
 	{
 		HandleHealthDepleted();
 	}
+}
+
+void APGObject::OnDefenceChanged(const FOnAttributeChangeData& Data)
+{
 }
 
 void APGObject::HandleHealthDepleted()

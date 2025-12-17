@@ -17,6 +17,9 @@ public:
 	float Health = 200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Defense = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackPower = 20.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
