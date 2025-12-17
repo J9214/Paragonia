@@ -3,28 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
 #include "WaveDefinition.generated.h"
 
 USTRUCT(BlueprintType)
-struct FWaveData
+struct FWaveSpawnInfo
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
+
 public:
-	UPROPERTY(EditDefaultsOnly, Category = "Wave|Minions")
-	int32 WavePerMeleeCounts;
+    UPROPERTY(EditDefaultsOnly)
+    FGameplayTag SpawnNpcTag;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wave|Minions")
-	int32 WavePerRangeCounts;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wave|Minions")
-	int32 WavePerSeigeCounts;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wave|Minions")
-	int32 WavePerSuperCounts;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wave|Minions")
-	int32 SpawnRateSecond;
+    UPROPERTY(EditDefaultsOnly)
+    int32 SpawnCount;
 };
 
 /**
@@ -36,6 +29,9 @@ class PARAGONIA_API UWaveDefinition : public UPrimaryDataAsset
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditDefaultsOnly)
-	FWaveData WaveData;
+    UPROPERTY(EditDefaultsOnly, Category = "Wave")
+    TArray<FWaveSpawnInfo> WaveSpawnList;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Wave")
+    float SpawnInterval = 1.0f;
 };
