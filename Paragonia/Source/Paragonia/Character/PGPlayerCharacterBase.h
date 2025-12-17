@@ -4,10 +4,12 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "Struct/FAttackData.h"
+#include "GameplayTagContainer.h"
 #include "PGPlayerCharacterBase.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
+class USkeletalMeshComponent;
 class UInputAction;
 class UAbilitySystemComponent;
 class UGameplayAbility;
@@ -34,6 +36,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
+
+	UFUNCTION(BlueprintCallable, Category = "Audio")
+	void HandleAnimSFX(FGameplayTag SFXTag, USkeletalMeshComponent* MeshComp, FName SocketName, bool bAttach);
 
 protected:
 	virtual void BeginPlay() override;
@@ -81,6 +86,8 @@ private:
 
 	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
 
+	USoundBase* GetSFXFromTag(FGameplayTag SFXTag) const;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
@@ -120,6 +127,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	FName CharacterName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	TMap<FGameplayTag, TObjectPtr<USoundBase>> SFXMap;
 
 private:
 	bool bSpawnMoveLock;
