@@ -33,7 +33,7 @@ void APGGameModeBase::PostLogin(APlayerController* NewPlayer)
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(NewPlayer);
     if (IsValid(NewPlayerController) == true)
     {
-        AlivePlayerControllers.Add(NewPlayerController);
+        AlivePlayerControllers.AddUnique(NewPlayerController);
     }
 }
 
