@@ -1,5 +1,8 @@
 #include "Bullet/PGNormalBullet_Sparrow.h"
 
+#include "Bullet/PGMultiBulletCreator.h"
+#include "GA/Sparrow/GA_SpawnBullet_Sparrow.h"
+
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
@@ -35,6 +38,28 @@ void APGNormalBullet_Sparrow::PostInitializeComponents()
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBeginOverlap);
 }
 
+void APGNormalBullet_Sparrow::Destroyed()
+{
+	if (IsValid(CreatedBy))
+	{
+		UGA_SpawnBullet_Sparrow* SpawnBulletAbility = Cast<UGA_SpawnBullet_Sparrow>(Ability);
+		if (IsValid(SpawnBulletAbility))
+		{
+			bool bIsEndAbility = !CreatedBy->LeftBulletCheckAndDestroy(this);
+			if (bIsEndAbility)
+			{
+				SpawnBulletAbility->EndAbility(
+					SpawnBulletAbility->GetCurrentAbilitySpecHandle(),
+					SpawnBulletAbility->GetCurrentActorInfo(),
+					SpawnBulletAbility->GetCurrentActivationInfo(),
+					true, false);
+			}
+		}
+	}
+
+	Super::Destroyed();
+}
+
 void APGNormalBullet_Sparrow::OnBeginOverlap(
 	UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
@@ -60,23 +85,30 @@ void APGNormalBullet_Sparrow::OnBeginOverlap(
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Can't Hit Self"));
 	}
-	else if (!IsValid(EffectClass))
+	else if (Owner == OtherActor->GetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Valid Effect Class"));
-		Destroy();
+		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Same Owner"));
 	}
 	else if (!IsValid(Task))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Task is Not Valid"));
-		Destroy();
 	}
 	else if (!IsValid(Ability))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Ability is Not Valid"));
-		Destroy();
 	}
 	else if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
 	{
+		if (IsValid(CreatedBy))
+		{
+			UGA_SpawnBullet_Sparrow* SpawnBulletAbility = Cast<UGA_SpawnBullet_Sparrow>(Ability);
+			if (IsValid(SpawnBulletAbility))
+			{
+				bool bIsEndAbility = !CreatedBy->LeftBulletCheckAndDestroy(this);
+				SpawnBulletAbility->SetIsEndAbility(bIsEndAbility);
+			}
+		}
+
 		CreateTargetActor();
 		if (!bIsPierce)
 			Destroy();

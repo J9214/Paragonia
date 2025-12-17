@@ -34,5 +34,5 @@ private:
 	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);
 
 	UFUNCTION()
-	void OnTargetDataCancelled();
+	void OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle);
 };

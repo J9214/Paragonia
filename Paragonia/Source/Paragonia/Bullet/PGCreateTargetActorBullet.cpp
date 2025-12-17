@@ -23,13 +23,6 @@ void APGCreateTargetActorBullet::PostInitializeComponents()
 	}
 }
 
-void APGCreateTargetActorBullet::InitBullet(UGameplayAbility* InAbility, UAbilityTask_WaitTargetData* InTask, const FAttackData& InAttackData)
-{
-	Ability = InAbility;
-	Task = InTask;
-	AttackData = InAttackData;
-}
-
 AGameplayAbilityTargetActor* APGCreateTargetActorBullet::CreateTargetActor()
 {
 	AGameplayAbilityTargetActor* GenericActor = nullptr;

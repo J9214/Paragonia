@@ -6,7 +6,7 @@
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "GA_SpawnBullet_Sparrow.generated.h"
 
-class APGCreateTargetActorBullet;
+class APGTaskRelatedBullet;
 
 UCLASS()
 class PARAGONIA_API UGA_SpawnBullet_Sparrow : public UGameplayAbility
@@ -43,6 +43,6 @@ private:
 protected:
 	uint8 bIsEndAbility;
 	FAttackData CurrentAttackData;
-	TObjectPtr<APGCreateTargetActorBullet> CurrentTargetActor;
+	TObjectPtr<APGTaskRelatedBullet> CurrentTargetActor;
 	EGameplayTargetingConfirmation::Type CurrentConfimationType;
 };
