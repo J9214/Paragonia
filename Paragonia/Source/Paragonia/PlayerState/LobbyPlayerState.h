@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -117,10 +117,10 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerLobbyState)
 	EPlayerLobbyState PlayerLobbyState;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CharacterID)
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_CharacterID)
 	int32 CharacterID;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TeamID)
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_TeamID)
 	int32 TeamID;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchWaitTime)
