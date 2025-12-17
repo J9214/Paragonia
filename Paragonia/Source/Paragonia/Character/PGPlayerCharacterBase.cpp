@@ -13,7 +13,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
-#include "Kismet/GameplayStatics.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -431,57 +430,6 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 		}
 		break;
 	}
-}
-
-void APGPlayerCharacterBase::HandleAnimSFX(FGameplayTag SFXTag, USkeletalMeshComponent* MeshComp, FName SocketName, bool bAttach)
-{
-	if (!SFXTag.IsValid() || !IsValid(MeshComp))
-	{
-		return;
-	}
-
-	if (GetNetMode() == NM_DedicatedServer)
-	{
-		return;
-	}
-
-	USoundBase* SFX = GetSFXFromTag(SFXTag);
-	if (!IsValid(SFX))
-	{
-		return;
-	}
-
-	if (bAttach)
-	{
-		UGameplayStatics::SpawnSoundAttached(
-			SFX,
-			MeshComp, 
-			SocketName,
-			FVector::ZeroVector,
-			EAttachLocation::SnapToTarget,
-			true
-		);
-	}
-	else
-	{
-		FVector Location = (SocketName != NAME_None) ? MeshComp->GetSocketLocation(SocketName) : MeshComp->GetComponentLocation();
-		UGameplayStatics::PlaySoundAtLocation(this, SFX, Location);
-	}
-}
-
-USoundBase* APGPlayerCharacterBase::GetSFXFromTag(FGameplayTag SFXTag) const
-{
-	if (!SFXTag.IsValid())
-	{
-		return nullptr;
-	}
-
-	if (const TObjectPtr<USoundBase>* SFX = SFXMap.Find(SFXTag))
-	{
-		return SFX ? SFX->Get() : nullptr;
-	}
-
-	return nullptr;
 }
 
 #pragma region Respawn
