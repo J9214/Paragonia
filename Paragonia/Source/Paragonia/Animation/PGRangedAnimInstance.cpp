@@ -5,9 +5,9 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 
-void UPGRangedAnimInstance::AnimNotify_HitCheck()
+void UPGRangedAnimInstance::AnimNotify_SpawnBullet()
 {
-	if (!IsValid(OwnerCharacter))
+	if (!OwnerCharacter->HasAuthority())
 	{
 		return;
 	}
@@ -28,7 +28,7 @@ void UPGRangedAnimInstance::AnimNotify_HitCheck()
 
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 			OwnerCharacter,
-			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
+			FGameplayTag::RequestGameplayTag(FName("Event.Character.SpawnBullet")),
 			EventData
 		);
 	}

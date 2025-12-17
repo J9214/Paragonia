@@ -17,7 +17,8 @@ public:
 	void SetConfimationType(const EGameplayTargetingConfirmation::Type& InConfimationType);
 
 protected:
-	virtual void AnimNotify_HitCheck() override;
+	UFUNCTION()
+	void AnimNotify_SpawnBullet();
 
 protected:
 	TSubclassOf<AActor> BulletClass;
