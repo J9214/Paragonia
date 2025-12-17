@@ -3,7 +3,7 @@
 #include "Character/PGPlayerCharacterBase.h"
 #include "TargetActor/PGTargetActor.h"
 #include "Struct/BulletDataWrapper.h"
-#include "Bullet/PGCreateTargetActorBullet.h"
+#include "Bullet/PGTaskRelatedBullet.h"
 
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
@@ -101,7 +101,7 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 	Task->ValidData.AddDynamic(this, &ThisClass::OnTargetDataReceived);
 	Task->ReadyForActivation();
 
-	APGCreateTargetActorBullet* CreatingBullet = Cast<APGCreateTargetActorBullet>(NewBullet);
+	APGTaskRelatedBullet* CreatingBullet = Cast<APGTaskRelatedBullet>(NewBullet);
 	if (IsValid(CreatingBullet))
 	{
 		CurrentTargetActor = CreatingBullet;
@@ -137,12 +137,8 @@ void UGA_SpawnBullet_Sparrow::OnTargetDataReceived(const FGameplayAbilityTargetD
 		EventPayload
 	);
 
-	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::OnTargetDataReceived"));
-
 	if (bIsEndAbility)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::OnTargetDataReceived - EndAbility"));
-
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 	else

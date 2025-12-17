@@ -10,6 +10,7 @@ class USphereComponent;
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
 class UAbilityTask_WaitTargetData;
+class APGMultiBulletCreator;
 
 UCLASS()
 class PARAGONIA_API APGNormalBullet_Sparrow : public APGCreateTargetActorBullet
@@ -20,6 +21,8 @@ public:
 	APGNormalBullet_Sparrow();
 
 	virtual void PostInitializeComponents() override;
+
+	virtual void Destroyed() override;
 
 	UFUNCTION()
 	void OnBeginOverlap(
@@ -46,4 +49,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsPierce;
+
+public:
+	TObjectPtr<APGMultiBulletCreator> CreatedBy;
 };

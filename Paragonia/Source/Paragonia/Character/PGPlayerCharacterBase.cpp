@@ -233,7 +233,10 @@ void APGPlayerCharacterBase::InitializeAbilities()
 		}
 
 		FGameplayAbilitySpec Spec(AbilityClass, 1, InputID, this);
-		ASC->GiveAbility(Spec);
+		if (!ASC->FindAbilitySpecFromClass(AbilityClass))
+		{
+			ASC->GiveAbility(Spec);
+		}
 	}
 }
 

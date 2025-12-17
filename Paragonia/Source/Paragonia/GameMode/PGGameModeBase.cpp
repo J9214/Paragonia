@@ -10,7 +10,6 @@
 #include "Controller/PGPlayerController.h"
 #include "EngineUtils.h"
 #include "Object/PGNexus.h"
-#include "Character/PGPlayerCharacterBase.h"
 
 APGGameModeBase::APGGameModeBase()
 {
@@ -34,9 +33,6 @@ void APGGameModeBase::PostLogin(APlayerController* NewPlayer)
     {
         AlivePlayerControllers.Add(NewPlayerController);
     }
-
-    RestartPlayer(NewPlayer);
-
 }
 
 // 로그아웃 시 플레이어 컨트롤러를 생존자 목록에서 제거하고 사망자 목록에 추가
@@ -83,15 +79,13 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
     if (IsValid(NewPlayerController) == true)
     {
-        AlivePlayerControllers.Add(NewPlayerController);
+        AlivePlayerControllers.AddUnique(NewPlayerController);
     }
 
     if (auto* PS = Cast<APGPlayerState>(C->PlayerState))
     {
         // TODO
     }
-
-    RestartPlayer(C);
 }
 
 UClass* APGGameModeBase::GetDefaultPawnClassForController_Implementation(AController* InController)
@@ -129,7 +123,7 @@ void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter
 
     if (DeadController)
     {
-        // 🔹 여기: AController* → APGPlayerController* 로 캐스팅
+        // 여기: AController* → APGPlayerController* 로 캐스팅
         APGPlayerController* DeadPGController = Cast<APGPlayerController>(DeadController);
         if (DeadPGController)
         {
