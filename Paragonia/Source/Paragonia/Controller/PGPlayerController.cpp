@@ -64,10 +64,10 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         switch (GS->TeamResult)
         {
         case ETeamResult::Team1Win:
-            bIsWinner = (MyPS->TeamType == ETeamType::Team1);
+            bIsWinner = (MyPS->GetTeamID() == 0);
             break;
         case ETeamResult::Team2Win:
-            bIsWinner = (MyPS->TeamType == ETeamType::Team2);
+            bIsWinner = (MyPS->GetTeamID() == 1);
             break;
         default:
             break;
@@ -78,7 +78,7 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         {
             ShowWinWidget(1);
         }
-        else if (GS->TeamResult != ETeamResult::None)
+        else if (!bIsWinner)
         {
             ShowWinWidget(0);
         }
