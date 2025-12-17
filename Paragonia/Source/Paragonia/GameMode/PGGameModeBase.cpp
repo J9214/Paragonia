@@ -82,7 +82,7 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
     if (IsValid(NewPlayerController) == true)
     {
-        AlivePlayerControllers.Add(NewPlayerController);
+        AlivePlayerControllers.AddUnique(NewPlayerController);
     }
 
     if (auto* PS = Cast<APGPlayerState>(C->PlayerState))
