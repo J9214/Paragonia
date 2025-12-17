@@ -58,7 +58,7 @@ void UGA_HitCheck::ActivateAbility(
 		);
 
 	Task->ValidData.AddDynamic(this, &ThisClass::OnTargetDataReceived);
-	Task->ReadyForActivation();
+	Task->Cancelled.AddDynamic(this, &ThisClass::OnTargetDataCancelled);
 
 	AGameplayAbilityTargetActor* GenericActor = nullptr;
 	if (Task->BeginSpawningActor(this, APGTargetActor::StaticClass(), GenericActor))
@@ -72,6 +72,8 @@ void UGA_HitCheck::ActivateAbility(
 
 		Task->FinishSpawningActor(this, GenericActor);
 	}
+
+	Task->ReadyForActivation();
 }
 
 void UGA_HitCheck::EndAbility(
@@ -100,7 +102,7 @@ void UGA_HitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UGA_HitCheck::OnTargetDataCancelled()
+void UGA_HitCheck::OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
