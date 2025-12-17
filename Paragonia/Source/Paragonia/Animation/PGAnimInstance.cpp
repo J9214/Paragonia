@@ -58,6 +58,11 @@ void UPGAnimInstance::AnimNotify_HitCheck()
 	{
 		return;
 	}
+	
+	if (!OwnerCharacter->HasAuthority())
+	{
+		return;
+	}
 
 	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
 	if (IsValid(PlayerCharacter))
