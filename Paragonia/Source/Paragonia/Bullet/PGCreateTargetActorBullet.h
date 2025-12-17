@@ -18,5 +18,5 @@ public:
 	virtual void PostInitializeComponents() override;
 
 protected:
-	AGameplayAbilityTargetActor* CreateTargetActor();
+	void HitCheckNotify();
 };

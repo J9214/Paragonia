@@ -32,6 +32,8 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		return;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::Activate"));
+
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::ActivateAbility - CommitAbility Failed"));
@@ -45,8 +47,6 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	bIsEndAbility = true;
 
 	const UBulletDataWrapper* Wrapper = Cast<UBulletDataWrapper>(TriggerEventData->OptionalObject);
 	if (!Wrapper)
@@ -80,6 +80,7 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 	FActorSpawnParameters Param;
 	Param.Owner = GetAvatarActorFromActorInfo();
 	AActor* NewBullet = GetWorld()->SpawnActor(BulletClass, &SpawnTransform, Param);
+	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow: Spawn Bullet"));
 	if (!IsValid(NewBullet))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow: NewBullet is not valid"));
@@ -87,26 +88,15 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		return;
 	}
 
-	//EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
-
-	CurrentConfimationType = Wrapper->ConfimationType;
-	UAbilityTask_WaitTargetData* Task =
-		UAbilityTask_WaitTargetData::WaitTargetData(
-			this,
-			TEXT("SpawnBulletTask"),
-			CurrentConfimationType,
-			APGTargetActor::StaticClass()
-		);
-
-	Task->ValidData.AddDynamic(this, &ThisClass::OnTargetDataReceived);
-	Task->ReadyForActivation();
-
 	APGTaskRelatedBullet* CreatingBullet = Cast<APGTaskRelatedBullet>(NewBullet);
 	if (IsValid(CreatingBullet))
 	{
 		CurrentTargetActor = CreatingBullet;
-		CurrentTargetActor->InitBullet(this, Task, CurrentAttackData);
+		CurrentTargetActor->InitBullet(CurrentAttackData);
 	}
+
+	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
+
 }
 
 void UGA_SpawnBullet_Sparrow::EndAbility(
@@ -118,50 +108,4 @@ void UGA_SpawnBullet_Sparrow::EndAbility(
 )
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UGA_SpawnBullet_Sparrow::SetIsEndAbility(const uint8& InIsEndAbility)
-{
-	bIsEndAbility = InIsEndAbility;
-}
-
-void UGA_SpawnBullet_Sparrow::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
-{
-	FGameplayEventData EventPayload;
-	EventPayload.Instigator = GetAvatarActorFromActorInfo();
-	EventPayload.TargetData = DataHandle;
-
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
-		GetAvatarActorFromActorInfo(),
-		FGameplayTag::RequestGameplayTag(FName("Event.Character.HitResult")),
-		EventPayload
-	);
-
-	if (bIsEndAbility)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
-	else
-	{
-		UAbilityTask_WaitTargetData* Task =
-			UAbilityTask_WaitTargetData::WaitTargetData(
-				this,
-				TEXT("SpawnBulletTask"),
-				CurrentConfimationType,
-				APGTargetActor::StaticClass()
-			);
-
-		Task->ValidData.AddDynamic(this, &ThisClass::OnTargetDataReceived);
-		Task->ReadyForActivation();
-
-		if (IsValid(CurrentTargetActor))
-		{
-			CurrentTargetActor->InitBullet(this, Task, CurrentAttackData);
-		}
-	}
-}
-
-void UGA_SpawnBullet_Sparrow::OnTargetDataCancelled()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }

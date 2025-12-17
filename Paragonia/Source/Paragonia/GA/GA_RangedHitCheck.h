@@ -1,20 +1,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Struct/FAttackData.h"
-#include "Abilities/GameplayAbility.h"
-#include "Abilities/GameplayAbilityTargetTypes.h"
-#include "GA_SpawnBullet_Sparrow.generated.h"
-
-class APGTaskRelatedBullet;
+#include "GA/PGGameplayAbilityBase.h"
+#include "GA_RangedHitCheck.generated.h"
 
 UCLASS()
-class PARAGONIA_API UGA_SpawnBullet_Sparrow : public UGameplayAbility
+class PARAGONIA_API UGA_RangedHitCheck : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 
 public:
-	UGA_SpawnBullet_Sparrow();
+	UGA_RangedHitCheck();
 
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
@@ -31,8 +27,10 @@ public:
 		bool bWasCancelled
 	) override;
 
-protected:
-	FAttackData CurrentAttackData;
-	TObjectPtr<APGTaskRelatedBullet> CurrentTargetActor;
-	EGameplayTargetingConfirmation::Type CurrentConfimationType;
+private:
+	UFUNCTION()
+	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);
+
+	UFUNCTION()
+	void OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& Data);
 };

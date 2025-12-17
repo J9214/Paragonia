@@ -1,6 +1,8 @@
 #include "Bullet/PGCreateTargetActorBullet.h"
 
+#include "Character/PGPlayerCharacterBase.h"
 #include "TargetActor/PGRangedTargetActor.h"
+#include "Struct/AttackDataWrapper.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "Abilities/GameplayAbility.h"
@@ -23,39 +25,27 @@ void APGCreateTargetActorBullet::PostInitializeComponents()
 	}
 }
 
-AGameplayAbilityTargetActor* APGCreateTargetActorBullet::CreateTargetActor()
+void APGCreateTargetActorBullet::HitCheckNotify()
 {
-	AGameplayAbilityTargetActor* GenericActor = nullptr;
-	if (Task->BeginSpawningActor(Ability, APGRangedTargetActor::StaticClass(), GenericActor))
+	if (!IsValid(Owner))
 	{
-		if (IsValid(GenericActor))
-		{
-			APGRangedTargetActor* SpawnedActor = Cast<APGRangedTargetActor>(GenericActor);
-			if (IsValid(SpawnedActor))
-			{
-				SpawnedActor->SourceActor = this;
-				SpawnedActor->SetActorLocation(GetActorLocation());
-				SpawnedActor->SetAttackData(AttackData);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Cast To APGRangedTargetActor Failed"));
-				Destroy();
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Generic Target Actor not Valid"));
-			Destroy();
-		}
-
-		Task->FinishSpawningActor(Ability, GenericActor);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Target Actor Spawn Failed"));
-		Destroy();
+		return;
 	}
 
-	return GenericActor;
+	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(Owner);
+	if (IsValid(PlayerCharacter))
+	{
+		UAttackDataWrapper* Wrapper = NewObject<UAttackDataWrapper>(this);
+		Wrapper->Data = AttackData;
+
+		FGameplayEventData EventData;
+		EventData.Instigator = Owner;
+		EventData.OptionalObject = Wrapper;
+
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+			Owner,
+			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
+			EventData
+		);
+	}
 }

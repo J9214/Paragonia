@@ -87,6 +87,10 @@ bool APGRangedTargetActor::SphereTrace(TArray<FHitResult>& OutHitResults) const
 		{
 			OutHitResults.RemoveAt(i);
 		}
+		else if (OutHitResults[i].GetActor() == SourceActor->Owner)
+		{
+			OutHitResults.RemoveAt(i);
+		}
 		else
 		{
 			++i;
