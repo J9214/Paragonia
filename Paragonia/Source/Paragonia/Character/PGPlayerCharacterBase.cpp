@@ -1,4 +1,4 @@
-#include "Character/PGPlayerCharacterBase.h"
+﻿#include "Character/PGPlayerCharacterBase.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -13,6 +13,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
+#include "PlayerStart/PGPlayerStart.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -481,9 +482,8 @@ void APGPlayerCharacterBase::OnRep_Dead()
 
 		UE_LOG(LogTemp, Warning, TEXT("OnRespawn: %s"), *GetNameSafe(this));
 
-		FVector SpawnLocation = GetRespawnLocationForController();
-		FRotator SpawnRotation = FRotator::ZeroRotator;
-		MovePlayerToRespawnPoint(SpawnLocation, SpawnRotation);
+		FTransform SpawnTransform = GetRespawnLocationForController();
+		MovePlayerToRespawnPoint(SpawnTransform);
 
 		// 2) 메쉬 다시 보여주기 + 자식까지 전부
 		if (USkeletalMeshComponent* SkelMesh = GetMesh())
@@ -529,16 +529,34 @@ void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
 	OnRep_Dead();
 }
 
-void APGPlayerCharacterBase::MovePlayerToRespawnPoint(FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator::ZeroRotator)
+void APGPlayerCharacterBase::MovePlayerToRespawnPoint(FTransform SpawnTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector))
 {
+	FVector SpawnLocation = SpawnTransform.GetLocation();
+	FRotator SpawnRotation = SpawnTransform.GetRotation().Rotator();
+
 	this->TeleportTo(SpawnLocation, SpawnRotation, false, true);
 }
 
-FVector APGPlayerCharacterBase::GetRespawnLocationForController() const
+FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 {
-	// ************* 원하는 스폰 포인트로 변경해야 함 ************* //
-	FVector Loc = { 0,0,150 };
-	return Loc;
+	AController* PlayerController = GetController();
+	if (!PlayerController) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+
+	// PlayerState에서 팀ID 받기
+	APGPlayerState* PS = PlayerController->GetPlayerState<APGPlayerState>();
+	if (!PS) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+
+	int32 TeamID = PS->GetTeamID();
+
+	// GameMode나 다른 매니저에서 팀별 스폰 위치 쿼리
+	APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>();
+	if (GM)
+	{
+		FTransform TeamSpawnTransform = GM->GetTeamSpawnTransform(TeamID);
+		return TeamSpawnTransform;
+	}
+
+	return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 }
 
 void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

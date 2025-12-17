@@ -1,4 +1,4 @@
-// PGGameMode.cpp
+﻿// PGGameMode.cpp
 
 #include "PGGameModeBase.h"
 #include "Character/PGPlayerCharacterBase.h"
@@ -11,6 +11,7 @@
 #include "EngineUtils.h"
 #include "Object/PGNexus.h"
 #include "Character/PGPlayerCharacterBase.h"
+#include "PlayerStart/PGPlayerStart.h"
 
 APGGameModeBase::APGGameModeBase()
 {
@@ -34,9 +35,6 @@ void APGGameModeBase::PostLogin(APlayerController* NewPlayer)
     {
         AlivePlayerControllers.Add(NewPlayerController);
     }
-
-    RestartPlayer(NewPlayer);
-
 }
 
 // 로그아웃 시 플레이어 컨트롤러를 생존자 목록에서 제거하고 사망자 목록에 추가
@@ -80,6 +78,7 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
 {
     Super::HandleSeamlessTravelPlayer(C);
 
+   
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
     if (IsValid(NewPlayerController) == true)
     {
@@ -90,8 +89,6 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
     {
         // TODO
     }
-
-    RestartPlayer(C);
 }
 
 UClass* APGGameModeBase::GetDefaultPawnClassForController_Implementation(AController* InController)
@@ -105,6 +102,38 @@ UClass* APGGameModeBase::GetDefaultPawnClassForController_Implementation(AContro
     }
 
     return Super::GetDefaultPawnClassForController_Implementation(InController);
+}
+
+AActor* APGGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
+{
+    int32 PlayerTeamID = 0;
+    if (Player && Player->PlayerState)
+    {
+        PlayerTeamID = Cast<APGPlayerState>(Player->PlayerState)->GetTeamID();
+    }
+
+    for (TActorIterator<APGPlayerStart> It(GetWorld()); It; ++It)
+    {
+        if (It->TeamID == PlayerTeamID)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("APGGameModeBase::ChoosePlayerStart: Return PlayerStart"));
+            return *It;
+        }
+    }
+
+    return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+FTransform APGGameModeBase::GetTeamSpawnTransform(int32 TeamID) const
+{
+    for (TActorIterator<APGPlayerStart> It(GetWorld()); It; ++It)
+    {
+        if (It->TeamID == TeamID)
+        {
+            return It->GetActorTransform();
+        }
+    }
+    return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 }
 
 #pragma region DeathAndRespawn
