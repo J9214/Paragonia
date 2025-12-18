@@ -32,8 +32,6 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::Activate"));
-
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow::ActivateAbility - CommitAbility Failed"));
@@ -75,12 +73,14 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 	}
 
 	UWorld* World = GetWorld();
+
 	FTransform SpawnTransform = Wrapper->BulletSpawnTransform;
 	SpawnTransform.SetRotation(FQuat(Character->FindComponentByClass<UCameraComponent>()->GetComponentRotation()));
+
 	FActorSpawnParameters Param;
 	Param.Owner = GetAvatarActorFromActorInfo();
+
 	AActor* NewBullet = GetWorld()->SpawnActor(BulletClass, &SpawnTransform, Param);
-	UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow: Spawn Bullet"));
 	if (!IsValid(NewBullet))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_SpawnBullet_Sparrow: NewBullet is not valid"));

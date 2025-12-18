@@ -103,7 +103,6 @@ void UPGTargetingGameplayAbility::OnInputPressed(float InTimeWaited)
 				PGAnimInstance->SetCurrentAttackData(AttackData);
 				PGAnimInstance->SetBulletClass(SpawnActorClass);
 				PGAnimInstance->SetTimeWaited(InTimeWaited);
-				PGAnimInstance->SetConfimationType(ConfimationType);
 
 				if (bIsUseSocket)
 				{

@@ -20,7 +20,6 @@ void UPGRangedAnimInstance::AnimNotify_SpawnBullet()
 		Wrapper->BulletClass = BulletClass;
 		Wrapper->TimeWaited = TimeWaited;
 		Wrapper->BulletSpawnTransform = BulletSpawnTransform;
-		Wrapper->ConfimationType = ConfimationType;
 
 		FGameplayEventData EventData;
 		EventData.Instigator = OwnerCharacter;
@@ -47,9 +46,4 @@ void UPGRangedAnimInstance::SetTimeWaited(const float& InTimeWaited)
 void UPGRangedAnimInstance::SetBulletSpawnTransform(const FTransform& InTransform)
 {
 	BulletSpawnTransform = InTransform;
-}
-
-void UPGRangedAnimInstance::SetConfimationType(const EGameplayTargetingConfirmation::Type& InConfimationType)
-{
-	ConfimationType = InConfimationType;
 }
