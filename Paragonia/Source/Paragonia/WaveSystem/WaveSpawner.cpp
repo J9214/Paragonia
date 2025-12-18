@@ -2,8 +2,174 @@
 
 
 #include "WaveSystem/WaveSpawner.h"
+#include "GameState/PGGameStateBase.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 AWaveSpawner::AWaveSpawner()
+	: CurrentSpawnIndex(0)
 {
+	// Server에서만 사용 예정
+	bReplicates = false;
+	bNetLoadOnClient = false;
 
+	PathSpline = CreateDefaultSubobject<USplineComponent>(TEXT("PathSpline"));
+	RootComponent = PathSpline;
+}
+
+void AWaveSpawner::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CacheDataTableTags();
+
+	// 대략적인 예상
+	SpawnNames.Reserve(30);
+
+	// TODO : WaveSpawner - GameState의 시간 진행 Delgate 구독
+	
+}
+
+void AWaveSpawner::OnWaveStart()
+{
+	if (IsValid(CurrentWaveDefinition) == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AWaveSpawner::OnWaveStart - CurrentWaveDefinition is not Valid!"));
+		return;
+	}
+
+	SpawnNames.Empty();
+	CurrentSpawnIndex = 0;
+
+	for (const FWaveSpawnInfo& Info : CurrentWaveDefinition->WaveSpawnList)
+	{
+		if (const FName* FoundRowName = TagToRowMap.Find(Info.SpawnNpcTag))
+		{
+			for (int32 i = 0; i < Info.SpawnCount; i++)
+			{
+				SpawnNames.Add(*FoundRowName);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("WaveSpawner::OnWaveStart - Tag [%s] not found in DataTable!"), *Info.SpawnNpcTag.ToString());
+		}
+	}
+
+	if (SpawnNames.Num() > 0)
+	{
+		float Rate = CurrentWaveDefinition->SpawnInterval;
+
+		if (Rate <= 0.0f) 
+			Rate = 0.5f;
+
+		GetWorldTimerManager().SetTimer(
+			SpawnTimerHandle, this, &AWaveSpawner::HandleSpawnTick, Rate, true, 0.0f);
+	}
+}
+
+void AWaveSpawner::CacheDataTableTags()
+{
+	if (IsValid(WaveDataTable) == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AWaveSpawner::CacheDataTableTags - DataTable is not Valid!"));
+		return;
+	}
+
+	TagToRowMap.Empty();
+
+	TArray<FName> RowNames = WaveDataTable->GetRowNames();
+
+	for (const FName& RowName : RowNames)
+	{
+		FNpcDataRow* Row = WaveDataTable->FindRow<FNpcDataRow>(RowName,"");
+
+		if (Row != nullptr && 
+			Row->NPCTypeTag.IsValid())
+		{
+			TagToRowMap.Add(Row->NPCTypeTag, RowName);
+		}
+	}
+}
+
+void AWaveSpawner::HandleSpawnTick()
+{
+	if (CurrentSpawnIndex >= SpawnNames.Num())
+	{
+		GetWorldTimerManager().ClearTimer(SpawnTimerHandle);
+		return;
+	}
+
+	FName RowToSpawn = SpawnNames[CurrentSpawnIndex];
+
+	CurrentSpawnIndex++;
+
+	SpawnMinion(RowToSpawn);
+}
+
+void AWaveSpawner::SpawnMinion(FName RowName)
+{
+	if (IsValid(WaveDataTable) == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AWaveSpawner::SpawnMinion - DataTable is not Valid!"));
+		return;
+	}
+
+	static const FString ContextString(TEXT("SpawnMinion"));
+	FNpcDataRow* RowData = WaveDataTable->FindRow<FNpcDataRow>(RowName, ContextString);
+
+	if (RowData == nullptr
+		|| IsValid(RowData->SpawnNpcClass) == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AWaveSpawner::SpawnMinion - RowData is Weird!"));
+		return;
+	}
+
+	FVector Loc = PathSpline->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
+	FRotator Rot = PathSpline->GetRotationAtSplinePoint(0, ESplineCoordinateSpace::World);
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ANpcBaseCharacter* NewMinion = GetWorld()->SpawnActor<ANpcBaseCharacter>(RowData->SpawnNpcClass, Loc, Rot, Params);
+
+	if (NewMinion != nullptr)
+	{
+		// 차후 TeamID, Spline Data 세팅
+		// NewMinion->SetTeamId(TeamId);
+		// NewMinion->SetMovementSpline(PathSpline); 
+
+		UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewMinion);
+		if (ASC != nullptr &&
+			IsValid(MinionInitEffectClass))
+		{
+			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+			Context.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(MinionInitEffectClass, 1.0f, Context);
+
+			if (SpecHandle.IsValid())
+			{
+				// 차후 GameState->GameTime 등으로 변경 가능
+				float CurrentTime = 0; 
+				float GameMinutes = CurrentTime / 60.0f;
+
+				float ScaleFactor = 1.0f + (GameMinutes * 0.05f);
+				ScaleFactor = FMath::Clamp(ScaleFactor, 1.0f, 2.0f);
+
+				float FinalHealth = RowData->BaseHealth * ScaleFactor;
+				float FinalAttack = RowData->BaseAttack * ScaleFactor;
+				float FinalDefense = RowData->BaseDefense * ScaleFactor;
+
+				// GE 에서 해당 태그에 맞추어 CharacterAttributeSet에 넣어줄 예정
+				SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("AI.NPC.Stat.Health")), FinalHealth);
+				SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("AI.NPC.Stat.Attack")), FinalAttack);
+				SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("AI.NPC.Stat.Defense")), FinalDefense);
+				SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("AI.NPC.Stat.Speed")), RowData->MoveSpeed);
+
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+	}
 }
