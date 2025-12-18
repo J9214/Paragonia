@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
@@ -17,17 +17,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-#pragma region Team
-public:
-	UFUNCTION()
-	void OnRep_TeamType();
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_TeamType)
-	ETeamType TeamType = ETeamType::None;
-
-#pragma endregion Team
 
 public:
 	int32 GetCharID() const { return CharacterID; }
@@ -36,6 +26,8 @@ public:
 	void SetTeamID(int32 NewTeamID);
 
 protected:
+	UPROPERTY(VisibleAnywhere, Replicated)
 	int32 CharacterID;
+	UPROPERTY(VisibleAnywhere, Replicated)
 	int32 TeamID;
 };

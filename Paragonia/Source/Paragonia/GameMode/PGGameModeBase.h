@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
@@ -40,14 +40,13 @@ public:
 
     virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+    FTransform GetTeamSpawnTransform(int32 TeamID) const;
+
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Character")
     TMap<int32, TSubclassOf<APawn>> CharacterIDToPawnClass;
-
-
-
-
-
 
 #pragma region DeathAndRespawn
 public:

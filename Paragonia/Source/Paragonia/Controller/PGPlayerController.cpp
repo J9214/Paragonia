@@ -29,19 +29,6 @@ void APGPlayerController::BeginPlay()
         // Delegate에 함수 바인딩 (동적 바인딩)
         GS->OnTeamResultChanged.AddDynamic(this, &APGPlayerController::OnTeamResultChanged);
     }
-
-
-
-    // 팀 확인용 디버그 로그
-    APGPlayerState* MyPS = Cast<APGPlayerState>(PlayerState);
-    if (!MyPS)
-        return;
-    if (const UEnum* EnumPtr = StaticEnum<decltype(MyPS->TeamType)>())
-    {
-        FString EnumName = EnumPtr->GetNameStringByValue(static_cast<int64>(MyPS->TeamType));
-    }
-    
-
 }
 
 #pragma region GameResult
@@ -64,10 +51,10 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         switch (GS->TeamResult)
         {
         case ETeamResult::Team1Win:
-            bIsWinner = (MyPS->TeamType == ETeamType::Team1);
+            bIsWinner = (MyPS->GetTeamID() == 0);
             break;
         case ETeamResult::Team2Win:
-            bIsWinner = (MyPS->TeamType == ETeamType::Team2);
+            bIsWinner = (MyPS->GetTeamID() == 1);
             break;
         default:
             break;
@@ -78,7 +65,7 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         {
             ShowWinWidget(1);
         }
-        else if (GS->TeamResult != ETeamResult::None)
+        else if (!bIsWinner)
         {
             ShowWinWidget(0);
         }

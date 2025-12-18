@@ -59,19 +59,18 @@ void APGNormalBullet_Sparrow::OnBeginOverlap(
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Valid OtherActor"));
 		Destroy();
 	}
-	else if (Owner == OtherActor)
+	else if (Owner == OtherActor ||
+			 Owner == OtherActor->GetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Can't Hit Self"));
-	}
-	else if (Owner == OtherActor->GetOwner())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Same Owner"));
+		//UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Available Target"));
 	}
 	else if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
 	{
 		HitCheckNotify();
 		if (!bIsPierce)
+		{
 			Destroy();
+		}
 	}
 	else
 	{

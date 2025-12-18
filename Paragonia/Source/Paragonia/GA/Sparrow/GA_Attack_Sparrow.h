@@ -38,12 +38,10 @@ public:
 	FAttackData AttackData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-	FAttackEffectEntry NormalAttackEntry;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-	FAttackEffectEntry UltAttackEntry;
+	FAttackData UltAttackData;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Actor")
 	TSubclassOf<AActor> UltBulletClass;
+
 };

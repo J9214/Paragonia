@@ -9,6 +9,7 @@ UObjectAttributeSet::UObjectAttributeSet()
 {
 	InitMaxHealth(200.f);
 	InitHealth(200.f);
+	InitDefense(0.0f);
 	InitAttackPower(20.f);
 	InitMoveSpeed(0.f);
 }
@@ -22,6 +23,10 @@ void UObjectAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute
 	else if (Attribute == GetHealthAttribute())
 	{
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxHealth());
+	}
+	else if (Attribute == GetDefenseAttribute())
+	{
+		NewValue = FMath::Max<float>(0.0f, NewValue);
 	}
 	else if (Attribute == GetMoveSpeedAttribute())
 	{
@@ -69,6 +74,7 @@ void UObjectAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UObjectAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UObjectAttributeSet, Health, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UObjectAttributeSet, Defense, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UObjectAttributeSet, AttackPower, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UObjectAttributeSet, MoveSpeed, COND_None, REPNOTIFY_Always);
 }
@@ -81,6 +87,11 @@ void UObjectAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHe
 void UObjectAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UObjectAttributeSet, Health, OldHealth);
+}
+
+void UObjectAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldDefense)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UObjectAttributeSet, Defense, OldDefense);
 }
 
 void UObjectAttributeSet::OnRep_AttackPower(const FGameplayAttributeData& OldAttackPower)
