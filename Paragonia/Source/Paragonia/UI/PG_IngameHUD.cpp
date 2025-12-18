@@ -29,7 +29,7 @@ bool UPG_IngameHUD::CheckOwnerPlayerAttribute()
     {
         return true;
     }
-    else if (!OwnerPlayerAttributeSet)
+    else if (OwnerPlayerAttributeSet)
     {
         OwnerPlayerAttributeSet->OnHealthChanged.RemoveDynamic(this, &ThisClass::HandlePlayerHealthChanged);
         OwnerPlayerAttributeSet->OnMaxHealthChanged.RemoveDynamic(this, &ThisClass::HandlePlayerMaxHealthChanged);

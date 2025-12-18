@@ -5,6 +5,97 @@
 #include "UI/UW_GameResult.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include <GameMode/PGGameModeBase.h>
+#include "Character/PGPlayerCharacterBase.h"
+#include "UI/PG_IngameHUD.h"
+
+void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
+{
+    ExpectedPlayerCount = InExpectedPlayerCount;
+}
+
+void APGPlayerController::Client_AllClientsReady_Implementation()
+{
+    GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
+
+    ShowGameHUD();
+}
+
+void APGPlayerController::ServerRPC_ReportClientReady_Implementation()
+{
+    if (APGPlayerState* PS = GetPlayerState<APGPlayerState>())
+    {
+        PS->bClientReady = true;
+    }
+
+    if (APGGameModeBase* GM = GetWorld() ? GetWorld()->GetAuthGameMode<APGGameModeBase>() : nullptr)
+    {
+        GM->CheckAllClientsReady();
+    }
+}
+
+void APGPlayerController::StartReadyCheck()
+{
+    if (!GetWorld()) return;
+
+    GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
+    GetWorldTimerManager().SetTimer(
+        ReadyCheckTimerHandle,
+        this,
+        &ThisClass::TickReadyCheck,
+        ReadyCheckIntervalSeconds,
+        true
+    );
+}
+
+void APGPlayerController::TickReadyCheck()
+{
+    if (bLocalReadyReported)
+    {
+        GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
+        return;
+    }
+
+    if (!AreAllPlayersReplicatedOnThisClient())
+    {
+        return;
+    }
+
+    bLocalReadyReported = true;
+    ServerRPC_ReportClientReady();
+    GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
+}
+
+bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
+{
+    UWorld* World = GetWorld();
+    if (!World) return false;
+
+    if (ExpectedPlayerCount <= 0) return false;
+
+    AGameStateBase* GS = World->GetGameState();
+    if (!GS) return false;
+
+    if (!IsValid(PlayerState)) return false;
+    if (!IsValid(GetPawn())) return false;
+
+    const TArray<APlayerState*>& PlayerArray = GS->PlayerArray;
+    if (PlayerArray.Num() < ExpectedPlayerCount) return false;
+
+    for (APlayerState* PS : PlayerArray)
+    {
+        if (!IsValid(PS)) return false;
+
+        APawn* FoundPawn = PS->GetPawn();
+        if (!IsValid(FoundPawn)) return false;
+
+        if (!FoundPawn->HasActorBegunPlay()) return false;
+
+    }
+
+    return true;
+}
+
 
 void APGPlayerController::SetupInputComponent()
 {
@@ -28,6 +119,12 @@ void APGPlayerController::BeginPlay()
     {
         // Delegate에 함수 바인딩 (동적 바인딩)
         GS->OnTeamResultChanged.AddDynamic(this, &APGPlayerController::OnTeamResultChanged);
+    }
+
+    if (IsLocalPlayerController())
+    {
+        StartReadyCheck();
+        ShowLoadingHUD();
     }
 }
 
@@ -76,9 +173,21 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
 
 void APGPlayerController::ShowWinWidget(uint8 IsWin)
 {
+    if (LoadingHUD)
+    {
+        LoadingHUD->RemoveFromParent();
+        LoadingHUD = nullptr;
+    }
+
+    if (IngameHUD)
+    {
+        IngameHUD->RemoveFromParent();
+        IngameHUD = nullptr;
+    }
+
     if (IsValid(GameResultUIClass) == true)
     {
-        UUW_GameResult* GameResultUI = CreateWidget<UUW_GameResult>(this, GameResultUIClass);
+        GameResultUI = CreateWidget<UUW_GameResult>(this, GameResultUIClass);
         if (IsValid(GameResultUI) == true)
         {
             GameResultUI->AddToViewport(0);
@@ -97,6 +206,58 @@ void APGPlayerController::ShowWinWidget(uint8 IsWin)
             SetInputMode(Mode);
 
             bShowMouseCursor = true;
+        }
+    }
+}
+
+void APGPlayerController::ShowGameHUD()
+{
+    if (LoadingHUD)
+    {
+        LoadingHUD->RemoveFromParent();
+        LoadingHUD = nullptr;
+    }
+
+    if (GameResultUI)
+    {
+        GameResultUI->RemoveFromParent();
+        GameResultUI = nullptr;
+    }
+
+    if (IngameHUDClass)
+    {
+        IngameHUD = CreateWidget<UPG_IngameHUD>(this, IngameHUDClass);
+        if (IngameHUD)
+        {
+            IngameHUD->AddToViewport();
+            bShowMouseCursor = false;
+            SetInputMode(FInputModeGameOnly());
+        }
+    }
+}
+
+void APGPlayerController::ShowLoadingHUD()
+{
+    if (GameResultUI)
+    {
+        GameResultUI->RemoveFromParent();
+        GameResultUI = nullptr;
+    }
+
+    if (IngameHUD)
+    {
+        IngameHUD->RemoveFromParent();
+        IngameHUD = nullptr;
+    }
+
+    if (LoadingHUDClass)
+    {
+        LoadingHUD = CreateWidget<UUserWidget>(this, LoadingHUDClass);
+        if (LoadingHUD)
+        {
+            LoadingHUD->AddToViewport();
+            bShowMouseCursor = false;
+            SetInputMode(FInputModeUIOnly());
         }
     }
 }

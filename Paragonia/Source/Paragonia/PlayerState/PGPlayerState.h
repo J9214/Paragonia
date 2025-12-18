@@ -30,4 +30,8 @@ protected:
 	int32 CharacterID;
 	UPROPERTY(VisibleAnywhere, Replicated)
 	int32 TeamID;
+
+public:
+	UPROPERTY(VisibleAnywhere, Replicated)
+	bool bClientReady = false;
 };
