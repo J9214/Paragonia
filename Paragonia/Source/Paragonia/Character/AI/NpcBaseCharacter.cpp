@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerState/PGPlayerState.h"
+#include "AIController.h"
 
 ANpcBaseCharacter::ANpcBaseCharacter()
 	:TeamId(255),
@@ -33,6 +34,9 @@ ANpcBaseCharacter::ANpcBaseCharacter()
 	AttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("AttributeSet"));
 
 	StateTreeComponent = CreateDefaultSubobject<UStateTreeComponent>(TEXT("StateTreeComponent"));
+
+	AIControllerClass = AAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void ANpcBaseCharacter::BeginPlay()
