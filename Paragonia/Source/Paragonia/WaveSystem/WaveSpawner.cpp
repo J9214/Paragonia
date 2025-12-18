@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Character/AI/MinionCharacter.h"
 
 AWaveSpawner::AWaveSpawner()
 	: CurrentSpawnIndex(0)
@@ -132,13 +133,13 @@ void AWaveSpawner::SpawnMinion(FName RowName)
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	ANpcBaseCharacter* NewMinion = GetWorld()->SpawnActor<ANpcBaseCharacter>(RowData->SpawnNpcClass, Loc, Rot, Params);
+	AMinionCharacter* NewMinion = GetWorld()->SpawnActor<AMinionCharacter>(RowData->SpawnNpcClass, Loc, Rot, Params);
 
 	if (NewMinion != nullptr)
 	{
 		// 차후 TeamID, Spline Data 세팅
-		// NewMinion->SetTeamId(TeamId);
-		// NewMinion->SetMovementSpline(PathSpline); 
+		NewMinion->SetTeamId(TeamId);
+		NewMinion->SetMovementSpline(PathSpline); 
 
 		UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewMinion);
 		if (ASC != nullptr &&
