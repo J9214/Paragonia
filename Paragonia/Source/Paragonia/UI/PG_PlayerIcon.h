@@ -45,6 +45,6 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UPGCharacterDescriptionSubsystem> CharacterDescSubsys;
 
-	int32 PlayerNumberID;
-	int32 SelectCharacterID;
+	int32 PlayerNumberID = -1;
+	int32 SelectCharacterID = -1;
 };
