@@ -58,15 +58,12 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "PG|Loading")
     float ReadyTimeoutSeconds = 30.f;
 
-    UPROPERTY(EditDefaultsOnly, Category = "PG|Loading")
-    FString LobbyMapURL = TEXT("/Game/Maps/Lobby");
 
     void StartReadyPolling();
     void StopReadyPolling();
     void TickReadyPolling();
     void TryStartReadyCountdown();
     void OnReadyTimeout();
-    void AbortToLobby(const TCHAR* Reason);
 
     FTimerHandle ReadyTimeoutTimerHandle;
     FTimerHandle ReadyPollTimerHandle;

@@ -24,6 +24,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_ReportClientReady();
 
+	UFUNCTION()
+	bool BindIngameHUD();
+
 protected:
 	void StartReadyCheck();
 	void TickReadyCheck();

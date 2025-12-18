@@ -134,12 +134,18 @@ void APGGameModeBase::PostSeamlessTravel()
     DeadPlayerControllers.Reset();
 
     UWorld* World = GetWorld();
-    if (!World) return;
+    if (!World)
+    {
+        return;
+    }
 
     for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
     {
         APGPlayerController* PC = Cast<APGPlayerController>(It->Get());
-        if (!IsValid(PC)) continue;
+        if (!IsValid(PC))
+        {
+            continue;
+        }
 
         AlivePlayerControllers.AddUnique(PC);
 
@@ -169,11 +175,20 @@ FTransform APGGameModeBase::GetTeamSpawnTransform(int32 TeamID) const
 
 void APGGameModeBase::CheckAllClientsReady()
 {
-    if (bAllClientsReady || bAbortInProgress) return;
-    if (GetNumPlayers() < RequiredPlayers) return;
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        return;
+    }
+    if (GetNumPlayers() < RequiredPlayers)
+    {
+        return;
+    }
 
     AGameStateBase* GS = GameState;
-    if (!IsValid(GS)) return;
+    if (!IsValid(GS))
+    {
+        return;
+    }
 
     int32 ReadyCount = 0;
     int32 TotalCount = 0;
@@ -181,15 +196,27 @@ void APGGameModeBase::CheckAllClientsReady()
     for (APlayerState* PS : GS->PlayerArray)
     {
         APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
-        if (!PGPS) continue;
+        if (!PGPS)
+        {
+            continue;
+        }
 
         ++TotalCount;
         if (PGPS->bClientReady)
+        {
             ++ReadyCount;
+        }
     }
 
-    if (TotalCount < RequiredPlayers) return;
-    if (ReadyCount < RequiredPlayers) return;
+    if (TotalCount < RequiredPlayers)
+    {
+        return;
+    }
+
+    if (ReadyCount < RequiredPlayers)
+    {
+        return;
+    }
 
     bAllClientsReady = true;
     GetWorldTimerManager().ClearTimer(ReadyTimeoutTimerHandle);
@@ -206,9 +233,15 @@ void APGGameModeBase::CheckAllClientsReady()
 
 void APGGameModeBase::StartReadyPolling()
 {
-    if (bAllClientsReady || bAbortInProgress) return;
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        return;
+    }
 
-    if (GetWorldTimerManager().IsTimerActive(ReadyPollTimerHandle)) return;
+    if (GetWorldTimerManager().IsTimerActive(ReadyPollTimerHandle))
+    {
+        return;
+    }
 
     GetWorldTimerManager().SetTimer(
         ReadyPollTimerHandle,
@@ -218,13 +251,18 @@ void APGGameModeBase::StartReadyPolling()
         true
     );
 }
+
 void APGGameModeBase::StopReadyPolling()
 {
     GetWorldTimerManager().ClearTimer(ReadyPollTimerHandle);
 }
+
 void APGGameModeBase::TickReadyPolling()
 {
-    if (GetNumPlayers() < RequiredPlayers) return;
+    if (GetNumPlayers() < RequiredPlayers)
+    {
+        return;
+    }
 
     CheckAllClientsReady();
 
@@ -233,13 +271,18 @@ void APGGameModeBase::TickReadyPolling()
         StopReadyPolling();
     }
 }
+
 void APGGameModeBase::TryStartReadyCountdown()
 {
     if (bAllClientsReady || bReadyCountdownStarted || bAbortInProgress)
+    {
         return;
+    }
 
     if (GetNumPlayers() < RequiredPlayers)
+    {
         return;
+    }
 
     bReadyCountdownStarted = true;
     GetWorldTimerManager().SetTimer(
@@ -250,25 +293,20 @@ void APGGameModeBase::TryStartReadyCountdown()
         false
     );
 }
+
 void APGGameModeBase::OnReadyTimeout()
 {
-    if (bAllClientsReady || bAbortInProgress) return;
-    AbortToLobby(TEXT("ReadyTimeout"));
-}
-void APGGameModeBase::AbortToLobby(const TCHAR* Reason)
-{
-    if (bAbortInProgress) return;
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        return;
+    }
 
     bAbortInProgress = true;
     GetWorldTimerManager().ClearTimer(ReadyTimeoutTimerHandle);
 
-    UE_LOG(LogTemp, Warning, TEXT("AbortToLobby: %s"), Reason);
-
-    if (UWorld* World = GetWorld())
-    {
-        World->ServerTravel(LobbyMapURL);
-    }
+    //로비로 이동
 }
+
 #pragma region DeathAndRespawn
 // 캐릭터 사망 처리
 void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter, AController* InstigatorController)

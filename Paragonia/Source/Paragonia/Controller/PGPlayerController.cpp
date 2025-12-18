@@ -8,6 +8,7 @@
 #include <GameMode/PGGameModeBase.h>
 #include "Character/PGPlayerCharacterBase.h"
 #include "UI/PG_IngameHUD.h"
+#include "AttributeSet/CharacterAttributeSet.h"
 
 void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
 {
@@ -19,6 +20,7 @@ void APGPlayerController::Client_AllClientsReady_Implementation()
     GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
 
     ShowGameHUD();
+    BindIngameHUD();
 }
 
 void APGPlayerController::ServerRPC_ReportClientReady_Implementation()
@@ -36,7 +38,10 @@ void APGPlayerController::ServerRPC_ReportClientReady_Implementation()
 
 void APGPlayerController::StartReadyCheck()
 {
-    if (!GetWorld()) return;
+    if (!GetWorld())
+    {
+        return;
+    }
 
     GetWorldTimerManager().ClearTimer(ReadyCheckTimerHandle);
     GetWorldTimerManager().SetTimer(
@@ -69,28 +74,168 @@ void APGPlayerController::TickReadyCheck()
 bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
 {
     UWorld* World = GetWorld();
-    if (!World) return false;
-
-    if (ExpectedPlayerCount <= 0) return false;
-
+    if (!World)
+    {
+        return false;
+    }
+    if (ExpectedPlayerCount <= 0)
+    {
+        return false;
+    }
     AGameStateBase* GS = World->GetGameState();
-    if (!GS) return false;
-
-    if (!IsValid(PlayerState)) return false;
-    if (!IsValid(GetPawn())) return false;
+    if (!GS)
+    {
+        return false;
+    }
+    if (!IsValid(PlayerState))
+    {
+        return false;
+    }
+    if (!IsValid(GetPawn()))
+    {
+        return false;
+    }
 
     const TArray<APlayerState*>& PlayerArray = GS->PlayerArray;
-    if (PlayerArray.Num() < ExpectedPlayerCount) return false;
+    if (PlayerArray.Num() < ExpectedPlayerCount)
+    {
+        return false;
+    }
 
     for (APlayerState* PS : PlayerArray)
     {
-        if (!IsValid(PS)) return false;
+        if (!IsValid(PS))
+        {
+            return false;
+        }
 
         APawn* FoundPawn = PS->GetPawn();
-        if (!IsValid(FoundPawn)) return false;
+        if (!IsValid(FoundPawn))
+        {
+            return false;
+        }
 
-        if (!FoundPawn->HasActorBegunPlay()) return false;
+        if (!FoundPawn->HasActorBegunPlay())
+        {
+            return false;
+        }
+    }
 
+    return true;
+}
+
+bool APGPlayerController::BindIngameHUD()
+{
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        return false;
+    }
+
+    AGameStateBase* GS = World->GetGameState();
+    if (!GS)
+    {
+        return false;
+    }
+
+    const TArray<APlayerState*>& PlayerArray = GS->PlayerArray;
+
+    if (PlayerArray.Num() < ExpectedPlayerCount)
+    {
+        return false;
+    }
+
+    APGPlayerState* LocalPS = GetPlayerState<APGPlayerState>();
+    if (!IsValid(LocalPS))
+    {
+        return false;
+    }
+
+    APGPlayerCharacterBase* FoundMyCharacter = LocalPS->GetPawn<APGPlayerCharacterBase>();
+    if (!IsValid(FoundMyCharacter))
+    {
+        return false;
+    }
+
+    if (!FoundMyCharacter->HasActorBegunPlay())
+    {
+        return false;
+    }
+
+    UCharacterAttributeSet* MyAttributeSet = FoundMyCharacter->GetCharacterAttributeSet();
+
+    if (!IsValid(MyAttributeSet))
+    {
+        return false;
+    }
+
+    MyAttributeSet->OnHealthChanged_UI.RemoveAll(IngameHUD);
+    MyAttributeSet->OnMaxHealthChanged_UI.RemoveAll(IngameHUD);
+
+    MyAttributeSet->OnHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandlePlayerHealthChanged);
+    MyAttributeSet->OnMaxHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandlePlayerMaxHealthChanged);
+
+    IngameHUD->HandlePlayerMaxHealthChanged(MyAttributeSet->GetMaxHealth(), MyAttributeSet->GetMaxHealth());
+    IngameHUD->HandlePlayerHealthChanged(MyAttributeSet->GetHealth(), MyAttributeSet->GetHealth());
+
+    int index = 0;
+
+    for (APlayerState* PS : PlayerArray)
+    {
+        if (!IsValid(PS))
+        {
+            return false;
+        }
+
+        APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
+
+        if (PGPS == LocalPS || PGPS->GetTeamID() != LocalPS->GetTeamID())
+        {
+            continue;
+        }
+
+        APGPlayerCharacterBase* FoundCharacter = PS->GetPawn<APGPlayerCharacterBase>();
+        if (!IsValid(FoundCharacter))
+        {
+            return false;
+        }
+
+        if (!FoundCharacter->HasActorBegunPlay())
+        {
+            return false;
+        }
+
+        UCharacterAttributeSet* TeamAttributeSet = FoundCharacter->GetCharacterAttributeSet();
+
+        if (!IsValid(TeamAttributeSet))
+        {
+            return false;
+        }
+
+        TeamAttributeSet->OnHealthChanged_UI.RemoveAll(IngameHUD);
+        TeamAttributeSet->OnMaxHealthChanged_UI.RemoveAll(IngameHUD);
+
+        switch (index)
+        {
+        case 0:
+            TeamAttributeSet->OnHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam1HealthChanged);
+            TeamAttributeSet->OnMaxHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam1MaxHealthChanged);
+
+            IngameHUD->HandleTeam1MaxHealthChanged(TeamAttributeSet->GetMaxHealth(), TeamAttributeSet->GetMaxHealth());
+            IngameHUD->HandleTeam1HealthChanged(TeamAttributeSet->GetHealth(), TeamAttributeSet->GetHealth());
+
+            //PGPS->GetCharID(); 캐릭터 ID로 아이콘 세팅
+            break;
+        default:
+            TeamAttributeSet->OnHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam2HealthChanged);
+            TeamAttributeSet->OnMaxHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam2MaxHealthChanged);
+
+            IngameHUD->HandleTeam2MaxHealthChanged(TeamAttributeSet->GetMaxHealth(), TeamAttributeSet->GetMaxHealth());
+            IngameHUD->HandleTeam2HealthChanged(TeamAttributeSet->GetHealth(), TeamAttributeSet->GetHealth());
+            break;
+        }
+
+        index++;
     }
 
     return true;
@@ -133,7 +278,9 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
 {
     APGGameStateBase* GS = GetWorld() ? GetWorld()->GetGameState<APGGameStateBase>() : nullptr;
     if (!GS)
+    {
         return;
+    }
 
     if (LastTeamResult != GS->TeamResult)
     {
@@ -142,7 +289,9 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         // 자신의 PlayerState 팀 정보 얻기
         APGPlayerState* MyPS = Cast<APGPlayerState>(PlayerState);
         if (!MyPS)
+        {
             return;
+        }
 
         bool bIsWinner = false;
         switch (GS->TeamResult)

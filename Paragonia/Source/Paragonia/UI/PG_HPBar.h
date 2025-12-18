@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
-#include "PG_PlayerHPBar.generated.h"
+#include "PG_HPBar.generated.h"
 
 class UProgressBar;
 /**
  * 
  */
 UCLASS()
-class PARAGONIA_API UPG_PlayerHPBar : public UCommonUserWidget
+class PARAGONIA_API UPG_HPBar : public UCommonUserWidget
 {
 	GENERATED_BODY()
 
