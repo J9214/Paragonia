@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Struct/FAttackData.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
 #include "PGTaskRelatedBullet.generated.h"
 
 class UAbilityTask_WaitTargetData;
@@ -16,10 +17,8 @@ class PARAGONIA_API APGTaskRelatedBullet : public AActor
 public:
 	APGTaskRelatedBullet();
 
-	virtual void InitBullet(UGameplayAbility* InAbility, UAbilityTask_WaitTargetData* InTask, const FAttackData& InAttackData);
+	virtual void InitBullet(const FAttackData& InAttackData);
 
 protected:
-	TObjectPtr<UGameplayAbility> Ability;
-	TObjectPtr<UAbilityTask_WaitTargetData> Task;
 	FAttackData AttackData;
 };

@@ -109,7 +109,7 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 void APGPlayerCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (!IsLocallyControlled() || bSpawnMoveLock)
+	if (!IsLocallyControlled() || bInputLock)
 	{
 		return;
 	}
@@ -338,29 +338,31 @@ UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() con
 	return ASC;
 }
 
-void APGPlayerCharacterBase::SetSpawnMoveLock(bool bLock)
+void APGPlayerCharacterBase::SetSpawningAbilityLock(bool bLock)
 {
-	bSpawnMoveLock = bLock;
-	if (bSpawnMoveLock)
+	if (bLock)
 	{
 		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+		SetInputLock(true);
 	}
 	else
 	{
 		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+		SetInputLock(false);
 	}
+}
 
-	if (!HasAuthority())
+void APGPlayerCharacterBase::SetInputLock(bool bLock)
+{
+	bInputLock = bLock;
+	if (bInputLock)
 	{
-		return;
-	}
-
-	if (bSpawnMoveLock)
-	{
-		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_None);
 	}
 	else
 	{
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
 }
@@ -461,25 +463,15 @@ void APGPlayerCharacterBase::OnRep_Dead()
 			// 완전 정지
 			MoveComp->StopMovementImmediately();
 			MoveComp->DisableMovement();
+			MoveComp->GravityScale = 0.0f;
 		}
 
-		// 3) 충돌 끄기 (총알/근접 공격 맞지 않도록) 
-		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		// 3) Capsule, Disable Collision
+		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+		if (IsValid(CapsuleComp))
 		{
-			Capsule->SetCollisionProfileName(TEXT("Ragdoll"));
+			CapsuleComp->SetCollisionProfileName(TEXT("NoCollision"));
 		}
-
-		// 메시를 숨기고 물리 시체로 만듦
-		//GetMesh()->SetVisibility(false, true);  // 메시 숨기기
-		GetMesh()->SetSimulatePhysics(true);    // 물리 시뮬레이션 활성화 (Ragdoll)
-
-		// 4) 물리 시체 상태로 설정 
-		if (USkeletalMeshComponent* SkelMesh = GetMesh())
-		{
-			SkelMesh->SetCollisionProfileName(TEXT("Ragdoll"));  // 충돌 프로필을 'Ragdoll'로 변경
-			SkelMesh->SetSimulatePhysics(true);  // 물리 시뮬레이션 활성화
-		}
-
 	}
 	else { // 리스폰
 
@@ -510,6 +502,7 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
 			MoveComp->SetMovementMode(MOVE_Walking);
+			MoveComp->GravityScale = 1.0f;
 		}
 
 		// 5) 입력 활성화
@@ -517,6 +510,9 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		{
 			EnableInput(PC);
 		}
+
+		// 6) Reset Character State
+		ResetCharacterStateOnRespawn();
 	}
 }
 
@@ -530,6 +526,11 @@ void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
 	bIsDead = bDead;
 
 	OnRep_Dead();
+}
+
+uint8 APGPlayerCharacterBase::GetIsDead() const
+{
+	return bIsDead;
 }
 
 void APGPlayerCharacterBase::MovePlayerToRespawnPoint(FTransform SpawnTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector))
@@ -560,6 +561,14 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 	}
 
 	return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+}
+
+void APGPlayerCharacterBase::ResetCharacterStateOnRespawn()
+{
+	if (IsValid(CharacterAttributeSet))
+	{
+		CharacterAttributeSet->SetHealth(CharacterAttributeSet->GetMaxHealth());
+	}
 }
 
 void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

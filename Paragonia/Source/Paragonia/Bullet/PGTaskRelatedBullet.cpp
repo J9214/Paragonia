@@ -5,9 +5,7 @@ APGTaskRelatedBullet::APGTaskRelatedBullet()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void APGTaskRelatedBullet::InitBullet(UGameplayAbility* InAbility, UAbilityTask_WaitTargetData* InTask, const FAttackData& InAttackData)
+void APGTaskRelatedBullet::InitBullet(const FAttackData& InAttackData)
 {
-	Ability = InAbility;
-	Task = InTask;
 	AttackData = InAttackData;
 }

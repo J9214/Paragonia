@@ -4,10 +4,12 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "Struct/FAttackData.h"
+#include "GameplayTagContainer.h"
 #include "PGPlayerCharacterBase.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
+class USkeletalMeshComponent;
 class UInputAction;
 class UAbilitySystemComponent;
 class UGameplayAbility;
@@ -30,7 +32,10 @@ public:
 	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData);
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	void SetSpawnMoveLock(bool bLock);
+	void SetSpawningAbilityLock(bool bLock);
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void SetInputLock(bool bLock);
 
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
@@ -122,7 +127,7 @@ protected:
 	FName CharacterName;
 
 private:
-	bool bSpawnMoveLock;
+	bool bInputLock;
 
 #pragma region Respawn
 public:
@@ -131,8 +136,10 @@ public:
 
 	UFUNCTION()
 	void SetDeadState(uint8 bDead); 
-protected:
 
+	uint8 GetIsDead() const;
+
+protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
@@ -142,6 +149,9 @@ protected:
 
 	FTransform GetRespawnLocationForController() const;
 
+	void ResetCharacterStateOnRespawn();
+
+protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)
 	uint8 bIsDead;
 #pragma endregion
