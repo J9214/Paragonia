@@ -11,44 +11,12 @@ APGMultiBulletCreator::APGMultiBulletCreator()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void APGMultiBulletCreator::InitBullet(UGameplayAbility* InAbility, UAbilityTask_WaitTargetData* InTask, const FAttackData& InAttackData)
-{
-	Super::InitBullet(InAbility, InTask, InAttackData);
-
-	if (CreatingBullets.IsEmpty())
-	{
-		CreateBullets();
-	}
-	else
-	{
-		for (auto& b : CreatingBullets)
-		{
-			if (!IsValid(b)) continue;
-
-			b->InitBullet(InAbility, InTask, InAttackData);
-		}
-	}
-}
-
-bool APGMultiBulletCreator::LeftBulletCheckAndDestroy(APGTaskRelatedBullet* InChecker)
-{
-	for (TObjectPtr<APGTaskRelatedBullet> Bullet : CreatingBullets)
-	{
-		if (InChecker == Bullet) continue;
-
-		if (IsValid(Bullet))
-		{
-			return true;
-		}
-	}
-
-	Destroy();
-	return false;
-}
-
 void APGMultiBulletCreator::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CreateBullets();
+	Destroy();
 }
 
 void APGMultiBulletCreator::PostInitializeComponents()
@@ -89,15 +57,7 @@ void APGMultiBulletCreator::CreateBullets()
 		APGTaskRelatedBullet* CreatingBullet = Cast<APGTaskRelatedBullet>(NewBullet);
 		if (IsValid(CreatingBullet))
 		{
-			CreatingBullet->InitBullet(Ability, Task, AttackData);
-
-			APGNormalBullet_Sparrow* NormalBullet = Cast<APGNormalBullet_Sparrow>(CreatingBullet);
-			if (IsValid(NormalBullet))
-			{
-				NormalBullet->CreatedBy = this;
-			}
-
-			CreatingBullets.Add(CreatingBullet);
+			CreatingBullet->InitBullet(AttackData);
 		}
 	}
 

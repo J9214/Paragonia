@@ -22,8 +22,6 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
-	virtual void Destroyed() override;
-
 	UFUNCTION()
 	void OnBeginOverlap(
 		UPrimitiveComponent* OverlappedComponent,
@@ -49,7 +47,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsPierce;
-
-public:
-	TObjectPtr<APGMultiBulletCreator> CreatedBy;
 };

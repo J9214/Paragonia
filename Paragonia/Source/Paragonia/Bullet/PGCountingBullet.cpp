@@ -32,37 +32,12 @@ void APGCountingBullet::OnCreateTargetActor()
 		UE_LOG(LogTemp, Warning, TEXT("APGCountingBullet::OnCreateTargetActor - Not Valid Owner"));
 		Destroy();
 	}
-	else if (!IsValid(Task))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGCountingBullet::OnCreateTargetActor - Task is Not Valid"));
-		Destroy();
-	}
-	else if (!IsValid(Ability))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGCountingBullet::OnCreateTargetActor - Ability is Not Valid"));
-		Destroy();
-	}
 	else
 	{
 		++CurrentCount;
 
+		HitCheckNotify();
 		bool bIsEndAbility = (CurrentCount >= MaxCount);
-		UGA_SpawnBullet_Sparrow* SpawnActorAbility = Cast<UGA_SpawnBullet_Sparrow>(Ability);
-		if (IsValid(SpawnActorAbility))
-		{
-			SpawnActorAbility->SetIsEndAbility(bIsEndAbility);
-		}
-
-		if (!IsValid(TargetActor))
-		{
-			TargetActor = CreateTargetActor();
-		}
-
-		if (IsValid(TargetActor))
-		{
-			TargetActor->ConfirmTargetingAndContinue();
-		}
-		OnEffectCreate();
 
 		if (!bIsEndAbility)
 		{
@@ -70,7 +45,7 @@ void APGCountingBullet::OnCreateTargetActor()
 		}
 		else
 		{
-			TargetActor->Destroy();
+			Destroy();
 		}
 	}
 }

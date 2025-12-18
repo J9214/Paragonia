@@ -14,14 +14,13 @@ public:
 	void SetBulletClass(TSubclassOf<AActor> NewBulletClass);
 	void SetTimeWaited(const float& InTimeWaited);
 	void SetBulletSpawnTransform(const FTransform& InTransform);
-	void SetConfimationType(const EGameplayTargetingConfirmation::Type& InConfimationType);
 
 protected:
-	virtual void AnimNotify_HitCheck() override;
+	UFUNCTION()
+	void AnimNotify_SpawnBullet();
 
 protected:
 	TSubclassOf<AActor> BulletClass;
 	float TimeWaited;
 	FTransform BulletSpawnTransform;
-	EGameplayTargetingConfirmation::Type ConfimationType;
 };

@@ -42,8 +42,9 @@ void UGA_Attack_Sparrow::ActivateAbility(
 	}
 
 	bool bIsUlt = ASC->GetOwnedGameplayTags().HasTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.SparrowUlt")));
+
+	FAttackData& RealAttackData = bIsUlt ? UltAttackData : AttackData;
 	TSubclassOf<AActor> RealBulletClass = bIsUlt ? UltBulletClass : SpawnActorClass;
-	AttackData.DamageEffects[0] = bIsUlt ? UltAttackEntry : NormalAttackEntry;
 
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (IsValid(Character))
@@ -52,10 +53,9 @@ void UGA_Attack_Sparrow::ActivateAbility(
 		{
 			if (auto PGAnimInstance = Cast<UPGRangedAnimInstance>(AI))
 			{
-				PGAnimInstance->SetCurrentAttackData(AttackData);
+				PGAnimInstance->SetCurrentAttackData(RealAttackData);
 				PGAnimInstance->SetBulletClass(RealBulletClass);
 				PGAnimInstance->SetBulletSpawnTransform(Character->GetMesh()->GetSocketTransform(FName(TEXT("BowEmitterSocket"))));
-				PGAnimInstance->SetConfimationType(ConfimationType);
 			}
 		}
 	}
@@ -69,7 +69,7 @@ void UGA_Attack_Sparrow::ActivateAbility(
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
 			TEXT("AttackTask"),
-			AttackData.Montage,
+			RealAttackData.Montage,
 			1.0f
 		);
 
