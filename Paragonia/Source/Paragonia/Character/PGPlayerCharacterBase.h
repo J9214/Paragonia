@@ -138,9 +138,9 @@ protected:
 	UFUNCTION()
 	void OnRep_Dead();
 
-	void MovePlayerToRespawnPoint(FVector SpawnLocation, FRotator SpawnRotation);
+	void MovePlayerToRespawnPoint(FTransform SpawnTransform);
 
-	FVector GetRespawnLocationForController() const;
+	FTransform GetRespawnLocationForController() const;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)
 	uint8 bIsDead;
