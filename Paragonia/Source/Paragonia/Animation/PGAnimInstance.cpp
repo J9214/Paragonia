@@ -109,7 +109,7 @@ void UPGAnimInstance::AnimNotify_SpawnEnd()
 	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
 	if (IsValid(PlayerCharacter))
 	{
-		PlayerCharacter->SetSpawnMoveLock(false);
+		PlayerCharacter->SetSpawningAbilityLock(false);
 	}
 }
 

@@ -108,7 +108,7 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 void APGPlayerCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (!IsLocallyControlled() || bSpawnMoveLock)
+	if (!IsLocallyControlled() || bInputLock)
 	{
 		return;
 	}
@@ -337,29 +337,31 @@ UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() con
 	return ASC;
 }
 
-void APGPlayerCharacterBase::SetSpawnMoveLock(bool bLock)
+void APGPlayerCharacterBase::SetSpawningAbilityLock(bool bLock)
 {
-	bSpawnMoveLock = bLock;
-	if (bSpawnMoveLock)
+	if (bLock)
 	{
 		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+		SetInputLock(true);
 	}
 	else
 	{
 		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+		SetInputLock(false);
 	}
+}
 
-	if (!HasAuthority())
+void APGPlayerCharacterBase::SetInputLock(bool bLock)
+{
+	bInputLock = bLock;
+	if (bInputLock)
 	{
-		return;
-	}
-
-	if (bSpawnMoveLock)
-	{
-		GetCharacterMovement()->DisableMovement();
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_None);
 	}
 	else
 	{
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
 }

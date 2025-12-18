@@ -79,9 +79,10 @@ void UGA_SkillE_Aurora::ActivateAbility(
 
 		Task->ReadyForActivation();
 
-		if (IsValid(Character))
+		APGPlayerCharacterBase* PGCharacter = Cast<APGPlayerCharacterBase>(ActorInfo->AvatarActor.Get());
+		if (IsValid(PGCharacter))
 		{
-			Character->GetCharacterMovement()->SetMovementMode(MOVE_None);
+			PGCharacter->SetInputLock(true);
 		}
 	}
 	else
@@ -99,10 +100,10 @@ void UGA_SkillE_Aurora::EndAbility(
 	bool bWasCancelled
 )
 {
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (IsValid(Character))
+	APGPlayerCharacterBase* PGCharacter = Cast<APGPlayerCharacterBase>(ActorInfo->AvatarActor.Get());
+	if (IsValid(PGCharacter))
 	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		PGCharacter->SetInputLock(false);
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

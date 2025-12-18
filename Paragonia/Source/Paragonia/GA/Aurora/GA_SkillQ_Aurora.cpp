@@ -95,7 +95,7 @@ void UGA_SkillQ_Aurora::EndAbility(
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (IsValid(Character))
 	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		Character->GetCharacterMovement()->bUseControllerDesiredRotation = true;
 
 		APlayerController* PC = Cast<APlayerController>(Character->GetController());
 		if (IsValid(PC) && PC->IsLocalController())
@@ -135,13 +135,13 @@ void UGA_SkillQ_Aurora::OnDashFinished()
 		return;
 	}
 
+	Character->GetCharacterMovement()->StopMovementImmediately();
+
 	if (DashTask)
 	{
 		DashTask->EndTask();
 		DashTask = nullptr;
 	}
-
-	Character->GetCharacterMovement()->StopMovementImmediately();
 
 	ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 
@@ -155,6 +155,8 @@ void UGA_SkillQ_Aurora::OnDashStartEvent(const FGameplayEventData Payload)
 	{
 		return;
 	}
+
+	Character->GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	AController* Controller = Character->GetController();
 	if (IsValid(Controller) && Controller->IsLocalController())

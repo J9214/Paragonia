@@ -32,7 +32,10 @@ public:
 	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData);
 
 	UFUNCTION(BlueprintCallable, Category = "Character")
-	void SetSpawnMoveLock(bool bLock);
+	void SetSpawningAbilityLock(bool bLock);
+
+	UFUNCTION(BlueprintCallable, Category = "Character")
+	void SetInputLock(bool bLock);
 
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
@@ -124,7 +127,7 @@ protected:
 	FName CharacterName;
 
 private:
-	bool bSpawnMoveLock;
+	bool bInputLock;
 
 #pragma region Respawn
 public:
