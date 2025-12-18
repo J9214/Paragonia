@@ -133,7 +133,10 @@ void ANpcBaseCharacter::OnRep_TeamId()
 {
 	APlayerController* LocalPC = UGameplayStatics::GetPlayerController(this, 0);
 	if (LocalPC == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ANpcBaseCharacter::OnRep_TeamId - LocalPC is Null?!"));
 		return;
+	}
 
 	UMaterialInterface* MaterialToUse = nullptr;
 
@@ -152,7 +155,6 @@ void ANpcBaseCharacter::OnRep_TeamId()
 		MaterialToUse = EnemyMaterial;
 	}
 
-	// 5. Mesh에 적용 (0번 슬롯이 몸체라고 가정)
 	if (MaterialToUse && GetMesh())
 	{
 		GetMesh()->SetMaterial(MaterialCounts, MaterialToUse);
