@@ -8,7 +8,7 @@ void UPGAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	OwnerCharacter = Cast<ACharacter>(GetOwningActor());
+	OwnerCharacter = Cast<APGPlayerCharacterBase>(GetOwningActor());
 	if (IsValid(OwnerCharacter))
 	{
 		OwnerCharacterMovementComponent = OwnerCharacter->GetCharacterMovement();
@@ -45,6 +45,8 @@ void UPGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	FRotator DeltaRotation = (OwnerCharacter->GetActorRotation() - LastRotation).GetNormalized();
 	YawDelta = FMath::FInterpTo(YawDelta, (DeltaRotation.Yaw / DeltaSeconds) / LeanIntensity, DeltaSeconds, 6.f);
 	LastRotation = OwnerCharacter->GetActorRotation();
+
+	bIsDead = OwnerCharacter->GetIsDead();
 }
 
 void UPGAnimInstance::SetCurrentAttackData(const FAttackData& NewAttackData)

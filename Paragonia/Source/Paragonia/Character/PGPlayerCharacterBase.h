@@ -136,8 +136,10 @@ public:
 
 	UFUNCTION()
 	void SetDeadState(uint8 bDead); 
-protected:
 
+	uint8 GetIsDead() const;
+
+protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
@@ -147,6 +149,9 @@ protected:
 
 	FTransform GetRespawnLocationForController() const;
 
+	void ResetCharacterStateOnRespawn();
+
+protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)
 	uint8 bIsDead;
 #pragma endregion
