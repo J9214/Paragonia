@@ -8,7 +8,7 @@
 #include "PGObject.generated.h"
 
 class UAbilitySystemComponent;
-class UObjectAttributeSet;
+class UCharacterAttributeSet;
 struct FOnAttributeChangeData;
 
 UCLASS()
@@ -35,6 +35,8 @@ protected:
 
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
 
+	void OnDefenceChanged(const FOnAttributeChangeData& Data);
+
 	void HandleHealthDepleted();
 
 protected:
@@ -42,7 +44,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> ASC;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
-	TObjectPtr<UObjectAttributeSet> ObjectAttributeSet;
+	TObjectPtr<UCharacterAttributeSet> ObjectAttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	FName ObjectName;

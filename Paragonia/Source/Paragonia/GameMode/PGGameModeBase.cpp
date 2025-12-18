@@ -1,4 +1,4 @@
-// PGGameMode.cpp
+﻿// PGGameMode.cpp
 
 #include "PGGameModeBase.h"
 #include "Character/PGPlayerCharacterBase.h"
@@ -10,6 +10,8 @@
 #include "Controller/PGPlayerController.h"
 #include "EngineUtils.h"
 #include "Object/PGNexus.h"
+#include "Character/PGPlayerCharacterBase.h"
+#include "PlayerStart/PGPlayerStart.h"
 
 APGGameModeBase::APGGameModeBase()
 {
@@ -31,7 +33,7 @@ void APGGameModeBase::PostLogin(APlayerController* NewPlayer)
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(NewPlayer);
     if (IsValid(NewPlayerController) == true)
     {
-        AlivePlayerControllers.Add(NewPlayerController);
+        AlivePlayerControllers.AddUnique(NewPlayerController);
     }
 }
 
@@ -76,6 +78,7 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
 {
     Super::HandleSeamlessTravelPlayer(C);
 
+   
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
     if (IsValid(NewPlayerController) == true)
     {
@@ -101,6 +104,38 @@ UClass* APGGameModeBase::GetDefaultPawnClassForController_Implementation(AContro
     return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
 
+AActor* APGGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
+{
+    int32 PlayerTeamID = 0;
+    if (Player && Player->PlayerState)
+    {
+        PlayerTeamID = Cast<APGPlayerState>(Player->PlayerState)->GetTeamID();
+    }
+
+    for (TActorIterator<APGPlayerStart> It(GetWorld()); It; ++It)
+    {
+        if (It->TeamID == PlayerTeamID)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("APGGameModeBase::ChoosePlayerStart: Return PlayerStart"));
+            return *It;
+        }
+    }
+
+    return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+FTransform APGGameModeBase::GetTeamSpawnTransform(int32 TeamID) const
+{
+    for (TActorIterator<APGPlayerStart> It(GetWorld()); It; ++It)
+    {
+        if (It->TeamID == TeamID)
+        {
+            return It->GetActorTransform();
+        }
+    }
+    return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+}
+
 #pragma region DeathAndRespawn
 // 캐릭터 사망 처리
 void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter, AController* InstigatorController)
@@ -123,7 +158,7 @@ void APGGameModeBase::HandleCharacterDeath(APGPlayerCharacterBase* DeadCharacter
 
     if (DeadController)
     {
-        // 여기: AController* → APGPlayerController* 로 캐스팅
+        // 🔹 여기: AController* → APGPlayerController* 로 캐스팅
         APGPlayerController* DeadPGController = Cast<APGPlayerController>(DeadController);
         if (DeadPGController)
         {
