@@ -14,5 +14,4 @@ public:
 	TSubclassOf<AActor> BulletClass;
 	FTransform BulletSpawnTransform;
 	float TimeWaited;
-	EGameplayTargetingConfirmation::Type ConfimationType;
 };

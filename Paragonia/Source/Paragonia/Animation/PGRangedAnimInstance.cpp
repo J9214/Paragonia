@@ -5,9 +5,9 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 
-void UPGRangedAnimInstance::AnimNotify_HitCheck()
+void UPGRangedAnimInstance::AnimNotify_SpawnBullet()
 {
-	if (!IsValid(OwnerCharacter))
+	if (!OwnerCharacter->HasAuthority())
 	{
 		return;
 	}
@@ -20,7 +20,6 @@ void UPGRangedAnimInstance::AnimNotify_HitCheck()
 		Wrapper->BulletClass = BulletClass;
 		Wrapper->TimeWaited = TimeWaited;
 		Wrapper->BulletSpawnTransform = BulletSpawnTransform;
-		Wrapper->ConfimationType = ConfimationType;
 
 		FGameplayEventData EventData;
 		EventData.Instigator = OwnerCharacter;
@@ -28,7 +27,7 @@ void UPGRangedAnimInstance::AnimNotify_HitCheck()
 
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 			OwnerCharacter,
-			FGameplayTag::RequestGameplayTag(FName("Event.Character.HitCheck")),
+			FGameplayTag::RequestGameplayTag(FName("Event.Character.SpawnBullet")),
 			EventData
 		);
 	}
@@ -47,9 +46,4 @@ void UPGRangedAnimInstance::SetTimeWaited(const float& InTimeWaited)
 void UPGRangedAnimInstance::SetBulletSpawnTransform(const FTransform& InTransform)
 {
 	BulletSpawnTransform = InTransform;
-}
-
-void UPGRangedAnimInstance::SetConfimationType(const EGameplayTargetingConfirmation::Type& InConfimationType)
-{
-	ConfimationType = InConfimationType;
 }

@@ -16,10 +16,6 @@ class PARAGONIA_API APGMultiBulletCreator : public APGTaskRelatedBullet
 public:	
 	APGMultiBulletCreator();
 
-	virtual void InitBullet(UGameplayAbility* InAbility, UAbilityTask_WaitTargetData* InTask, const FAttackData& InAttackData) override;
-
-	bool LeftBulletCheckAndDestroy(APGTaskRelatedBullet* InChecker);
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
@@ -35,6 +31,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn Actor")
 	float AngleSpacing;
-
-	TArray<TObjectPtr<APGTaskRelatedBullet>> CreatingBullets;
 };

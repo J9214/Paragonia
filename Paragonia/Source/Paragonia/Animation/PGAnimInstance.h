@@ -6,6 +6,7 @@
 #include "PGAnimInstance.generated.h"
 
 class UCharacterMovementComponent;
+class APGPlayerCharacterBase;
 
 UCLASS()
 class PARAGONIA_API UPGAnimInstance : public UAnimInstance
@@ -40,7 +41,7 @@ protected:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<ACharacter> OwnerCharacter;
+	TObjectPtr<APGPlayerCharacterBase> OwnerCharacter;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCharacterMovementComponent> OwnerCharacterMovementComponent;
@@ -74,6 +75,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	uint8 bIsFullBody : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	uint8 bIsDead : 1;
 
 protected:
 	FRotator LastRotation;
