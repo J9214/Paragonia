@@ -1,10 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Controller/LobbyPlayerController.h"
 #include "Blueprint/UserWidget.h"
-#include "UI/PG_LobbyWidget.h"
-#include "UI/PG_CharacterSelectWidget.h"
+#include "UI/HUDs/PG_LobbyWidget.h"
+#include "UI/HUDs/PG_CharacterSelectWidget.h"
 #include "GameState/LobbyGameStateBase.h"
 
 void ALobbyPlayerController::BeginPlay()

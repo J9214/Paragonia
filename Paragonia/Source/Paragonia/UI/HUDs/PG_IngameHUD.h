@@ -7,6 +7,7 @@
 #include "PG_IngameHUD.generated.h"
 
 class UPG_HPBar;
+class UPG_InGameTeamSimpleInfo;
 /**
  *
  */
@@ -19,6 +20,12 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 public:
+	UFUNCTION()
+	void InitTeam1IngameIcon(int32 CharacterID);
+
+	UFUNCTION()
+	void InitTeam2IngameIcon(int32 CharacterID);
+
 	UFUNCTION()
 	void HandlePlayerHealthChanged(float OldValue, float NewValue);
 
@@ -44,8 +51,8 @@ protected:
 	TObjectPtr<UPG_HPBar> PlayerHPBar;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPG_HPBar> Team1HPBar;
+	TObjectPtr<UPG_InGameTeamSimpleInfo> Team1HPBar;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPG_HPBar> Team2HPBar;
+	TObjectPtr<UPG_InGameTeamSimpleInfo> Team2HPBar;
 };

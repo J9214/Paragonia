@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_HPBar.h"
+#include "UI/Bars/PG_HPBar.h"
 #include "Components/ProgressBar.h"
 
 void UPG_HPBar::NativeOnInitialized()
@@ -10,6 +10,7 @@ void UPG_HPBar::NativeOnInitialized()
 
 
 }
+
 
 void UPG_HPBar::HandleHealthChanged(float OldValue, float NewValue)
 {
@@ -21,4 +22,8 @@ void UPG_HPBar::HandleMaxHealthChanged(float OldValue, float NewValue)
 {
 	MaxHPValue = NewValue;
 	HPBar->SetPercent(NewValue > 0.f ? NowHPValue / NewValue : 0.f);
+}
+
+void UPG_HPBar::AddBuff(int32 BuffUID)
+{
 }

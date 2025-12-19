@@ -4,19 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
-#include "PG_HPBar.generated.h"
+#include "PG_InGameTeamSimpleInfo.generated.h"
 
-class UProgressBar;
+class UPG_HPBar;
+class UPG_PlayerIcon;
 /**
  * 
  */
 UCLASS()
-class PARAGONIA_API UPG_HPBar : public UCommonUserWidget
+class PARAGONIA_API UPG_InGameTeamSimpleInfo : public UCommonUserWidget
 {
 	GENERATED_BODY()
 
 public:
-	virtual void NativeOnInitialized() override;
+	void InitTeamSimpleInfo(int32 CharacterID);
 
 	UFUNCTION()
 	void HandleHealthChanged(float OldValue, float NewValue);
@@ -24,12 +25,12 @@ public:
 	UFUNCTION()
 	void HandleMaxHealthChanged(float OldValue, float NewValue);
 
+	UFUNCTION(BlueprintCallable)
+	void AddBuff(int32 buffUID);
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UProgressBar> HPBar;
+	TObjectPtr<UPG_PlayerIcon> PlayerIcon;
 
-	UPROPERTY()
-	float NowHPValue;
-	UPROPERTY()
-	float MaxHPValue;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_HPBar> HPBar;
 };

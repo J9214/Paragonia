@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_PlayerIcon.h"
+#include "UI/Icons/PG_PlayerIcon.h"
 #include "Struct/FCharacterResourceInfo.h"
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "Engine/GameInstance.h"

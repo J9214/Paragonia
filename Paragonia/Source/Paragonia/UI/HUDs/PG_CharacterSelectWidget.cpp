@@ -1,16 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_CharacterSelectWidget.h"
+#include "UI/HUDs/PG_CharacterSelectWidget.h"
+#include "UI/Panels/PG_CharacterDescription.h"
+#include "UI/Icons/PG_PlayerIcon.h"
+#include "UI/Buttons/PG_CharacterSelectButton.h"
 #include "CommonTileView.h"
-#include "UI/PG_CharacterDescription.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Struct/CharacterInfoWrapper.h"
-#include "PG_PlayerIcon.h"
 #include "Components/Button.h"
-#include "PG_CharacterSelectButton.h"
 #include "PlayerState/LobbyPlayerState.h"
 #include "Character/PG_LobbyPreviewCharacter.h"
 #include "Pawn/LobbyPawn.h"
