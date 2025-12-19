@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_CharacterDescription.h"
+#include "UI/Panels/PG_CharacterDescription.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "Subsystem/PGStringTableSubsystem.h"

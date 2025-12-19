@@ -2,8 +2,8 @@
 
 
 #include "Pawn/LobbyPawn.h"
-#include <Controller/LobbyPlayerController.h>
-#include "UI/PG_CharacterSelectWidget.h"
+#include "Controller/LobbyPlayerController.h"
+#include "UI/HUDs/PG_CharacterSelectWidget.h"
 
 ALobbyPawn::ALobbyPawn()
 {
@@ -45,7 +45,9 @@ void ALobbyPawn::Tick(float DeltaSeconds)
             {
                 UPG_CharacterSelectWidget* CharacterSelectWidget = PGPC->GetCharSelectUIInst();
                 if (CharacterSelectWidget)
+                {
                     CharacterSelectWidget->SetUI();
+                }
             }
         }
 

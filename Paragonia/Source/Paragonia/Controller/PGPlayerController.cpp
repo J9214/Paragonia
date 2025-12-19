@@ -7,7 +7,7 @@
 #include "Components/TextBlock.h"
 #include <GameMode/PGGameModeBase.h>
 #include "Character/PGPlayerCharacterBase.h"
-#include "UI/PG_IngameHUD.h"
+#include "UI/HUDs/PG_IngameHUD.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 
 void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
@@ -82,15 +82,19 @@ bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
     {
         return false;
     }
+
     AGameStateBase* GS = World->GetGameState();
     if (!GS)
     {
         return false;
     }
-    if (!IsValid(PlayerState))
+
+    APGPlayerState* LocalPS = GetPlayerState<APGPlayerState>();
+    if (!IsValid(LocalPS))
     {
         return false;
     }
+
     if (!IsValid(GetPawn()))
     {
         return false;
@@ -151,6 +155,21 @@ bool APGPlayerController::BindIngameHUD()
         return false;
     }
 
+    if (!SetMyHPBar(LocalPS))
+    {
+        return false;
+    }
+
+    if (!SetTeamHPBar(PlayerArray, LocalPS))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
+{
     APGPlayerCharacterBase* FoundMyCharacter = LocalPS->GetPawn<APGPlayerCharacterBase>();
     if (!IsValid(FoundMyCharacter))
     {
@@ -178,6 +197,11 @@ bool APGPlayerController::BindIngameHUD()
     IngameHUD->HandlePlayerMaxHealthChanged(MyAttributeSet->GetMaxHealth(), MyAttributeSet->GetMaxHealth());
     IngameHUD->HandlePlayerHealthChanged(MyAttributeSet->GetHealth(), MyAttributeSet->GetHealth());
 
+    return true;
+}
+
+bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray, APGPlayerState* LocalPS)
+{
     int index = 0;
 
     for (APlayerState* PS : PlayerArray)
@@ -218,15 +242,20 @@ bool APGPlayerController::BindIngameHUD()
         switch (index)
         {
         case 0:
+
+            IngameHUD->InitTeam1IngameIcon(PGPS->GetCharID());
+
             TeamAttributeSet->OnHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam1HealthChanged);
             TeamAttributeSet->OnMaxHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam1MaxHealthChanged);
 
             IngameHUD->HandleTeam1MaxHealthChanged(TeamAttributeSet->GetMaxHealth(), TeamAttributeSet->GetMaxHealth());
             IngameHUD->HandleTeam1HealthChanged(TeamAttributeSet->GetHealth(), TeamAttributeSet->GetHealth());
 
-            //PGPS->GetCharID(); 캐릭터 ID로 아이콘 세팅
             break;
         default:
+
+            IngameHUD->InitTeam2IngameIcon(PGPS->GetCharID());
+
             TeamAttributeSet->OnHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam2HealthChanged);
             TeamAttributeSet->OnMaxHealthChanged_UI.AddDynamic(IngameHUD, &UPG_IngameHUD::HandleTeam2MaxHealthChanged);
 
@@ -240,7 +269,6 @@ bool APGPlayerController::BindIngameHUD()
 
     return true;
 }
-
 
 void APGPlayerController::SetupInputComponent()
 {
