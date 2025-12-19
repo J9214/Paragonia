@@ -3,17 +3,15 @@
 #include "CoreMinimal.h"
 #include "GA/PGGameplayAbilityBase.h"
 #include "Struct/FAttackData.h"
-#include "GA_SkillQ_Aurora.generated.h"
-
-class UAbilityTask_ApplyRootMotionMoveToForce;
+#include "GA_SkillQ_Greystone.generated.h"
 
 UCLASS()
-class PARAGONIA_API UGA_SkillQ_Aurora : public UPGGameplayAbilityBase
+class PARAGONIA_API UGA_SkillQ_Greystone : public UPGGameplayAbilityBase
 {
 	GENERATED_BODY()
 	
 public:
-	UGA_SkillQ_Aurora();
+	UGA_SkillQ_Greystone();
 
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
@@ -32,6 +30,9 @@ public:
 
 private:
 	UFUNCTION()
+	void OnHitResultEvent(const FGameplayEventData Payload);
+
+	UFUNCTION()
 	void OnMontageCompleted();
 
 	UFUNCTION()
@@ -40,24 +41,7 @@ private:
 	UFUNCTION()
 	void OnMontageCancelled();
 
-	UFUNCTION()
-	void OnDashFinished();
-
-	UFUNCTION()
-	void OnDashStartEvent(const FGameplayEventData Payload);
-
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	FAttackData AttackData;
-
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Dash")
-	float DashDistance = 600.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Dash")
-	float DashDuration = 0.3f;
-
-private:
-	UPROPERTY()
-	UAbilityTask_ApplyRootMotionMoveToForce* DashTask;
 };

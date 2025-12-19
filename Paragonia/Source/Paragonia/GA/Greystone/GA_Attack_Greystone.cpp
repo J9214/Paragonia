@@ -1,4 +1,4 @@
-#include "GA/Aurora/GA_Attack_Aurora.h"
+#include "GA/Greystone/GA_Attack_Greystone.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Character.h"
@@ -10,7 +10,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/PGGameplayTags.h"
 
-UGA_Attack_Aurora::UGA_Attack_Aurora()
+UGA_Attack_Greystone::UGA_Attack_Greystone()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
@@ -19,7 +19,7 @@ UGA_Attack_Aurora::UGA_Attack_Aurora()
 	bReplicateInputDirectly = true;
 }
 
-void UGA_Attack_Aurora::ActivateAbility(
+void UGA_Attack_Greystone::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
@@ -40,7 +40,7 @@ void UGA_Attack_Aurora::ActivateAbility(
 	PlayCurrentCombo();
 }
 
-void UGA_Attack_Aurora::InputPressed(
+void UGA_Attack_Greystone::InputPressed(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo
@@ -54,7 +54,7 @@ void UGA_Attack_Aurora::InputPressed(
 	}
 }
 
-void UGA_Attack_Aurora::PlayCurrentCombo()
+void UGA_Attack_Greystone::PlayCurrentCombo()
 {
 	if (!ComboAttackDatas.IsValidIndex(CurrentComboIndex))
 	{
@@ -78,7 +78,7 @@ void UGA_Attack_Aurora::PlayCurrentCombo()
 
 	if (!IsValid(CurrentData.Montage))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::PlayCurrentCombo - Montage is invalid"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Greystone::PlayCurrentCombo - Montage is invalid"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
@@ -90,26 +90,26 @@ void UGA_Attack_Aurora::PlayCurrentCombo()
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("Attack_Task"),
+			TEXT("AttackTask"),
 			CurrentData.Montage,
 			1.0f
 		);
 	if (IsValid(Task))
 	{
-		Task->OnCompleted.AddDynamic(this, &UGA_Attack_Aurora::OnMontageCompleted);
-		Task->OnInterrupted.AddDynamic(this, &UGA_Attack_Aurora::OnMontageInterrupted);
-		Task->OnCancelled.AddDynamic(this, &UGA_Attack_Aurora::OnMontageCancelled);
+		Task->OnCompleted.AddDynamic(this, &UGA_Attack_Greystone::OnMontageCompleted);
+		Task->OnInterrupted.AddDynamic(this, &UGA_Attack_Greystone::OnMontageInterrupted);
+		Task->OnCancelled.AddDynamic(this, &UGA_Attack_Greystone::OnMontageCancelled);
 
 		Task->ReadyForActivation();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::PlayCurrentCombo - Failed to create Montage Task"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Greystone::PlayCurrentCombo - Failed to create Montage Task"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
 
-void UGA_Attack_Aurora::SetupHitResultTask()
+void UGA_Attack_Greystone::SetupHitResultTask()
 {
 	if (!HasAuthority(&CurrentActivationInfo))
 	{
@@ -131,16 +131,16 @@ void UGA_Attack_Aurora::SetupHitResultTask()
 	);
 	if (IsValid(HitResultTask))
 	{
-		HitResultTask->EventReceived.AddDynamic(this, &UGA_Attack_Aurora::OnHitResultEvent);
+		HitResultTask->EventReceived.AddDynamic(this, &UGA_Attack_Greystone::OnHitResultEvent);
 		HitResultTask->ReadyForActivation();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::SetupHitResultTask - Failed to create task"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Greystone::SetupHitResultTask - Failed to create task"));
 	}
 }
 
-void UGA_Attack_Aurora::SetupComboWindowTask()
+void UGA_Attack_Greystone::SetupComboWindowTask()
 {
 	UAbilityTask_WaitGameplayEvent* OpenTask =
 		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
@@ -149,7 +149,7 @@ void UGA_Attack_Aurora::SetupComboWindowTask()
 		);
 	if (IsValid(OpenTask))
 	{
-		OpenTask->EventReceived.AddDynamic(this, &UGA_Attack_Aurora::OnComboWindowOpen);
+		OpenTask->EventReceived.AddDynamic(this, &UGA_Attack_Greystone::OnComboWindowOpen);
 		OpenTask->ReadyForActivation();
 	}
 
@@ -160,7 +160,7 @@ void UGA_Attack_Aurora::SetupComboWindowTask()
 		);
 	if (IsValid(CloseTask))
 	{
-		CloseTask->EventReceived.AddDynamic(this, &UGA_Attack_Aurora::OnComboWindowClose);
+		CloseTask->EventReceived.AddDynamic(this, &UGA_Attack_Greystone::OnComboWindowClose);
 		CloseTask->ReadyForActivation();
 	}
 
@@ -171,12 +171,12 @@ void UGA_Attack_Aurora::SetupComboWindowTask()
 		);
 	if (IsValid(StartNextTask))
 	{
-		StartNextTask->EventReceived.AddDynamic(this, &UGA_Attack_Aurora::OnStartNextCombo);
+		StartNextTask->EventReceived.AddDynamic(this, &UGA_Attack_Greystone::OnStartNextCombo);
 		StartNextTask->ReadyForActivation();
 	}
 }
 
-void UGA_Attack_Aurora::EndAbility(
+void UGA_Attack_Greystone::EndAbility(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
@@ -187,23 +187,23 @@ void UGA_Attack_Aurora::EndAbility(
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UGA_Attack_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
+void UGA_Attack_Greystone::OnHitResultEvent(const FGameplayEventData Payload)
 {
 	const FAttackData& CurrentData = ComboAttackDatas[CurrentComboIndex];
 	ApplyAttackDataEffects_OnHit(CurrentData, Payload);
 }
 
-void UGA_Attack_Aurora::OnComboWindowOpen(const FGameplayEventData Payload)
+void UGA_Attack_Greystone::OnComboWindowOpen(const FGameplayEventData Payload)
 {
 	bCanAcceptNextInput = true;
 }
 
-void UGA_Attack_Aurora::OnComboWindowClose(const FGameplayEventData Payload)
+void UGA_Attack_Greystone::OnComboWindowClose(const FGameplayEventData Payload)
 {
 	bCanAcceptNextInput = false;
 }
 
-void UGA_Attack_Aurora::OnStartNextCombo(const FGameplayEventData Payload)
+void UGA_Attack_Greystone::OnStartNextCombo(const FGameplayEventData Payload)
 {
 	if (bComboInputQueued && ComboAttackDatas.IsValidIndex(CurrentComboIndex + 1))
 	{
@@ -217,12 +217,12 @@ void UGA_Attack_Aurora::OnStartNextCombo(const FGameplayEventData Payload)
 	}
 }
 
-void UGA_Attack_Aurora::OnMontageCompleted()
+void UGA_Attack_Greystone::OnMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
-void UGA_Attack_Aurora::OnMontageInterrupted()
+void UGA_Attack_Greystone::OnMontageInterrupted()
 {
 	if (bIsComboTransition)
 	{
@@ -233,7 +233,7 @@ void UGA_Attack_Aurora::OnMontageInterrupted()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
-void UGA_Attack_Aurora::OnMontageCancelled()
+void UGA_Attack_Greystone::OnMontageCancelled()
 {
 	if (bIsComboTransition)
 	{

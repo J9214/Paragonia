@@ -1,4 +1,4 @@
-#include "GA/Aurora/GA_SkillR_Aurora.h"
+#include "GA/Greystone/GA_SkillQ_Greystone.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "GameFramework/Character.h"
@@ -10,14 +10,14 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/PGGameplayTags.h"
 
-UGA_SkillR_Aurora::UGA_SkillR_Aurora()
+UGA_SkillQ_Greystone::UGA_SkillQ_Greystone()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
 }
 
-void UGA_SkillR_Aurora::ActivateAbility(
+void UGA_SkillQ_Greystone::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
@@ -42,7 +42,6 @@ void UGA_SkillR_Aurora::ActivateAbility(
 		}
 	}
 
-
 	if (!IsValid(AttackData.Montage))
 	{
 		return;
@@ -55,46 +54,42 @@ void UGA_SkillR_Aurora::ActivateAbility(
 
 		if (IsValid(HitResultTask))
 		{
-			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillR_Aurora::OnHitResultEvent);
+			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillQ_Greystone::OnHitResultEvent);
 			HitResultTask->ReadyForActivation();
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create HitResult Ability Task"));
+			UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Greystone::ActivateAbility - Failed to create HitResult Ability Task"));
 		}
 	}
-
 
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("SkillR_Task"),
+			TEXT("SkillQ_Task"),
 			AttackData.Montage,
 			1.0f
 		);
 
 	if (IsValid(Task))
 	{
-		Task->OnCompleted.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageCompleted);
-		Task->OnInterrupted.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageInterrupted);
-		Task->OnCancelled.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageCancelled);
+		Task->OnCompleted.AddDynamic(this, &UGA_SkillQ_Greystone::OnMontageCompleted);
+		Task->OnInterrupted.AddDynamic(this, &UGA_SkillQ_Greystone::OnMontageInterrupted);
+		Task->OnCancelled.AddDynamic(this, &UGA_SkillQ_Greystone::OnMontageCancelled);
 
 		Task->ReadyForActivation();
-
-		APGPlayerCharacterBase* PGCharacter = Cast<APGPlayerCharacterBase>(ActorInfo->AvatarActor.Get());
-		if (IsValid(PGCharacter))
-		{
-			PGCharacter->SetInputLock(true);
-		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Failed to create Ability Task"));
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Greystone::ActivateAbility - Failed to create Ability Task"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
+
+	ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 }
 
-void UGA_SkillR_Aurora::EndAbility(
+void UGA_SkillQ_Greystone::EndAbility(
 	const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
@@ -102,31 +97,25 @@ void UGA_SkillR_Aurora::EndAbility(
 	bool bWasCancelled
 )
 {
-	APGPlayerCharacterBase* PGCharacter = Cast<APGPlayerCharacterBase>(ActorInfo->AvatarActor.Get());
-	if (IsValid(PGCharacter))
-	{
-		PGCharacter->SetInputLock(false);
-	}
-
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UGA_SkillR_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
+void UGA_SkillQ_Greystone::OnHitResultEvent(const FGameplayEventData Payload)
 {
 	ApplyAttackDataEffects_OnHit(AttackData, Payload);
 }
 
-void UGA_SkillR_Aurora::OnMontageCompleted()
+void UGA_SkillQ_Greystone::OnMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
-void UGA_SkillR_Aurora::OnMontageInterrupted()
+void UGA_SkillQ_Greystone::OnMontageInterrupted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
-void UGA_SkillR_Aurora::OnMontageCancelled()
+void UGA_SkillQ_Greystone::OnMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
