@@ -12,6 +12,14 @@ enum class EPGEffectApplyTarget : uint8
     Target
 };
 
+UENUM(BlueprintType)
+enum class EPGTeamRule : uint8
+{
+    Any,
+    SameTeamOnly,   // Buff
+    OtherTeamOnly   // Debuff, Damage
+};
+
 USTRUCT(BlueprintType)
 struct FAttackEffectEntry
 {
@@ -23,4 +31,7 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EPGEffectApplyTarget ApplyTarget = EPGEffectApplyTarget::Target;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EPGTeamRule TeamRule = EPGTeamRule::Any;
 };

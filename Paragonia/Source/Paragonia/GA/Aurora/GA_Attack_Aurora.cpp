@@ -90,7 +90,7 @@ void UGA_Attack_Aurora::PlayCurrentCombo()
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("AttackTask"),
+			TEXT("Attack_Task"),
 			CurrentData.Montage,
 			1.0f
 		);

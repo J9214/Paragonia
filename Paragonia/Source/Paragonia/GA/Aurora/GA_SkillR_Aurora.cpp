@@ -68,7 +68,7 @@ void UGA_SkillR_Aurora::ActivateAbility(
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("AttackTask"),
+			TEXT("SkillR_Task"),
 			AttackData.Montage,
 			1.0f
 		);

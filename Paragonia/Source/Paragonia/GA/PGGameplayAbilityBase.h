@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Struct/FAttackEffectEntry.h"
 #include "PGGameplayAbilityBase.generated.h"
 
 struct FAttackData;
@@ -47,9 +48,17 @@ private:
 
 	void ApplyEntriesToTargets(const TArray<FAttackEffectEntry>& Entries, const FGameplayAbilityTargetDataHandle& TargetData, bool bInjectDamageParams, const FAttackData& InAttackData);
 
+	int32 GetTeamIdFromActor(const AActor* Actor) const;
+
+	FGameplayAbilityTargetDataHandle FilterTargetDataByTeamRule(
+		const FGameplayAbilityTargetDataHandle& InTargetData,
+		EPGTeamRule Rule
+	) const;
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	EPGAbilityInputID InputID = EPGAbilityInputID::None;
 
-
+private:
+	const int32 TEAM_NONE = -1;
 };

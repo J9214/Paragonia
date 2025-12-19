@@ -31,18 +31,6 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 		return;
 	}
 
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (IsValid(Character))
-	{
-		if (UAnimInstance* AI = Character->GetMesh()->GetAnimInstance())
-		{
-			if (auto PGAnimInstance = Cast<UPGAnimInstance>(AI))
-			{
-				PGAnimInstance->SetCurrentAttackData(AttackData);
-			}
-		}
-	}
-
 	if (!IsValid(AttackData.Montage))
 	{
 		return;
@@ -63,7 +51,7 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("AttackTask"),
+			TEXT("SkillQ_Task"),
 			AttackData.Montage,
 			1.0f
 		);
@@ -105,11 +93,6 @@ void UGA_SkillQ_Aurora::EndAbility(
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UGA_SkillQ_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
-{
-	// Add Damage Logic Here If Needed
 }
 
 void UGA_SkillQ_Aurora::OnMontageCompleted()
