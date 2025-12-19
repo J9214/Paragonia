@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_CharacterSelectButton.h"
+#include "UI/Buttons/PG_CharacterSelectButton.h"
 #include "Struct/CharacterInfoWrapper.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"

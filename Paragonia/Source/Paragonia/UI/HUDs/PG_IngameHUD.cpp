@@ -1,14 +1,25 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_IngameHUD.h"
+#include "UI/HUDs/PG_IngameHUD.h"
+#include "UI/Panels/PG_InGameTeamSimpleInfo.h"
+#include "UI/Bars/PG_HPBar.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Character/PGPlayerCharacterBase.h"
-#include "UI/PG_HPBar.h"
 
 void UPG_IngameHUD::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+}
+
+void UPG_IngameHUD::InitTeam1IngameIcon(int32 CharacterID)
+{
+    Team1HPBar->InitTeamSimpleInfo(CharacterID);
+}
+
+void UPG_IngameHUD::InitTeam2IngameIcon(int32 CharacterID)
+{
+    Team2HPBar->InitTeamSimpleInfo(CharacterID);
 }
 
 void UPG_IngameHUD::HandlePlayerHealthChanged(float OldValue, float NewValue)

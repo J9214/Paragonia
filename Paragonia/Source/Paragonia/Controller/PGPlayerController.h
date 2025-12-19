@@ -8,6 +8,8 @@
 class UInputMappingContext;
 class UUW_GameResult;
 class UPG_IngameHUD;
+class APGPlayerState;
+class APlayerState;
 
 UCLASS()
 class PARAGONIA_API APGPlayerController : public APlayerController
@@ -28,6 +30,10 @@ public:
 	bool BindIngameHUD();
 
 protected:
+
+	bool SetMyHPBar(APGPlayerState* LocalPS);
+	bool SetTeamHPBar(const TArray<APlayerState*>& PlayerArray, APGPlayerState* LocalPS);
+
 	void StartReadyCheck();
 	void TickReadyCheck();
 	bool AreAllPlayersReplicatedOnThisClient() const;
