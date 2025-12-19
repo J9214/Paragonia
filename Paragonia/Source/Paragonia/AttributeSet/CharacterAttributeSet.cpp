@@ -1,4 +1,4 @@
-#include "AttributeSet/CharacterAttributeSet.h"
+﻿#include "AttributeSet/CharacterAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 
@@ -79,11 +79,13 @@ void UCharacterAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 void UCharacterAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSet, MaxHealth, OldMaxHealth);
+	OnMaxHealthChanged_UI.Broadcast(OldMaxHealth.GetCurrentValue(), MaxHealth.GetCurrentValue());
 }
 
 void UCharacterAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSet, Health, OldHealth);
+	OnHealthChanged_UI.Broadcast(OldHealth.GetCurrentValue(), Health.GetCurrentValue());
 }
 
 void UCharacterAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldDefense)
