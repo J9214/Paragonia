@@ -18,6 +18,7 @@ void APGPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(APGPlayerState, TeamID);
 	DOREPLIFETIME(APGPlayerState, CharacterID);
+	DOREPLIFETIME(APGPlayerState, bClientReady);
 }
 
 void APGPlayerState::SetCharID(int32 NewCharID)
