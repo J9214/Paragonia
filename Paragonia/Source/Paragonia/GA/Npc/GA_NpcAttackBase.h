@@ -39,8 +39,4 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	FAttackData AttackData;
-
-	// State Tree에서 지정한 actor 저장용
-	UPROPERTY(BlueprintReadOnly, Category = "Runtime Cache")
-	TWeakObjectPtr<const AActor> CachedTargetActor;
 };

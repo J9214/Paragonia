@@ -103,6 +103,19 @@ void ANpcBaseCharacter::SetTeamId(uint8 NewTeamId)
 	}
 }
 
+void ANpcBaseCharacter::SetAttackTarget(AActor* NewTarget)
+{
+	if (HasAuthority())
+	{
+		CurrentAttackTarget = NewTarget;
+	}
+}
+
+AActor* ANpcBaseCharacter::GetAttackTarget() const
+{
+	return CurrentAttackTarget.Get();
+}
+
 void ANpcBaseCharacter::GrantStartupAbilities()
 {
 	if (IsValid(AbilitySystemComponent) == false)

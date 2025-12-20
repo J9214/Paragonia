@@ -7,6 +7,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/PGGameplayTags.h"
 #include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
 
 UNpcAnimInstance::UNpcAnimInstance()
 {
@@ -64,10 +65,20 @@ void UNpcAnimInstance::SendGameplayEventToOwner(FGameplayTag EventTag)
 	}
 
 	AActor* CurrentTarget = OwnerCharacter->GetAttackTarget();
+	if (IsValid(CurrentTarget) == false)
+	{
+		return;
+	}
 
 	FGameplayEventData Payload;
 	Payload.Instigator = OwnerCharacter;
 	Payload.Target = CurrentTarget;
+
+	FGameplayAbilityTargetData_SingleTargetHit* NewData = new FGameplayAbilityTargetData_SingleTargetHit();
+	NewData->HitResult = FHitResult(CurrentTarget, nullptr, FVector::ZeroVector, FVector::ZeroVector);
+	NewData->HitResult.bBlockingHit = true;
+
+	Payload.TargetData.Add(NewData);
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerCharacter, EventTag, Payload);
 }

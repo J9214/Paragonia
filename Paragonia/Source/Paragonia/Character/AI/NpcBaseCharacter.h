@@ -34,6 +34,16 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "AI")
 	uint8 GetTeamId() const { return TeamId; }
+
+	UFUNCTION(BlueprintCallable, Category = "AI|Target")
+	void SetAttackTarget(AActor* NewTarget);
+
+	UFUNCTION(BlueprintPure, Category = "AI|Target")
+	AActor* GetAttackTarget() const;
+
+	UFUNCTION(BlueprintPure, Category = "GAS|Tags")
+	FGameplayTag GetDeadTag() const { return DeadTag; }
+
 protected:
 	void GrantStartupAbilities();
 
@@ -74,4 +84,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Visual|Team")
 	int32 MaterialCounts;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AI|Target")
+	TWeakObjectPtr<AActor> CurrentAttackTarget;
 };

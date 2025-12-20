@@ -23,19 +23,11 @@ void UGA_NpcAttackBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	if (TriggerEventData != nullptr &&
-		TriggerEventData->Target != nullptr)
-	{
-		CachedTargetActor = TriggerEventData->Target;
-	}
-
-	if (CachedTargetActor.IsValid() == false)
+	if (IsValid(AttackData.Montage) == false)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	// TODO : NPC ABP 관련 or 캐릭터 관련된 요소를 여기에 설정
 
 	UAbilityTask_PlayMontageAndWait* MontageTask = 
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
