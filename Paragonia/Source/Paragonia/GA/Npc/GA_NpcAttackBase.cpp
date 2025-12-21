@@ -63,6 +63,7 @@ void UGA_NpcAttackBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_NpcAttackBase::ActivateAbility - Failed to create HitResult Ability Task"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 }
 
