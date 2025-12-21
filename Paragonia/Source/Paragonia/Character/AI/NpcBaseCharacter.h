@@ -41,6 +41,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AI|Target")
 	AActor* GetAttackTarget() const;
 
+	UFUNCTION(BlueprintPure, Category = "AI")
+	float GetAttackRange() const { return AttackRange; };
+
+	UFUNCTION(BlueprintPure, Category = "AI")
+	float GetSightRange() const { return SightRange; };
+
 	UFUNCTION(BlueprintPure, Category = "GAS|Tags")
 	FGameplayTag GetDeadTag() const { return DeadTag; }
 
@@ -73,6 +79,12 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_TeamId, EditAnywhere, BlueprintReadOnly, Category = "AI")
 	uint8 TeamId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	float AttackRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	float SightRange;
 
 	// 아군에게 보일 머테리얼
 	UPROPERTY(EditDefaultsOnly, Category = "Visual|Team")

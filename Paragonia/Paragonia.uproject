@@ -14,7 +14,8 @@
 				"UMG",
 				"CoreUObject",
 				"GameplayAbilities",
-				"CommonUI"
+				"CommonUI",
+				"StateTreeModule"
 			]
 		}
 	],
