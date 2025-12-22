@@ -14,6 +14,7 @@
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
 #include "PlayerStart/PGPlayerStart.h"
+#include "Controller/PGPlayerController.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -104,6 +105,8 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(SkillQAction, ETriggerEvent::Triggered, this, &ThisClass::SkillQ);
 		EnhancedInputComponent->BindAction(SkillEAction, ETriggerEvent::Triggered, this, &ThisClass::SkillE);
 		EnhancedInputComponent->BindAction(SkillRAction, ETriggerEvent::Triggered, this, &ThisClass::SkillR);
+
+		EnhancedInputComponent->BindAction(ToggleShop, ETriggerEvent::Started, this, &ThisClass::ToggleShopInput);
 	}
 }
 
@@ -203,6 +206,14 @@ void APGPlayerCharacterBase::SkillR(const FInputActionValue& Value)
 	}
 
 	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::SkillR));
+}
+
+void APGPlayerCharacterBase::ToggleShopInput()
+{
+	if (APGPlayerController* PC = Cast<APGPlayerController>(GetController()))
+	{
+		PC->ToggleShop();
+	}
 }
 
 void APGPlayerCharacterBase::InitializeActorInfo()
