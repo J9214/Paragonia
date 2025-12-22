@@ -6,10 +6,21 @@
 #include "UI/Bars/PG_HPBar.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Character/PGPlayerCharacterBase.h"
+#include "UI/MiniMap/PG_MiniMap.h"
 
 void UPG_IngameHUD::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+}
+
+void UPG_IngameHUD::InitMinimap(UTextureRenderTarget2D* InRT)
+{
+    if (!MiniMapWidget || !InRT)
+    {
+        return;
+    }
+
+    MiniMapWidget->SetMinimapRenderTarget(InRT);
 }
 
 void UPG_IngameHUD::InitTeam1IngameIcon(int32 CharacterID)

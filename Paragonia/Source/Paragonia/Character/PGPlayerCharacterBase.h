@@ -15,6 +15,8 @@ class UAbilitySystemComponent;
 class UGameplayAbility;
 class UWidgetComponent;
 class UCharacterAttributeSet;
+class UPG_IngameInfo;
+class USceneCaptureComponent2D;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -40,6 +42,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
 
+	UTextureRenderTarget2D* GetMinimapRenderTarget();
 protected:
 	virtual void BeginPlay() override;
 
@@ -88,7 +91,18 @@ private:
 
 	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
 
+	void BindHeadHPDelegatesOnce();
+
+	void SetupHeadHPWidget();
+
+	void UpdateHeadHPVisibility();
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USpringArmComponent> MiniMapSpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneCaptureComponent2D> MinimapCaptureComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
 
@@ -131,9 +145,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	FName CharacterName;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UWidgetComponent> HeadHPWidgetComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UPG_IngameInfo> HeadHPWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UPG_IngameInfo> HeadHPWidget;
+
+	UPROPERTY()
+	TObjectPtr<UTextureRenderTarget2D> MinimapRT;
+
 private:
 	bool bInputLock;
 
+	bool bHeadHPBound;
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)

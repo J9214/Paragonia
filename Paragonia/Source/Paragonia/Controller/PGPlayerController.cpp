@@ -204,6 +204,8 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
     IngameHUD->HandlePlayerMaxHealthChanged(MyAttributeSet->GetMaxHealth(), MyAttributeSet->GetMaxHealth());
     IngameHUD->HandlePlayerHealthChanged(MyAttributeSet->GetHealth(), MyAttributeSet->GetHealth());
 
+    IngameHUD->InitMinimap(FoundMyCharacter->GetMinimapRenderTarget());
+
     return true;
 }
 
