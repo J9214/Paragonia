@@ -90,7 +90,12 @@ void ANpcBaseCharacter::HandleDeath()
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	StateTreeComponent->SendStateTreeEvent(DeadTag);
+	if (StateTreeComponent)
+	{
+		StateTreeComponent->SendStateTreeEvent(FStateTreeEvent(DeadTag));
+	}
+
+	SetLifeSpan(5.0f);
 }
 
 void ANpcBaseCharacter::SetTeamId(uint8 NewTeamId)
