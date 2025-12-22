@@ -15,7 +15,10 @@ void UPG_IngameHUD::NativeOnInitialized()
 
 void UPG_IngameHUD::InitMinimap(UTextureRenderTarget2D* InRT)
 {
-    if (!MiniMapWidget || !InRT) return;
+    if (!MiniMapWidget || !InRT)
+    {
+        return;
+    }
 
     MiniMapWidget->SetMinimapRenderTarget(InRT);
 }
