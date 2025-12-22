@@ -70,6 +70,8 @@ protected:
 
 	void SkillR(const FInputActionValue& Value);
 
+	void ToggleShopInput();
+
 private:
 	void InitializeActorInfo();
 
@@ -133,6 +135,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> SkillRAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> ToggleShop;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> AllAbilities;
