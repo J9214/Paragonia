@@ -1,0 +1,22 @@
+﻿#include "UI/Shop/PGShopItemEntryWidget.h"
+#include "Components/Image.h"
+#include "Shop/PGShopItemObject.h" 
+
+void UPGShopItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
+{
+    const UPGShopItemObject* Obj = Cast<UPGShopItemObject>(ListItemObject);
+    if (!Obj) return;
+
+    if (IconImage)
+    {
+        if (Obj->Data.Icon.IsNull())
+        {
+            IconImage->SetBrushFromTexture(nullptr);
+        }
+        else
+        {
+            UTexture2D* Tex = Obj->Data.Icon.LoadSynchronous();
+            IconImage->SetBrushFromTexture(Tex);
+        }
+    }
+}

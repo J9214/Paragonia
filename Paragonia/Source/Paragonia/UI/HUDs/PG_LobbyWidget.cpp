@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_LobbyWidget.h"
+#include "UI/HUDs/PG_LobbyWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "CommonButtonBase.h"

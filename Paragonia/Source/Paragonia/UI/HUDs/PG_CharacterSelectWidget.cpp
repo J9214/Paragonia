@@ -1,16 +1,16 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/PG_CharacterSelectWidget.h"
+#include "UI/HUDs/PG_CharacterSelectWidget.h"
+#include "UI/Panels/PG_CharacterDescription.h"
+#include "UI/Icons/PG_PlayerIcon.h"
+#include "UI/Buttons/PG_CharacterSelectButton.h"
 #include "CommonTileView.h"
-#include "UI/PG_CharacterDescription.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Struct/CharacterInfoWrapper.h"
-#include "PG_PlayerIcon.h"
 #include "Components/Button.h"
-#include "PG_CharacterSelectButton.h"
 #include "PlayerState/LobbyPlayerState.h"
 #include "Character/PG_LobbyPreviewCharacter.h"
 #include "Pawn/LobbyPawn.h"
@@ -64,17 +64,30 @@ void UPG_CharacterSelectWidget::SetInit()
 
 void UPG_CharacterSelectWidget::SetPlayerNumberID(int32 index, int32 PlayerNumberID)
 {
+    if (Player0Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        return;
+    }
+    if (Player1Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        return;
+    }
+    if (Player2Icon->GetPlayerNumberId() == PlayerNumberID)
+    {
+        return;
+    }
+
     switch (index)
     {
     case 0:
         Player0Icon->SetPlayerNumberId(PlayerNumberID);
-        break;
+        return;
     case 1:
         Player1Icon->SetPlayerNumberId(PlayerNumberID);
-        break;
+        return;
     case 2:
         Player2Icon->SetPlayerNumberId(PlayerNumberID);
-        break;
+        return;
     default:
         break;
     }
@@ -85,14 +98,17 @@ void UPG_CharacterSelectWidget::SetPlayerCharacterIcon(int32 PlayerNumberID, int
     if (Player0Icon->GetPlayerNumberId() == PlayerNumberID)
     {
         Player0Icon->SetPlayerIcon(CharacterUID);
+        return;
     }
     if (Player1Icon->GetPlayerNumberId() == PlayerNumberID)
     {
         Player1Icon->SetPlayerIcon(CharacterUID);
+        return;
     }
     if (Player2Icon->GetPlayerNumberId() == PlayerNumberID)
     {
         Player2Icon->SetPlayerIcon(CharacterUID);
+        return;
     }
 
 }
@@ -254,13 +270,27 @@ void UPG_CharacterSelectWidget::HandleAnyCharacterIDChanged(int32 NewCharacterID
         ALobbyPlayerState* LPS = Cast<ALobbyPlayerState>(PS);
 
         if (!LPS)
+        {
             continue;
+        }
         if (LPS == LobbyPlayerState)
+        {
             continue;
+        }
         if (LPS->GetTeamID() != LobbyPlayerState->GetTeamID())
+        {
             continue;
+        }
         if (LPS->GetPlayerLobbyState() == EPlayerLobbyState::PLS_SelectedAndReady)
+        {
             continue;
+        }
+
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
+                FString::Printf(TEXT("[CLIENT] %d"), LobbyPlayerState->GetTeamID()));
+        }
         SetPlayerCharacterIcon(LPS->GetPlayerNumberId(), LPS->GetCharacterID());
     }
 }
@@ -348,11 +378,24 @@ bool UPG_CharacterSelectWidget::CheckPlayerState()
     {
         ALobbyPlayerState* LPS = Cast<ALobbyPlayerState>(PS);
         if (!LPS)
+        {
             continue;
-        if(LPS == LobbyPlayerState)
+        }
+
+        if (LPS == LobbyPlayerState)
+        {
             continue;
+        }
+
         if (LPS->GetTeamID() != LobbyPlayerState->GetTeamID())
+        {
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,
+                    FString::Printf(TEXT("[CLIENT] %d"), LPS->GetTeamID()));
+            }
             continue;
+        }
 
         LPS->OnCharacterIDChanged.AddUniqueDynamic(this, &ThisClass::HandleAnyCharacterIDChanged);
         LPS->OnLobbyPlayerStateChangedHelperUI.AddUniqueDynamic(this, &ThisClass::HandlePlayerSelected);
