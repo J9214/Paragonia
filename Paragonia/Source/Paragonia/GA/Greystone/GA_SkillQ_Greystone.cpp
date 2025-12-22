@@ -50,8 +50,13 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 	if (HasAuthority(&ActivationInfo))
 	{
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
-			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
-
+			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+				this,
+				FGameplayTag::RequestGameplayTag("Event.Character.HitResult"),
+				nullptr,
+				true,
+				true
+			);
 		if (IsValid(HitResultTask))
 		{
 			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillQ_Greystone::OnHitResultEvent);
@@ -70,7 +75,6 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 			AttackData.Montage,
 			1.0f
 		);
-
 	if (IsValid(Task))
 	{
 		Task->OnCompleted.AddDynamic(this, &UGA_SkillQ_Greystone::OnMontageCompleted);
