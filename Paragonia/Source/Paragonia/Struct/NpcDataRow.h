@@ -32,6 +32,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float AttackRange = 300.0f;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float SightRange = 300.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTag NPCTypeTag;
 

@@ -87,10 +87,10 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_TeamId, EditAnywhere, BlueprintReadOnly, Category = "AI")
 	uint8 TeamId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	float AttackRange;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	float SightRange;
 
 	// 아군에게 보일 머테리얼
