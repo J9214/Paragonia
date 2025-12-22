@@ -54,7 +54,6 @@ void UGA_SkillE_Aurora::ActivateAbility(
 	{
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
 			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
-
 		if (IsValid(HitResultTask))
 		{
 			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillE_Aurora::OnHitResultEvent);
@@ -73,7 +72,6 @@ void UGA_SkillE_Aurora::ActivateAbility(
 			AttackData.Montage,
 			1.0f
 		);
-
 	if (IsValid(Task))
 	{
 		Task->OnCompleted.AddDynamic(this, &UGA_SkillE_Aurora::OnMontageCompleted);
