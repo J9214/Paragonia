@@ -14,6 +14,10 @@
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
 #include "PlayerStart/PGPlayerStart.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Panels/PG_IngameInfo.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -21,7 +25,8 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
+	bUseControllerRotationRoll = false; 
+	bHeadHPBound = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
@@ -38,6 +43,18 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	SpringArm->TargetArmLength = 500.0f;
 	SpringArm->bUsePawnControlRotation = true;
 
+	MiniMapSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapSpringArm"));
+	MiniMapSpringArm->SetupAttachment(RootComponent); 
+	MiniMapSpringArm->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+	MiniMapSpringArm->TargetArmLength = 1500.0f;
+	MiniMapSpringArm->bUsePawnControlRotation = false;
+
+	MinimapCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MinimapCaptureComponent"));
+	MinimapCaptureComponent->SetupAttachment(MiniMapSpringArm, USpringArmComponent::SocketName);
+	MinimapCaptureComponent->bCaptureEveryFrame = false;
+	MinimapCaptureComponent->bCaptureOnMovement = true;   
+	MinimapCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
@@ -47,6 +64,13 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
+
+	HeadHPWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadHPWidgetComp"));
+	HeadHPWidgetComp->SetupAttachment(GetMesh());
+	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	HeadHPWidgetComp->SetDrawAtDesiredSize(true);
+	HeadHPWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 240.f));
+	HeadHPWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -61,6 +85,8 @@ void APGPlayerCharacterBase::PossessedBy(AController* NewController)
 		InitializeAttributes();
 		InitializeAttributesData();
 	}
+
+	UpdateHeadHPVisibility();
 }
 
 void APGPlayerCharacterBase::OnRep_PlayerState()
@@ -80,11 +106,42 @@ void APGPlayerCharacterBase::OnRep_Controller()
 	{
 		PC->SetInputMode(InputMode);
 	}
+
+	SetupHeadHPWidget();
+	UpdateHeadHPVisibility();
+}
+
+UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return nullptr;
+	}
+
+	MinimapRT = NewObject<UTextureRenderTarget2D>(this);
+	MinimapRT->InitAutoFormat(512, 512);
+	MinimapRT->ClearColor = FLinearColor::Black;
+	MinimapRT->UpdateResourceImmediate(true);
+
+	if (MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->TextureTarget = MinimapRT;
+		MinimapCaptureComponent->CaptureScene();
+	}
+	return MinimapRT;
 }
 
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	SetupHeadHPWidget();
+	UpdateHeadHPVisibility();
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -308,6 +365,7 @@ void APGPlayerCharacterBase::BindAttributeChangeDelegates()
 	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetDefenseAttribute()).AddUObject(this, &ThisClass::OnDefenseChanged);
 	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetAttackPowerAttribute()).AddUObject(this, &ThisClass::OnAttackPowerChanged);
 	ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ThisClass::OnMoveSpeedChanged);
+
 }
 
 void APGPlayerCharacterBase::OnHealthChanged(const FOnAttributeChangeData& Data)
@@ -331,6 +389,70 @@ void APGPlayerCharacterBase::OnAttackPowerChanged(const FOnAttributeChangeData& 
 void APGPlayerCharacterBase::OnMoveSpeedChanged(const FOnAttributeChangeData& Data)
 {
 	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+}
+
+void APGPlayerCharacterBase::BindHeadHPDelegatesOnce()
+{
+	if (bHeadHPBound)
+	{
+		return;
+	}
+
+	if (!IsValid(CharacterAttributeSet) || !IsValid(HeadHPWidget))
+	{
+		return;
+	}
+
+	CharacterAttributeSet->OnHealthChanged_UI.RemoveDynamic(HeadHPWidget, &UPG_IngameInfo::HandleHealthChanged);
+	CharacterAttributeSet->OnMaxHealthChanged_UI.RemoveDynamic(HeadHPWidget, &UPG_IngameInfo::HandleMaxHealthChanged);
+
+	CharacterAttributeSet->OnHealthChanged_UI.AddDynamic(HeadHPWidget, &UPG_IngameInfo::HandleHealthChanged);
+	CharacterAttributeSet->OnMaxHealthChanged_UI.AddDynamic(HeadHPWidget, &UPG_IngameInfo::HandleMaxHealthChanged);
+
+	HeadHPWidget->HandleMaxHealthChanged(CharacterAttributeSet->GetMaxHealth(), CharacterAttributeSet->GetMaxHealth());
+	HeadHPWidget->HandleHealthChanged(CharacterAttributeSet->GetHealth(), CharacterAttributeSet->GetHealth());
+
+	bHeadHPBound = true;
+}
+
+void APGPlayerCharacterBase::SetupHeadHPWidget()
+{
+	if (!IsValid(HeadHPWidgetComp))
+	{
+		return;
+	}
+	if (!HeadHPWidgetClass)
+	{
+		return;
+	}
+
+	if (HeadHPWidgetComp->GetWidgetClass() != HeadHPWidgetClass)
+	{
+		HeadHPWidgetComp->SetWidgetClass(HeadHPWidgetClass);
+	}
+
+	HeadHPWidgetComp->InitWidget();
+
+	HeadHPWidget = Cast<UPG_IngameInfo>(HeadHPWidgetComp->GetUserWidgetObject());
+
+	if (!IsValid(HeadHPWidget))
+	{
+		return;
+	}
+
+	BindHeadHPDelegatesOnce();
+}
+
+void APGPlayerCharacterBase::UpdateHeadHPVisibility()
+{
+	if (!IsValid(HeadHPWidgetComp))
+	{
+		return;
+	}
+
+	const bool bHide = IsLocallyControlled();
+	HeadHPWidgetComp->SetHiddenInGame(bHide);
+	HeadHPWidgetComp->SetVisibility(!bHide);
 }
 
 UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const

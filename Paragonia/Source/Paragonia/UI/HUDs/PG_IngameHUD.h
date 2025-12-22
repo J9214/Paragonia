@@ -8,6 +8,8 @@
 
 class UPG_HPBar;
 class UPG_InGameTeamSimpleInfo;
+class UPG_MiniMap;
+class UTextureRenderTarget2D;
 /**
  *
  */
@@ -20,6 +22,10 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 public:
+
+	UFUNCTION(BlueprintCallable)
+	void InitMinimap(UTextureRenderTarget2D* InRT);
+
 	UFUNCTION()
 	void InitTeam1IngameIcon(int32 CharacterID);
 
@@ -46,6 +52,8 @@ public:
 	void HandleTeam2MaxHealthChanged(float OldValue, float NewValue);
 
 protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_MiniMap> MiniMapWidget;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_HPBar> PlayerHPBar;
