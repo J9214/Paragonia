@@ -48,12 +48,19 @@ void UGA_NpcAttackBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	UAbilityTask_WaitGameplayEvent* WaitEventTask = 
+	if (HitEventTag.IsValid() == false)
+	{
+		UE_LOG(LogTemp, Error, TEXT("HitEventTag is invalid! Please set it in Blueprint defaults."));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	UAbilityTask_WaitGameplayEvent* WaitEventTask =
 		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this,
-		FGameplayTag::RequestGameplayTag(FName("Event.Npc.HitResult")),
-		nullptr, false, false
-	);
+			this,
+			HitEventTag,
+			nullptr, false, false
+		);
 
 	if (IsValid(WaitEventTask))
 	{

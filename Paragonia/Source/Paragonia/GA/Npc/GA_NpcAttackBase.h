@@ -39,4 +39,7 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	FAttackData AttackData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack Config")
+	FGameplayTag HitEventTag;
 };
