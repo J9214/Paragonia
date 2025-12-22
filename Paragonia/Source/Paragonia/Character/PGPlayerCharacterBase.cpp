@@ -85,13 +85,14 @@ void APGPlayerCharacterBase::PossessedBy(AController* NewController)
 		InitializeAttributes();
 		InitializeAttributesData();
 	}
-
-	UpdateHeadHPVisibility();
 }
 
 void APGPlayerCharacterBase::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
+
+	SetupHeadHPWidget();
+	UpdateHeadHPVisibility();
 }
 
 void APGPlayerCharacterBase::OnRep_Controller()
@@ -100,15 +101,6 @@ void APGPlayerCharacterBase::OnRep_Controller()
 
 	InitializeActorInfo();
 	BindAttributeChangeDelegates();
-
-	FInputModeGameOnly InputMode;
-	if (APlayerController* PC = Cast<APlayerController>(GetController()))
-	{
-		PC->SetInputMode(InputMode);
-	}
-
-	SetupHeadHPWidget();
-	UpdateHeadHPVisibility();
 }
 
 UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
@@ -134,14 +126,6 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (GetNetMode() == NM_DedicatedServer)
-	{
-		return;
-	}
-
-	SetupHeadHPWidget();
-	UpdateHeadHPVisibility();
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
