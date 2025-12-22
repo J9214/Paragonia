@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Minion|Path")
 	FVector GetTargetLocationOnSpline(float NextTargetDistance = 500.0f) const;
 
+	UFUNCTION(BlueprintPure, Category = "Minion|Path")
+	const USplineComponent* GetMovementSpline() const;
+
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Minion|Path")
 	TObjectPtr<USplineComponent> MovementSplineComponent;

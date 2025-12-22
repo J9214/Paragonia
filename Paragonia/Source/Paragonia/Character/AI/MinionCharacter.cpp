@@ -48,3 +48,8 @@ FVector AMinionCharacter::GetTargetLocationOnSpline(float NextTargetDistance) co
 		ESplineCoordinateSpace::World
 	);
 }
+
+const USplineComponent* AMinionCharacter::GetMovementSpline() const
+{
+	return MovementSplineComponent;
+}
