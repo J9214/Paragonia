@@ -23,7 +23,8 @@ EStateTreeRunStatus FSTT_CheckingSplineDistance::Tick(FStateTreeExecutionContext
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMinionCharacter* Minion = &Context.GetExternalData(MinionHandle);
 
-	if (IsValid(Minion) == false)
+	if (IsValid(Minion) == false ||
+		IsValid(Minion->GetAttackTarget()) == false)
 	{
 		return EStateTreeRunStatus::Failed;
 	}
@@ -51,6 +52,8 @@ EStateTreeRunStatus FSTT_CheckingSplineDistance::Tick(FStateTreeExecutionContext
 			return EStateTreeRunStatus::Failed;
 		}
 	}
+
+	Context.SendEvent(FGameplayTag::RequestGameplayTag(FName("Event.Combat.CanAttack")));
 
 	return EStateTreeRunStatus::Running;
 }
