@@ -10,6 +10,8 @@ class UUW_GameResult;
 class UPG_IngameHUD;
 class APGPlayerState;
 class APlayerState;
+class UPGShopComponent;
+class UPGShopWidget;
 
 UCLASS()
 class PARAGONIA_API APGPlayerController : public APlayerController
@@ -17,6 +19,8 @@ class PARAGONIA_API APGPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	APGPlayerController();
+
 	UFUNCTION(Client, Reliable)
 	void Client_SetExpectedPlayerCount(int32 InExpectedPlayerCount);
 
@@ -28,6 +32,8 @@ public:
 
 	UFUNCTION()
 	bool BindIngameHUD();
+
+
 
 protected:
 
@@ -89,4 +95,20 @@ private:
 	ETeamResult LastTeamResult = ETeamResult::None;
 
 #pragma endregion GameResult
+
+#pragma region Shop
+public:
+	UFUNCTION(BlueprintCallable)
+	void ToggleShop();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UPGShopWidget> ShopWidgetClass;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPGShopWidget> ShopWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UPGShopComponent> ShopComponent;
+#pragma endregion Shop
 };

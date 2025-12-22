@@ -9,6 +9,8 @@
 #include "Character/PGPlayerCharacterBase.h"
 #include "UI/HUDs/PG_IngameHUD.h"
 #include "AttributeSet/CharacterAttributeSet.h"
+#include "Shop/PGShopComponent.h"
+#include "UI/Shop/PGShopWidget.h"
 
 void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
 {
@@ -126,6 +128,11 @@ bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
     }
 
     return true;
+}
+
+APGPlayerController::APGPlayerController()
+{
+    ShopComponent = CreateDefaultSubobject<UPGShopComponent>(TEXT("ShopComponent"));
 }
 
 bool APGPlayerController::BindIngameHUD()
@@ -436,6 +443,49 @@ void APGPlayerController::ShowLoadingHUD()
             bShowMouseCursor = false;
             SetInputMode(FInputModeUIOnly());
         }
+    }
+}
+
+void APGPlayerController::ToggleShop()
+{
+    // 없으면 생성
+    if (!ShopWidget && ShopWidgetClass)
+    {
+        ShopWidget = CreateWidget<UPGShopWidget>(this, ShopWidgetClass);
+        if (ShopWidget)
+        {
+            ShopWidget->AddToViewport(50);
+
+            if (ShopComponent)
+            {
+                ShopWidget->InitWithShopComponent(ShopComponent);
+            }
+        }
+    }
+
+    if (!ShopWidget) return;
+
+    const bool bIsVisible = ShopWidget->IsInViewport() && ShopWidget->GetVisibility() != ESlateVisibility::Collapsed;
+
+    if (!bIsVisible)
+    {
+        // 열기
+        ShopWidget->SetVisibility(ESlateVisibility::Visible);
+
+        FInputModeGameAndUI Mode;
+        Mode.SetWidgetToFocus(ShopWidget->TakeWidget());
+        Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+        SetInputMode(Mode);
+
+        bShowMouseCursor = true;
+    }
+    else
+    {
+        // 닫기
+        ShopWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+        SetInputMode(FInputModeGameOnly());
+        bShowMouseCursor = false;
     }
 }
 

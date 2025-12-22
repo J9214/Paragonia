@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -25,7 +25,8 @@ public class Paragonia : ModuleRules
 
 			// NetWork
             "Sockets",
-			"Networking"
+			"Networking",
+			"NetCore"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
