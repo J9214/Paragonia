@@ -47,6 +47,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AI")
 	float GetSightRange() const { return SightRange; };
 
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void SetAttackRange(float InRange);
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void SetSightRange(float InRange);
+
 	UFUNCTION(BlueprintPure, Category = "GAS|Tags")
 	FGameplayTag GetDeadTag() const { return DeadTag; }
 

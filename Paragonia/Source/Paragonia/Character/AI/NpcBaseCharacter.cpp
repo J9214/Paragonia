@@ -118,6 +118,22 @@ AActor* ANpcBaseCharacter::GetAttackTarget() const
 	return CurrentAttackTarget.Get();
 }
 
+void ANpcBaseCharacter::SetAttackRange(float InRange)
+{
+	if (HasAuthority())
+	{
+		AttackRange = InRange;
+	}
+}
+
+void ANpcBaseCharacter::SetSightRange(float InRange)
+{
+	if (HasAuthority())
+	{
+		SightRange = InRange;
+	}
+}
+
 void ANpcBaseCharacter::GrantStartupAbilities()
 {
 	if (IsValid(AbilitySystemComponent) == false)
