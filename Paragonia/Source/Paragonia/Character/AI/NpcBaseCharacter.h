@@ -22,9 +22,9 @@ class PARAGONIA_API ANpcBaseCharacter : public ACharacter, public IAbilitySystem
 public:
 	ANpcBaseCharacter();
 
-	virtual void BeginPlay() override;
-	virtual void PostInitializeComponents() override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

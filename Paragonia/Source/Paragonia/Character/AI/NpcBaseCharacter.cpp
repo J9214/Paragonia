@@ -34,29 +34,25 @@ ANpcBaseCharacter::ANpcBaseCharacter()
 	AttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("AttributeSet"));
 
 	StateTreeComponent = CreateDefaultSubobject<UStateTreeComponent>(TEXT("StateTreeComponent"));
+	StateTreeComponent->SetAutoActivate(true);
 
 	AIControllerClass = AAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
-void ANpcBaseCharacter::BeginPlay()
+UAbilitySystemComponent* ANpcBaseCharacter::GetAbilitySystemComponent() const
 {
-	Super::BeginPlay();
+	return AbilitySystemComponent;
+}
 
-	if (HasAuthority())
-	{
-		GrantStartupAbilities();
-	}
+void ANpcBaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
 
 	if (StateTreeComponent)
 	{
 		StateTreeComponent->StartLogic();
 	}
-}
-
-void ANpcBaseCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
 
 	if (AbilitySystemComponent)
 	{
@@ -66,12 +62,12 @@ void ANpcBaseCharacter::PostInitializeComponents()
 		{
 			AttributeSet->OnHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
 		}
-	}
-}
 
-UAbilitySystemComponent* ANpcBaseCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
+		if (HasAuthority())
+		{
+			GrantStartupAbilities();
+		}
+	}
 }
 
 void ANpcBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -83,7 +79,8 @@ void ANpcBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void ANpcBaseCharacter::HandleDeath()
 {
-	if (AbilitySystemComponent && DeadTag.IsValid())
+	if (IsValid(AbilitySystemComponent) == true
+		&& DeadTag.IsValid() == true)
 	{
 		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
 	}
