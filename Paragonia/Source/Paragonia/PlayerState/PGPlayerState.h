@@ -4,8 +4,10 @@
 #include "GameFramework/PlayerState.h"
 #include "PGPlayerState.generated.h"
 
-UENUM(BlueprintType)
-enum class ETeamType : uint8 { None, Team1, Team2 };
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGoldChanged, int32, NewGold);
+
+class UPGInventoryComponent;
+class UPGInventoryWidget;
 
 UCLASS()
 class PARAGONIA_API APGPlayerState : public APlayerState
@@ -30,4 +32,30 @@ protected:
 	int32 CharacterID;
 	UPROPERTY(VisibleAnywhere, Replicated)
 	int32 TeamID;
+
+public:
+	UPROPERTY(VisibleAnywhere, Replicated)
+	bool bClientReady = false;
+
+
+#pragma region Shop
+public:
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Gold, BlueprintReadOnly)
+	int32 Gold = 1000;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnGoldChanged OnGoldChanged;
+
+	UFUNCTION()
+	void OnRep_Gold();
+
+	bool CanAfford(int32 Cost) const { return Gold >= Cost; }
+	void AddGold(int32 Delta);
+#pragma endregion Shop
+
+#pragma region Inventory
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UPGInventoryComponent> Inventory;
+
+#pragma endregion Inventory
 };

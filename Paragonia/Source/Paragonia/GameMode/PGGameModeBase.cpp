@@ -34,6 +34,7 @@ void APGGameModeBase::PostLogin(APlayerController* NewPlayer)
     if (IsValid(NewPlayerController) == true)
     {
         AlivePlayerControllers.AddUnique(NewPlayerController);
+        NewPlayerController->Client_SetExpectedPlayerCount(RequiredPlayers);
     }
 }
 
@@ -82,12 +83,8 @@ void APGGameModeBase::HandleSeamlessTravelPlayer(AController*& C)
     APGPlayerController* NewPlayerController = Cast<APGPlayerController>(C);
     if (IsValid(NewPlayerController) == true)
     {
-        AlivePlayerControllers.AddUnique(NewPlayerController);
-    }
-
-    if (auto* PS = Cast<APGPlayerState>(C->PlayerState))
-    {
-        // TODO
+        AlivePlayerControllers.AddUnique(NewPlayerController);        
+        NewPlayerController->Client_SetExpectedPlayerCount(RequiredPlayers);
     }
 }
 
@@ -124,6 +121,46 @@ AActor* APGGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
     return Super::ChoosePlayerStart_Implementation(Player);
 }
 
+void APGGameModeBase::PostSeamlessTravel()
+{
+    Super::PostSeamlessTravel();
+
+    bAllClientsReady = false;
+    bAbortInProgress = false;
+    bReadyCountdownStarted = false;
+    GetWorldTimerManager().ClearTimer(ReadyTimeoutTimerHandle);
+
+    AlivePlayerControllers.Reset();
+    DeadPlayerControllers.Reset();
+
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        return;
+    }
+
+    for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+    {
+        APGPlayerController* PC = Cast<APGPlayerController>(It->Get());
+        if (!IsValid(PC))
+        {
+            continue;
+        }
+
+        AlivePlayerControllers.AddUnique(PC);
+
+        PC->Client_SetExpectedPlayerCount(RequiredPlayers);
+
+        if (APGPlayerState* PS = PC->GetPlayerState<APGPlayerState>())
+        {
+            PS->bClientReady = false;
+        }
+    }
+
+    TryStartReadyCountdown();
+    StartReadyPolling();
+}
+
 FTransform APGGameModeBase::GetTeamSpawnTransform(int32 TeamID) const
 {
     for (TActorIterator<APGPlayerStart> It(GetWorld()); It; ++It)
@@ -134,6 +171,140 @@ FTransform APGGameModeBase::GetTeamSpawnTransform(int32 TeamID) const
         }
     }
     return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+}
+
+void APGGameModeBase::CheckAllClientsReady()
+{
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        return;
+    }
+    if (GetNumPlayers() < RequiredPlayers)
+    {
+        return;
+    }
+
+    AGameStateBase* GS = GameState;
+    if (!IsValid(GS))
+    {
+        return;
+    }
+
+    int32 ReadyCount = 0;
+    int32 TotalCount = 0;
+
+    for (APlayerState* PS : GS->PlayerArray)
+    {
+        APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
+        if (!PGPS)
+        {
+            continue;
+        }
+
+        ++TotalCount;
+        if (PGPS->bClientReady)
+        {
+            ++ReadyCount;
+        }
+    }
+
+    if (TotalCount < RequiredPlayers)
+    {
+        return;
+    }
+
+    if (ReadyCount < RequiredPlayers)
+    {
+        return;
+    }
+
+    bAllClientsReady = true;
+    GetWorldTimerManager().ClearTimer(ReadyTimeoutTimerHandle);
+
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        if (APGPlayerController* PC = Cast<APGPlayerController>(It->Get()))
+        {
+            PC->Client_AllClientsReady();
+        }
+    }
+
+}
+
+void APGGameModeBase::StartReadyPolling()
+{
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        return;
+    }
+
+    if (GetWorldTimerManager().IsTimerActive(ReadyPollTimerHandle))
+    {
+        return;
+    }
+
+    GetWorldTimerManager().SetTimer(
+        ReadyPollTimerHandle,
+        this,
+        &ThisClass::TickReadyPolling,
+        1.0f,
+        true
+    );
+}
+
+void APGGameModeBase::StopReadyPolling()
+{
+    GetWorldTimerManager().ClearTimer(ReadyPollTimerHandle);
+}
+
+void APGGameModeBase::TickReadyPolling()
+{
+    if (GetNumPlayers() < RequiredPlayers)
+    {
+        return;
+    }
+
+    CheckAllClientsReady();
+
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        StopReadyPolling();
+    }
+}
+
+void APGGameModeBase::TryStartReadyCountdown()
+{
+    if (bAllClientsReady || bReadyCountdownStarted || bAbortInProgress)
+    {
+        return;
+    }
+
+    if (GetNumPlayers() < RequiredPlayers)
+    {
+        return;
+    }
+
+    bReadyCountdownStarted = true;
+    GetWorldTimerManager().SetTimer(
+        ReadyTimeoutTimerHandle,
+        this,
+        &ThisClass::OnReadyTimeout,
+        ReadyTimeoutSeconds,
+        false
+    );
+}
+
+void APGGameModeBase::OnReadyTimeout()
+{
+    if (bAllClientsReady || bAbortInProgress)
+    {
+        return;
+    }
+
+    bAbortInProgress = true;
+    GetWorldTimerManager().ClearTimer(ReadyTimeoutTimerHandle);
+
+    //로비로 이동
 }
 
 #pragma region DeathAndRespawn

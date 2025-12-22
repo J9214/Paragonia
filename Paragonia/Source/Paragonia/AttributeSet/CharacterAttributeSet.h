@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
@@ -35,6 +35,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Attribute")
 	mutable FAttributeDataChanged OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Attribute")
+	mutable FAttributeDataChanged OnMaxHealthChanged_UI;
+
+	UPROPERTY(BlueprintAssignable, Category = "Attribute")
+	mutable FAttributeDataChanged OnHealthChanged_UI;
 
 private:
 	UFUNCTION()

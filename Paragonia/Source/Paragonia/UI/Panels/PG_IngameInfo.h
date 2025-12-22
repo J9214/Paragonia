@@ -4,20 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
-#include "PG_PlayerHPBar.generated.h"
+#include "PG_IngameInfo.generated.h"
 
-class UProgressBar;
+class UPG_HPBar;
+class UTextBlock;
 /**
  * 
  */
 UCLASS()
-class PARAGONIA_API UPG_PlayerHPBar : public UCommonUserWidget
+class PARAGONIA_API UPG_IngameInfo : public UCommonUserWidget
 {
 	GENERATED_BODY()
 
 public:
-	virtual void NativeOnInitialized() override;
-
 	UFUNCTION()
 	void HandleHealthChanged(float OldValue, float NewValue);
 
@@ -26,10 +25,9 @@ public:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UProgressBar> HPBar;
+	TObjectPtr<UPG_HPBar> PlayerHPBar;
 
-	UPROPERTY()
-	float NowHPValue;
-	UPROPERTY()
-	float MaxHPValue;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> PlayerName;
+
 };
