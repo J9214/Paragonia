@@ -10,7 +10,7 @@
  * 
  */
 USTRUCT(BlueprintType)
-struct PARAGONIA_API FStatDescription
+struct PARAGONIA_API FStatDescription : public FTableRowBase
 {
 	GENERATED_BODY()
 
