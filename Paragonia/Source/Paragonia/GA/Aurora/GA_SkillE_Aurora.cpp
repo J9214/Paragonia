@@ -26,6 +26,7 @@ void UGA_SkillE_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -44,6 +45,8 @@ void UGA_SkillE_Aurora::ActivateAbility(
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::ActivateAbility - Montage is invalid"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 

@@ -27,12 +27,15 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::ActivateAbility - Montage is invalid"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 
@@ -115,6 +118,7 @@ void UGA_SkillQ_Aurora::OnDashFinished()
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}
 
@@ -136,6 +140,7 @@ void UGA_SkillQ_Aurora::OnDashStartEvent(const FGameplayEventData Payload)
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}
 

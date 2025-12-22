@@ -26,6 +26,7 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Greystone::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -44,6 +45,8 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Greystone::ActivateAbility - Invalid AttackData Montage"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
