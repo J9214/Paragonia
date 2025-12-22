@@ -17,7 +17,7 @@ public:
     FGameplayTag SpawnNpcTag;
 
     UPROPERTY(EditDefaultsOnly)
-    int32 SpawnCount;
+    int32 SpawnCount = 0;
 };
 
 /**
