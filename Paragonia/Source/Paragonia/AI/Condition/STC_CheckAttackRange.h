@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CoreMinimal.h"
 #include "StateTreeConditionBase.h"
 #include "Character/AI/NpcBaseCharacter.h"
