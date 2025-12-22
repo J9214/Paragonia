@@ -3,81 +3,95 @@
 #include "StateTreeExecutionContext.h"
 #include "StateTreeLinker.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Character/PGPlayerCharacterBase.h"
+#include "AbilitySystemComponent.h" 
+#include "AbilitySystemInterface.h"
 
 bool FSTT_FindTarget::Link(FStateTreeLinker& Linker)
 {
-    Linker.LinkExternalData(NpcActorHandle);
-    return true;
+	Linker.LinkExternalData(NpcActorHandle);
+	return true;
 }
 
 EStateTreeRunStatus FSTT_FindTarget::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-    ANpcBaseCharacter* NPC = &Context.GetExternalData(NpcActorHandle);
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	InstanceData.CurrentTimer = 0.0f;
+	return EStateTreeRunStatus::Running;
+}
 
-    if (NPC == nullptr)
-    {
-        return EStateTreeRunStatus::Failed;
-    }
+EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	ANpcBaseCharacter* NPC = &Context.GetExternalData(NpcActorHandle);
 
-    FVector SearchLocation = NPC->GetActorLocation();
-    float Radius = NPC->GetSightRange();
+	if (IsValid(NPC) == false)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
 
-    TArray<AActor*> OutActors;
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-    TArray<AActor*> ActorsToIgnore;
-    ActorsToIgnore.Add(NPC);
+	InstanceData.CurrentTimer -= DeltaTime;
+	if (InstanceData.CurrentTimer > 0.0f)
+	{
+		return EStateTreeRunStatus::Running;
+	}
 
-    bool bFound = UKismetSystemLibrary::SphereOverlapActors(
-        NPC,
-        SearchLocation,
-        Radius,
-        ObjectTypes,
-        nullptr,
-        ActorsToIgnore,
-        OutActors
-    );
+	InstanceData.CurrentTimer = InstanceData.ScanInterval;
 
-    if (bFound == false)
-    {
-        return EStateTreeRunStatus::Failed;
-    }
+	FVector MyLoc = NPC->GetActorLocation();
+	float Radius = NPC->GetSightRange();
 
-    AActor* BestTarget = nullptr;
-    float MinDistanceSq = FLT_MAX;
+	TArray<AActor*> OutActors;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(NPC);
 
-    for (AActor* TargetActor : OutActors)
-    {
-        if (IsValid(TargetActor) == false) 
-            continue;
+	bool bFoundAny = UKismetSystemLibrary::SphereOverlapActors(
+		NPC, MyLoc, Radius, ObjectTypes, nullptr, IgnoreActors, OutActors
+	);
 
-        // TeamId 관련 별도의 Interface 함수 제작 하는것이 깔끔해보임
-        if (ANpcBaseCharacter* PotentialEnemy = Cast<ANpcBaseCharacter>(TargetActor))
-        {
-            if (PotentialEnemy->GetTeamId() == NPC->GetTeamId())
-                continue;
-        }
-        /*else if(APGPlayerCharacterBase* PgCharacter = Cast<APGPlayerCharacterBase>(TargetActor))
-        {
-            if (PgCharacter->GetTeamId() == NPC->GetTeamId())
-                continue;
-        }*/
+	// 탐색 결과 없음
+	if (bFoundAny == false)
+	{
+		return EStateTreeRunStatus::Running;
+	}
 
-        float DistSq = FVector::DistSquared(NPC->GetActorLocation(), TargetActor->GetActorLocation());
+	AActor* BestTarget = nullptr;
+	float MinDistSq = FLT_MAX;
+	int32 MyTeamId = NPC->GetTeamId();
 
-        if (DistSq < MinDistanceSq)
-        {
-            MinDistanceSq = DistSq;
-            BestTarget = TargetActor;
-        }
-    }
+	for (AActor* Target : OutActors)
+	{
+		ANpcBaseCharacter* Enemy = Cast<ANpcBaseCharacter>(Target);
+		if (IsValid(Enemy) == false ||
+			Enemy->GetTeamId() == MyTeamId)
+		{
+			continue;
+		}
 
-    if (BestTarget)
-    {
-        NPC->SetAttackTarget(BestTarget);
-        return EStateTreeRunStatus::Succeeded;
-    }
+		UAbilitySystemComponent* EnemyASC = Enemy->GetAbilitySystemComponent();
+		if (IsValid(EnemyASC) == false ||
+			EnemyASC->HasMatchingGameplayTag(Enemy->GetDeadTag()) == true)
+		{
+			continue;
+		}
 
-    return EStateTreeRunStatus::Failed;
+		float DistSq = FVector::DistSquared(MyLoc, Target->GetActorLocation());
+		if (DistSq < MinDistSq)
+		{
+			MinDistSq = DistSq;
+			BestTarget = Target;
+		}
+	}
+
+	if (BestTarget)
+	{
+		NPC->SetAttackTarget(BestTarget);
+
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	return EStateTreeRunStatus::Running;
 }
