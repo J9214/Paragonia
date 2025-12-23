@@ -26,6 +26,7 @@ public class Paragonia : ModuleRules
 			// NetWork
             "Sockets",
 			"Networking",
+			"NetCore",
 
 			// Navigation
 			"NavigationSystem",
