@@ -27,10 +27,16 @@ void UPGInventoryWidget::NativeDestruct()
 void UPGInventoryWidget::InitFromOwningPlayer()
 {
     APGPlayerState* PS = Cast<APGPlayerState>(GetOwningPlayerState());
-    if (!PS) return;
+    if (!PS) 
+    {
+        return;
+    }
 
     Inventory = PS->FindComponentByClass<UPGInventoryComponent>();
-    if (!Inventory) return;
+    if (!Inventory) 
+    {
+        return;
+    }
 
     Inventory->OnInventoryChanged.RemoveAll(this);
     Inventory->OnInventoryChanged.AddUObject(this, &UPGInventoryWidget::RefreshAll);

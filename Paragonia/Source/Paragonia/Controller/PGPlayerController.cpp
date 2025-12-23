@@ -310,6 +310,17 @@ void APGPlayerController::BeginPlay()
     }
 }
 
+void APGPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    APGGameStateBase* GS = GetWorld() ? GetWorld()->GetGameState<APGGameStateBase>() : nullptr;
+    if (GS)
+    {
+        GS->OnTeamResultChanged.RemoveDynamic(this, &APGPlayerController::OnTeamResultChanged);
+    }
+}
+
 #pragma region GameResult
 void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
 {
@@ -348,7 +359,7 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         {
             ShowWinWidget(1);
         }
-        else if (!bIsWinner)
+        else
         {
             ShowWinWidget(0);
         }

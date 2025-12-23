@@ -44,7 +44,10 @@ void UPGShopWidget::InitWithShopComponent(UPGShopComponent* InShop)
 
 void UPGShopWidget::BuildCategoryButtons()
 {
-    if (!CategoryScroll) return;
+    if (!CategoryScroll)
+    {
+        return;
+    }
 
     CategoryScroll->ClearChildren();
 
@@ -89,20 +92,26 @@ void UPGShopWidget::OnCategoryEtc() { CurrentCategory = EShopCategory::Etc;     
 void UPGShopWidget::RebuildList()
 {
     if (!ItemTileView || !ShopComp)
+    {
         return;
+    }
 
     ItemTileView->ClearListItems();
 
     UDataTable* DT = ShopComp->GetItemDataTable();
     if (!DT)
+    {
         return;
+    }
 
     const TMap<FName, uint8*>& RowMap = DT->GetRowMap();
     for (const auto& Pair : RowMap)
     {
         const FPGShopItemRow* RowPtr = reinterpret_cast<const FPGShopItemRow*>(Pair.Value);
         if (!RowPtr)
+        {
             continue;
+        }
 
         FPGShopItemRow Row = *RowPtr;
 
@@ -112,7 +121,9 @@ void UPGShopWidget::RebuildList()
         }
 
         if (CurrentCategory != EShopCategory::All && Row.Category != CurrentCategory)
+        {
             continue;
+        }
 
         UPGShopItemObject* Obj = NewObject<UPGShopItemObject>(this);
         Obj->Data = Row;
@@ -122,10 +133,16 @@ void UPGShopWidget::RebuildList()
 
 void UPGShopWidget::HandleItemClicked(UObject* Item)
 {
-    if (!DetailWidget) return;
+    if (!DetailWidget) 
+    {
+        return;
+    }
 
     UPGShopItemObject* Obj = Cast<UPGShopItemObject>(Item);
-    if (!Obj) return;
+    if (!Obj) 
+    {
+        return;
+    }
 
     DetailWidget->BindShop(ShopComp);
     DetailWidget->SetItem(Obj->Data);
@@ -146,7 +163,10 @@ void UPGShopWidget::OnBuyResult(EShopBuyResult Result, FName ItemId)
 
 void UPGShopWidget::RefreshGoldText()
 {
-    if (!GoldText) return;
+    if (!GoldText) 
+    {
+        return;
+    }
 
     APGPlayerState* PS = Cast<APGPlayerState>(GetOwningPlayerState());
     if (!PS)

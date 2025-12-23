@@ -32,7 +32,6 @@ protected:
 	void InitializeAttributesData();
 
 	void BindAttributeChangeDelegates();
-
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
 
 	void OnDefenceChanged(const FOnAttributeChangeData& Data);

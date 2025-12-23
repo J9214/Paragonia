@@ -70,7 +70,9 @@ bool UPGInventoryComponent::AddItem(FName ItemId)
 void UPGInventoryComponent::RequestSwapSlot(int32 FromIndex, int32 ToIndex)
 {
     if (!Slots.IsValidIndex(FromIndex) || !Slots.IsValidIndex(ToIndex))
+    {
         return;
+    }
 
     if (GetOwnerRole() < ROLE_Authority)
     {
@@ -85,7 +87,9 @@ void UPGInventoryComponent::RequestSwapSlot(int32 FromIndex, int32 ToIndex)
 void UPGInventoryComponent::ServerSwapSlot_Implementation(int32 FromIndex, int32 ToIndex)
 {
     if (!Slots.IsValidIndex(FromIndex) || !Slots.IsValidIndex(ToIndex))
+    {
         return;
+    }
 
     Slots.Swap(FromIndex, ToIndex);
     OnInventoryChanged.Broadcast();

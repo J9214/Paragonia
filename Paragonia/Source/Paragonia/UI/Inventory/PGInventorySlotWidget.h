@@ -20,6 +20,9 @@ public:
 
     void Refresh();
 
+    UPROPERTY(EditDefaultsOnly, Category = "DragDrop")
+    TSubclassOf<UUserWidget> DragVisualWidgetClass;
+
 protected:
     virtual void NativeConstruct() override;
 

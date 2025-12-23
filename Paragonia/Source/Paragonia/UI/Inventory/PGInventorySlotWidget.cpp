@@ -6,6 +6,7 @@
 
 #include "UI/Inventory/PGInventoryDragOp.h"
 #include "Inventory/PGInventoryComponent.h"  
+#include "UI/Inventory/PGInventoryDragImage.h"
 
 #include "Shop/PGShopTypes.h" 
 #include "Engine/DataTable.h"
@@ -91,36 +92,80 @@ void UPGInventorySlotWidget::SetEmptyVisual()
 
 FReply UPGInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-    return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+    if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+    {
+        return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
+    }
+    return FReply::Unhandled();
 }
 
 void UPGInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
     if (!Inventory || !Inventory->Slots.IsValidIndex(SlotIndex))
+    {
         return;
+    }
 
     const FInventorySlot& InvSlot = Inventory->Slots[SlotIndex];
     if (InvSlot.bEmpty)
+    {
         return;
+    }
 
-    UPGInventoryDragOp* Op = NewObject<UPGInventoryDragOp>();
-    Op->FromIndex = SlotIndex;
-    Op->Pivot = EDragPivot::MouseDown;
+    UPGInventoryDragOp* DragOp = NewObject<UPGInventoryDragOp>();
+    DragOp->FromIndex = SlotIndex;
 
-    OutOperation = Op;
+    if (DragVisualWidgetClass)
+    {
+        UPGInventoryDragImage* DragVisual = CreateWidget<UPGInventoryDragImage>(GetWorld(), DragVisualWidgetClass);
+
+        UTexture2D* SlotTexture = nullptr;
+        
+        UDataTable* DT = Inventory->GetItemDataTable();
+        if (DT)
+        {
+            static const FString Context(TEXT("InventorySlotIcon"));
+            const FPGShopItemRow* Row = DT->FindRow<FPGShopItemRow>(InvSlot.ItemId, Context);
+            SlotTexture = Row ? Row->Icon.LoadSynchronous() : nullptr;
+        }
+
+        if (DragVisual && SlotTexture)
+        {
+            DragVisual->SetItemImage(SlotTexture);
+        }
+
+        DragOp->DefaultDragVisual = DragVisual;
+    }
+
+    DragOp->Pivot = EDragPivot::MouseDown;
+
+    OutOperation = DragOp;
 }
 
 bool UPGInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
-    UPGInventoryDragOp* Op = Cast<UPGInventoryDragOp>(InOperation);
-    if (!Op || !Inventory) return false;
+    UPGInventoryDragOp* DragOp = Cast<UPGInventoryDragOp>(InOperation);
+    if (!DragOp || !Inventory)
+    {
+        return false;
+    }
 
-    const int32 From = Op->FromIndex;
-    const int32 To = SlotIndex;
+    if (DragOp)
+    {
+        const int32 From = DragOp->FromIndex;
+        const int32 To = SlotIndex;
 
-    if (From == INDEX_NONE || To == INDEX_NONE) return false;
-    if (From == To) return true;
+        if (From == INDEX_NONE || To == INDEX_NONE)
+        {
+            return false;
+        }
+        if (From == To)
+        {
+            return true;
+        }
 
-    Inventory->RequestSwapSlot(From, To);
-    return true;
+        Inventory->RequestSwapSlot(From, To);
+        return true;
+    }
+    return false;
 }
