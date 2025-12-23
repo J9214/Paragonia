@@ -14,7 +14,10 @@
 
 ANpcBaseCharacter::ANpcBaseCharacter()
 	:TeamId(255),
-	MaterialCounts(0)
+	MaterialCounts(0),
+	bIsDissolving(false),
+	DeathAccumulatedTime(0.0f),
+	DeathDuration(5.0f)
 {
 	bReplicates = true;
 
@@ -77,22 +80,82 @@ void ANpcBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ANpcBaseCharacter, TeamId);
 }
 
+void ANpcBaseCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bIsDissolving)
+	{
+		DeathAccumulatedTime += DeltaTime;
+
+		float Alpha = FMath::Clamp(DeathAccumulatedTime / DeathDuration, 0.0f, 1.0f);
+
+		for (UMaterialInstanceDynamic* MID : DissolveMaterials)
+		{
+			if (MID != nullptr)
+			{
+				MID->SetScalarParameterValue(FName("FadeOut"), Alpha);
+			}
+		}
+
+		if (DeathAccumulatedTime >= DeathDuration)
+		{
+			bIsDissolving = false;
+		}
+	}
+}
+
 void ANpcBaseCharacter::HandleDeath()
 {
-	if (IsValid(AbilitySystemComponent) == true
-		&& DeadTag.IsValid() == true)
+	if (HasAuthority())
 	{
-		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
-	}
+		if (IsValid(AbilitySystemComponent) == true
+			&& DeadTag.IsValid() == true)
+		{
+			AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+		}
 
+		if (StateTreeComponent)
+		{
+			StateTreeComponent->SendStateTreeEvent(FStateTreeEvent(DeadTag));
+		}
+	}
+}
+
+void ANpcBaseCharacter::StartDeathEffect()
+{
+	if (HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartDeathEffect - Called!"));
+		Multicast_HandleDeath();
+	}
+}
+
+void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
+{
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	if (StateTreeComponent)
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (MeshComp)
 	{
-		StateTreeComponent->SendStateTreeEvent(FStateTreeEvent(DeadTag));
+		const int32 MaterialCount = MeshComp->GetNumMaterials();
+		for (int32 i = 0; i < MaterialCount; ++i)
+		{
+			UMaterialInstanceDynamic* MID = MeshComp->CreateAndSetMaterialInstanceDynamic(i);
+			if (MID != nullptr)
+			{
+				DissolveMaterials.Add(MID);
+			}
+		}
 	}
 
-	SetLifeSpan(5.0f);
+	bIsDissolving = true;
+	DeathAccumulatedTime = 0.0f;
+
+	if (HasAuthority())
+	{
+		SetLifeSpan(DeathDuration + 0.1f);
+	}
 }
 
 void ANpcBaseCharacter::SetTeamId(uint8 NewTeamId)

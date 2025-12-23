@@ -28,6 +28,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void Tick(float DeltaTime) override;
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetTeamId(uint8 NewTeamId);
@@ -70,6 +72,13 @@ protected:
 
 	virtual void HandleDeath();
 
+	UFUNCTION(BlueprintCallable, Category = "Death")
+	void StartDeathEffect();
+
+	// 클라 전달용 멀티캐스트 RPC
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_HandleDeath();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -108,4 +117,13 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "AI|Target")
 	TWeakObjectPtr<AActor> CurrentAttackTarget;
+
+	bool bIsDissolving;
+	float DeathAccumulatedTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Visual|Dead")
+	float DeathDuration;
+
+	UPROPERTY()
+	TArray<UMaterialInstanceDynamic*> DissolveMaterials;
 };
