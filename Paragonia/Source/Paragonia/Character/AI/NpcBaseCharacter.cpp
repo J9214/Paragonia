@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PlayerState/PGPlayerState.h"
 #include "AIController.h"
+#include <Kismet/KismetMathLibrary.h>
 
 ANpcBaseCharacter::ANpcBaseCharacter()
 	:TeamId(255),
@@ -133,7 +134,13 @@ void ANpcBaseCharacter::StartDeathEffect()
 
 void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
 {
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionProfileName(TEXT("NoCollision"));
+
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	}
 
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	if (MeshComp)
@@ -208,6 +215,24 @@ void ANpcBaseCharacter::SetSightRange(float InRange)
 	{
 		SightRange = InRange;
 	}
+}
+
+void ANpcBaseCharacter::SetRotationToTarget(AActor* TargetActor)
+{
+	if (IsValid(TargetActor) == false)
+	{
+		return;
+	}
+
+	FVector MyLoc = GetActorLocation();
+	FVector TargetLoc = TargetActor->GetActorLocation();
+
+	MyLoc.Z = 0.0f;
+	TargetLoc.Z = 0.0f;
+
+	FRotator LookAtRot = UKismetMathLibrary::FindLookAtRotation(MyLoc, TargetLoc);
+
+	SetActorRotation(FRotator(0.0f, LookAtRot.Yaw, 0.0f));
 }
 
 void ANpcBaseCharacter::GrantStartupAbilities()

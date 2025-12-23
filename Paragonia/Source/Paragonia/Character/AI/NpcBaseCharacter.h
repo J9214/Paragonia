@@ -61,6 +61,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "GAS|Tags")
 	FGameplayTag GetDeadTag() const { return DeadTag; }
 
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SetRotationToTarget(AActor* TargetActor);
+
 protected:
 	void GrantStartupAbilities();
 

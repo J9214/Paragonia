@@ -7,6 +7,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
+#include "Character/AI/NpcBaseCharacter.h"
 
 UGA_NpcAttackBase::UGA_NpcAttackBase()
 {
@@ -21,6 +22,25 @@ void UGA_NpcAttackBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
+	}
+
+	ANpcBaseCharacter* NPC = Cast<ANpcBaseCharacter>(ActorInfo->AvatarActor.Get());
+
+	if (IsValid(NPC))
+	{
+		AActor* CurrentTarget = NPC->GetAttackTarget();
+
+		// IsDead 및 TeamID 관련 체크? - 이건 다른쪽 Task쪽에서도 추가해야 함
+		// 이쪽에선 더블체크 용도
+		if (IsValid(CurrentTarget))
+		{
+			NPC->SetRotationToTarget(CurrentTarget);
+		}
+		else 
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			return;
+		}
 	}
 
 	if (IsValid(AttackData.Montage) == false)
