@@ -17,6 +17,9 @@ struct FSTT_CheckingSplineDistanceData
 
     UPROPERTY(Transient)
     float CurrentTimer = 0.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Parameter")
+    FGameplayTag DeadTag;
 };
 
 USTRUCT(meta = (DisplayName = "Checking Spline Distance", Category = "Task|AI"))
