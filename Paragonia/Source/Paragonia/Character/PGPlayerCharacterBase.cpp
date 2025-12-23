@@ -22,8 +22,8 @@
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
+	PrimaryActorTick.bCanEverTick = true;
+	Accum = 0.f;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -68,7 +68,7 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 
 	HeadHPWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadHPWidgetComp"));
 	HeadHPWidgetComp->SetupAttachment(GetMesh());
-	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::World);
 	HeadHPWidgetComp->SetDrawAtDesiredSize(true);
 	HeadHPWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 240.f));
 	HeadHPWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -108,6 +108,54 @@ void APGPlayerCharacterBase::OnRep_Controller()
 	{
 		PC->SetInputMode(InputMode);
 	}
+}
+
+void APGPlayerCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	Accum += DeltaSeconds;
+	if (Accum < 0.05f)
+	{
+		return;
+	}
+	Accum = 0.f;
+
+	if (!GetMesh()->WasRecentlyRendered(0.2f))
+	{
+		return;
+	}
+
+	if (!HeadHPWidgetComp)
+	{
+		return;
+	}
+
+	if (!IsNetMode(NM_Standalone) && !GetWorld())
+	{
+		return;
+	}
+
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC)
+	{
+		return;
+	}
+
+	FVector CamLoc;
+	FRotator CamRot;
+	PC->GetPlayerViewPoint(CamLoc, CamRot);
+
+	const FVector WidgetLoc = HeadHPWidgetComp->GetComponentLocation();
+	const FRotator LookRot = (CamLoc - WidgetLoc).Rotation();
+
+	HeadHPWidgetComp->SetWorldRotation(FRotator(0.f, LookRot.Yaw, 0.f));
 }
 
 UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()

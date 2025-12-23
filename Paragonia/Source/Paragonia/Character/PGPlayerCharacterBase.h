@@ -54,6 +54,8 @@ protected:
 
 	virtual void OnRep_Controller() override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	void Move(const FInputActionValue& Value);
 
 	void Look(const FInputActionValue& Value);
@@ -161,6 +163,8 @@ private:
 	bool bInputLock;
 
 	bool bHeadHPBound;
+
+	float Accum;
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)
