@@ -17,8 +17,14 @@ bool FSTC_CheckAttackRange::TestCondition(FStateTreeExecutionContext& Context) c
         return false;
     }
 
-    float DistSq = FVector::DistSquared(NPC->GetActorLocation(), NPC->GetAttackTarget()->GetActorLocation());
-    float AttackRangeSq = FMath::Square(NPC->GetAttackRange());
+    float DistSq = FVector::DistSquared(NPC->GetActorLocation(), 
+        NPC->GetAttackTarget()->GetActorLocation());
 
-    return DistSq <= AttackRangeSq;
+    float MyRadius = NPC->GetSimpleCollisionRadius();
+    float TargetRadius = NPC->GetAttackTarget()->GetSimpleCollisionRadius();
+
+    float RealAttackRange = NPC->GetAttackRange() + MyRadius + TargetRadius;
+    float RealAttackRangeSq = FMath::Square(RealAttackRange);
+
+    return DistSq <= RealAttackRangeSq;
 }

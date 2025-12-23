@@ -25,7 +25,7 @@ EStateTreeRunStatus FSTT_ChaseTarget::EnterState(FStateTreeExecutionContext& Con
 	if (IsValid(AI) &&
 		IsValid(NPC->GetAttackTarget()))
 	{
-		AI->MoveToActor(NPC->GetAttackTarget(), NPC->GetAttackRange() - 10.0f, true, true, true, 0, true);
+		AI->MoveToActor(NPC->GetAttackTarget(), NPC->GetAttackRange() - 5.0f, true, true, true, 0, true);
 	}
 
 	return EStateTreeRunStatus::Running;
