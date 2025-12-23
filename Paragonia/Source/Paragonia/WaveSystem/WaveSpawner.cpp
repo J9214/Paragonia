@@ -10,7 +10,8 @@
 #include "Kismet/GameplayStatics.h"
 
 AWaveSpawner::AWaveSpawner()
-	: CurrentSpawnIndex(0)
+	: CurrentSpawnIndex(0),
+	SpawnRate(30)
 {
 	// Server에서만 사용 예정
 	bReplicates = false;
@@ -26,11 +27,42 @@ void AWaveSpawner::BeginPlay()
 
 	CacheDataTableTags();
 
-	// 대략적인 예상
 	SpawnNames.Reserve(30);
 
-	// TODO : WaveSpawner - GameState의 시간 진행 Delgate 구독
-	
+	// 서버용이지만 추가 체크
+	if (HasAuthority())
+	{
+		UWorld* World = GetWorld();
+		if (IsValid(World))
+		{
+			APGGameStateBase* GameState = World->GetGameState<APGGameStateBase>();
+			if (IsValid(GameState))
+			{
+				if (GameState->OnGameTimeUpdated.IsAlreadyBound(this, &AWaveSpawner::HandleGameTimeUpdate) == false)
+				{
+					GameState->OnGameTimeUpdated.AddDynamic(this, &AWaveSpawner::HandleGameTimeUpdate);
+				}
+			}
+		}
+	}
+}
+
+void AWaveSpawner::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HasAuthority())
+	{
+		UWorld* World = GetWorld();
+		if (IsValid(World))
+		{
+			APGGameStateBase* GameState = World->GetGameState<APGGameStateBase>();
+			if (IsValid(GameState))
+			{
+				GameState->OnGameTimeUpdated.RemoveDynamic(this, &AWaveSpawner::HandleGameTimeUpdate);
+			}
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AWaveSpawner::OnWaveStart()
@@ -68,6 +100,14 @@ void AWaveSpawner::OnWaveStart()
 
 		GetWorldTimerManager().SetTimer(
 			SpawnTimerHandle, this, &AWaveSpawner::HandleSpawnTick, Rate, true, 0.0f);
+	}
+}
+
+void AWaveSpawner::HandleGameTimeUpdate(int32 CurrentTime)
+{
+	if (CurrentTime % SpawnRate == 0)
+	{
+		OnWaveStart();
 	}
 }
 

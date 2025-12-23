@@ -23,10 +23,14 @@ public:
 	AWaveSpawner();
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	UFUNCTION()
 	void OnWaveStart();
+
+	UFUNCTION()
+	void HandleGameTimeUpdate(int32 CurrentTime);
 
 protected:
 	void CacheDataTableTags();
@@ -51,6 +55,10 @@ protected:
 	// 이 Spawner에서 생성될 유닛의 TeamID
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner|Config")
 	uint8 TeamId;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner|Config")
+	uint8 SpawnRate;
 
 private:
 	TMap<FGameplayTag, FName> TagToRowMap;
