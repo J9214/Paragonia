@@ -26,6 +26,7 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Greystone::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -44,14 +45,21 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Greystone::ActivateAbility - Invalid AttackData Montage"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
 	if (HasAuthority(&ActivationInfo))
 	{
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
-			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
-
+			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
+				this,
+				FGameplayTag::RequestGameplayTag("Event.Character.HitResult"),
+				nullptr,
+				true,
+				true
+			);
 		if (IsValid(HitResultTask))
 		{
 			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillQ_Greystone::OnHitResultEvent);
@@ -70,7 +78,6 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 			AttackData.Montage,
 			1.0f
 		);
-
 	if (IsValid(Task))
 	{
 		Task->OnCompleted.AddDynamic(this, &UGA_SkillQ_Greystone::OnMontageCompleted);

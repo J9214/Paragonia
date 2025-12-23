@@ -28,6 +28,7 @@ void UGA_Attack_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -58,6 +59,7 @@ void UGA_Attack_Aurora::PlayCurrentCombo()
 {
 	if (!ComboAttackDatas.IsValidIndex(CurrentComboIndex))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_Attack_Aurora::PlayCurrentCombo - Invalid Combo Index"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}

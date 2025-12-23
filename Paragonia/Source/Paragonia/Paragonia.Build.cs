@@ -25,7 +25,15 @@ public class Paragonia : ModuleRules
 
 			// NetWork
             "Sockets",
-			"Networking"
+			"Networking",
+			"NetCore",
+
+			// Navigation
+			"NavigationSystem",
+
+			// State Tree
+			"StateTreeModule",
+            "GameplayStateTreeModule",
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

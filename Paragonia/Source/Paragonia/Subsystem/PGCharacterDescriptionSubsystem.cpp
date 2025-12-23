@@ -79,7 +79,7 @@ const FCharacterDescription* UPGCharacterDescriptionSubsystem::GetCharacterDescr
 
 const FCharacterDescription* UPGCharacterDescriptionSubsystem::GetCharacterDescription(const int32 UID) const
 {
-	if (UID <= 0) // UID 규칙 없으면 이 체크는 빼도 됨
+	if (UID < 0)
 		return nullptr;
 
 	if (!IsValid(CharacterDescriptionDataTable))
@@ -111,7 +111,7 @@ const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterReso
 
 const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterResource(const int32 UID) const
 {
-	if (UID <= 0) // UID 규칙 없으면 이 체크는 빼도 됨
+	if (UID < 0) 
 		return nullptr;
 
 	if (!IsValid(CharacterResourceInfoDataTable))

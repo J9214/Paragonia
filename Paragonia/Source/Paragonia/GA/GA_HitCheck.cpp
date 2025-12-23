@@ -39,6 +39,8 @@ void UGA_HitCheck::ActivateAbility(
 		return;
 	}
 
+	RequestIdentifier = TriggerEventData->OptionalObject2;
+
 	const UAttackDataWrapper* Wrapper = Cast<UAttackDataWrapper>(TriggerEventData->OptionalObject);
 	if (!Wrapper)
 	{
@@ -92,6 +94,7 @@ void UGA_HitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& 
 	FGameplayEventData EventPayload;
 	EventPayload.Instigator = GetAvatarActorFromActorInfo();
 	EventPayload.TargetData = DataHandle;
+	EventPayload.OptionalObject2 = RequestIdentifier.Get();
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		GetAvatarActorFromActorInfo(),

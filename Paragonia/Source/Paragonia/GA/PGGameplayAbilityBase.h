@@ -29,15 +29,15 @@ class PARAGONIA_API UPGGameplayAbilityBase : public UGameplayAbility
 	
 protected:
 	/* 
-	HitResult(타겟 데이터) 기반으로 적용:
+	Based on HitResult (TargetData):
 	- DamageEffects: Target
-	- Buff/Debuff: ApplyTarget==Target 인 것만
+	- Buff/Debuff: ApplyTarget == Target
 	*/
 	void ApplyAttackDataEffects_OnHit(const FAttackData& InAttackData, const FGameplayEventData& Payload);
 
 	/*
-	Ability Activate 시점(Owner) 적용:
-	- Buff/Debuff: ApplyTarget==Owner 인 것만
+	Ability Activate on Owner:
+	- Buff/Debuff: ApplyTarget == Owner
 	*/
 	void ApplyAttackDataOwnerEffects_OnActivate(const FAttackData& InAttackData);
 

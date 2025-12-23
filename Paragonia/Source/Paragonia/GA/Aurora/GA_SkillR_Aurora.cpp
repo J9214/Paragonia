@@ -26,6 +26,7 @@ void UGA_SkillR_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -45,6 +46,8 @@ void UGA_SkillR_Aurora::ActivateAbility(
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillR_Aurora::ActivateAbility - Montage is invalid"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 
@@ -64,7 +67,6 @@ void UGA_SkillR_Aurora::ActivateAbility(
 		}
 	}
 
-
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
@@ -72,7 +74,6 @@ void UGA_SkillR_Aurora::ActivateAbility(
 			AttackData.Montage,
 			1.0f
 		);
-
 	if (IsValid(Task))
 	{
 		Task->OnCompleted.AddDynamic(this, &UGA_SkillR_Aurora::OnMontageCompleted);
