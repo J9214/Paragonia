@@ -5,6 +5,7 @@
 #include "PGCharacterDescriptionSubsystem.h"
 #include "Struct/FCharacterDescription.h"
 #include "Struct/FCharacterResourceInfo.h"
+#include "Struct/FStatDescription.h"
 
 UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem()
 {
@@ -26,6 +27,16 @@ UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem - Failed to find CharacterResourceInfo at specified path."));
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_StatDescription(TEXT("/Game/Paragonia/Data/DT_StatDescription.DT_StatDescription"));
+	if (DT_StatDescription.Succeeded())
+	{
+		StatDescriptionDataTable = DT_StatDescription.Object;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem - Failed to find StatDescription at specified path."));
 	}
 }
 
@@ -49,7 +60,7 @@ void UPGCharacterDescriptionSubsystem::Initialize(FSubsystemCollectionBase& Coll
 	for (const auto& Pair : RowMap)
 	{
 		const FName RowName = Pair.Key;
-		const FCharacterDescription* Row = reinterpret_cast<const FCharacterDescription*>(Pair.Value);
+		const FCharacterResourceInfo* Row = reinterpret_cast<const FCharacterResourceInfo*>(Pair.Value);
 		if (!Row) continue;
 
 		UIDToRowName.Add(Row->UID, RowName); // 중복 체크는 필요하면 추가
@@ -122,6 +133,22 @@ const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterReso
 		return nullptr;
 
 	return CharacterResourceInfoDataTable->FindRow<FCharacterResourceInfo>(*FoundRowName, TEXT("GetCharacterResourceInfoByUID"));
+}
+
+const FStatDescription* UPGCharacterDescriptionSubsystem::GetStatDescription(const FName& StatName) const
+{
+	if (StatName.IsNone())
+	{
+		return nullptr;
+	}
+
+	if (!IsValid(CharacterResourceInfoDataTable))
+	{
+		return nullptr;
+	}
+
+	return StatDescriptionDataTable->FindRow<FStatDescription>(StatName, TEXT("GetStatDescriptionByName"));
+
 }
 
 TArray<FName> UPGCharacterDescriptionSubsystem::GetAllRowNames() const

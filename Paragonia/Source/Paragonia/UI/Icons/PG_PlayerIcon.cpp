@@ -30,7 +30,10 @@ void UPG_PlayerIcon::NativeOnInitialized()
 
 void UPG_PlayerIcon::ApplyIconTexture(UTexture2D* Tex)
 {
-	if (!IconImage || !Tex) return;
+	if (!IconImage || !Tex)
+	{
+		return;
+	}
 
 	IconImage->SetBrushFromTexture(Tex, true);
 	IconImage->SetOpacity(0.5f);
@@ -53,22 +56,32 @@ void UPG_PlayerIcon::SetPlayerIcon(const int32 CharacterUID)
 	if (!CharacterDescSubsys)
 	{
 		if (UGameInstance* GI = GetGameInstance())
+		{
 			CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
+		}
 	}
 
 	if (!CharacterDescSubsys)
+	{
 		return;
+	}
 
 	const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(CharacterUID);
 	if (!ResourceInfo)
+	{
 		return;
+	}
 
 	UTexture2D* Tex = nullptr;
 
 	if (ResourceInfo->CircleIcon.IsValid())
+	{
 		Tex = ResourceInfo->CircleIcon.Get();
+	}
 	else
+	{
 		Tex = ResourceInfo->CircleIcon.LoadSynchronous();
+	}
 
 	ApplyIconTexture(Tex);
 }
@@ -78,22 +91,32 @@ void UPG_PlayerIcon::SetPlayerIcon(const FName& CharacterName)
 	if (!CharacterDescSubsys)
 	{
 		if (UGameInstance* GI = GetGameInstance())
+		{
 			CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
+		}
 	}
 
 	if (!CharacterDescSubsys)
+	{
 		return;
+	}
 
 	const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(CharacterName);
 	if (!ResourceInfo)
+	{
 		return;
+	}
 
 	UTexture2D* Tex = nullptr;
 
 	if (ResourceInfo->CircleIcon.IsValid())
+	{
 		Tex = ResourceInfo->CircleIcon.Get();
+	}
 	else
+	{
 		Tex = ResourceInfo->CircleIcon.LoadSynchronous();
+	}
 
 	ApplyIconTexture(Tex);
 }

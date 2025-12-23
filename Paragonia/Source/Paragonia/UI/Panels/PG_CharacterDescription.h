@@ -10,7 +10,9 @@
 class UButton;
 class UTextBlock;
 class UPGStringTableSubsystem;
-
+class UPG_StatInfo;
+class UWrapBox;
+class UPGCharacterDescriptionSubsystem;
 /**
  * 
  */
@@ -22,6 +24,8 @@ class PARAGONIA_API UPG_CharacterDescription : public UCommonUserWidget
 public:
 	void InitDescription(const FCharacterDescription& InDesc);
 
+	UFUNCTION()
+	void SetStatInfo(const FName& StatName, float StatValue);
 protected:
 
 	UPROPERTY()
@@ -44,6 +48,15 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> SkillDescription;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWrapBox> StatWrapBox;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UPG_StatInfo> StatInfoClass;
+
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UPG_StatInfo>> StatWidgetMap;
 
 	virtual void NativeOnInitialized() override;
 
