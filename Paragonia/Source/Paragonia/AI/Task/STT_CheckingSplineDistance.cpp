@@ -43,7 +43,7 @@ EStateTreeRunStatus FSTT_CheckingSplineDistance::Tick(FStateTreeExecutionContext
 		FVector ClosestLoc = Spline->FindLocationClosestToWorldLocation(MyLoc, ESplineCoordinateSpace::World);
 
 		float DistSq = FVector::DistSquared(MyLoc, ClosestLoc);
-		float MaxDistSq = FMath::Square(InstanceData.MaxDeviateDistance);
+		float MaxDistSq = FMath::Square(Minion->GetSightRange());
 
 		if (DistSq > MaxDistSq)
 		{
@@ -53,7 +53,14 @@ EStateTreeRunStatus FSTT_CheckingSplineDistance::Tick(FStateTreeExecutionContext
 		}
 	}
 
-	Context.SendEvent(FGameplayTag::RequestGameplayTag(FName("Event.Combat.CanAttack")));
+	if (Minion->CanAttack() == true)
+	{
+		Context.SendEvent(FGameplayTag::RequestGameplayTag(FName("Event.Combat.CanAttack")));
+	}
+	else
+	{
+		Context.SendEvent(FGameplayTag::RequestGameplayTag(FName("Event.Combat.CanChase")));
+	}
 
 	return EStateTreeRunStatus::Running;
 }

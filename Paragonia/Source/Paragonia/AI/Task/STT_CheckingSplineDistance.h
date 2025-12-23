@@ -15,9 +15,6 @@ struct FSTT_CheckingSplineDistanceData
     UPROPERTY(EditAnywhere, Category = "Parameter")
     float CheckInterval = 1.0f;
 
-    UPROPERTY(EditAnywhere, Category = "Parameter")
-    float MaxDeviateDistance = 1000.0f;
-
     UPROPERTY(Transient)
     float CurrentTimer = 0.0f;
 };
