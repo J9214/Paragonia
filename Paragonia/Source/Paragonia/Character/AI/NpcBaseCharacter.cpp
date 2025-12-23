@@ -118,6 +118,19 @@ AActor* ANpcBaseCharacter::GetAttackTarget() const
 	return CurrentAttackTarget.Get();
 }
 
+bool ANpcBaseCharacter::CanAttack() const
+{
+	if (CurrentAttackTarget.IsValid() == false)
+	{
+		return false;
+	}
+
+	float DistSq = GetSquaredDistanceTo(CurrentAttackTarget.Get());
+	float AttackRangeSq = AttackRange * AttackRange;
+
+	return DistSq <= AttackRangeSq;
+}
+
 void ANpcBaseCharacter::SetAttackRange(float InRange)
 {
 	if (HasAuthority())

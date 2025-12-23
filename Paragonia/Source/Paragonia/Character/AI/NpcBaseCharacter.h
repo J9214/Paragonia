@@ -47,6 +47,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AI")
 	float GetSightRange() const { return SightRange; };
 
+	UFUNCTION(BlueprintPure, Category = "AI")
+	bool CanAttack() const;
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetAttackRange(float InRange);
