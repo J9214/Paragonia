@@ -1,4 +1,4 @@
-﻿// PGGameMode.cpp
+// PGGameMode.cpp
 
 #include "PGGameModeBase.h"
 #include "Character/PGPlayerCharacterBase.h"
@@ -220,6 +220,11 @@ void APGGameModeBase::CheckAllClientsReady()
 
     bAllClientsReady = true;
     GetWorldTimerManager().ClearTimer(ReadyTimeoutTimerHandle);
+
+    if (APGGameStateBase* PGGameState = Cast<APGGameStateBase>(GS))
+    {
+        PGGameState->StartGameTimer();
+    }
 
     for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
