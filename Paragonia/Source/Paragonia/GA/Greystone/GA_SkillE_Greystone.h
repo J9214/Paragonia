@@ -5,7 +5,8 @@
 #include "Struct/FAttackData.h"
 #include "GA_SkillE_Greystone.generated.h"
 
-class APGGreystoneSkillAura;
+class UParticleSystem;
+class UParticleSystemComponent;
 
 UCLASS()
 class PARAGONIA_API UGA_SkillE_Greystone : public UPGGameplayAbilityBase
@@ -32,6 +33,9 @@ public:
 
 private:
 	UFUNCTION()
+	void OnHitResultEvent(const FGameplayEventData Payload);
+
+	UFUNCTION()
 	void OnMontageCompleted();
 
 	UFUNCTION()
@@ -40,10 +44,23 @@ private:
 	UFUNCTION()
 	void OnMontageCancelled();
 
+	void StartAura();
+	void StopAura();
+
+	void TickHitCheck();
+	void OnAuraDurationFinished();
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
 	FAttackData AttackData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aura")
-	TSubclassOf<APGGreystoneSkillAura> AuraClass;
+	float AuraLifeTime = 5.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aura")
+	float AuraPeriod = 1.0f;
+
+private:
+	FTimerHandle HitCheckTimerHandle;
+	FTimerHandle AuraEndTimerHandle;
 };
