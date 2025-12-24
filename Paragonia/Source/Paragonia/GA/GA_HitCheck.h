@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GA/PGGameplayAbilityBase.h"
+#include "GameplayTagContainer.h"
 #include "GA_HitCheck.generated.h"
 
 class UGameplayEffect;
@@ -38,5 +39,5 @@ private:
 
 private:
 	UPROPERTY()
-	TWeakObjectPtr<const UObject> RequestIdentifier;
+	FGameplayTag CurrentHitResultTag;
 };
