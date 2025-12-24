@@ -96,6 +96,9 @@ private:
 	void SetupHeadHPWidget();
 
 	void UpdateHeadHPVisibility();
+
+	void OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> MiniMapSpringArm;
@@ -161,6 +164,7 @@ private:
 	bool bInputLock;
 
 	bool bHeadHPBound;
+
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)

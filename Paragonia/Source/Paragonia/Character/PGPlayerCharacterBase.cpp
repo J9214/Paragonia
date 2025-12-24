@@ -297,6 +297,9 @@ void APGPlayerCharacterBase::InitializeAbilities()
 			ASC->GiveAbility(Spec);
 		}
 	}
+
+	const FGameplayTag AirborneTag = FGameplayTag::RequestGameplayTag("Character.State.Airborne");
+	ASC->RegisterGameplayTagEvent(AirborneTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAirborneTagChanged);
 }
 
 void APGPlayerCharacterBase::InitializeAttributes()
@@ -453,6 +456,18 @@ void APGPlayerCharacterBase::UpdateHeadHPVisibility()
 	HeadHPWidgetComp->SetHiddenInGame(bHide);
 	HeadHPWidgetComp->SetVisibility(!bHide);
 }
+
+void APGPlayerCharacterBase::OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		if (HasAuthority())
+		{
+			LaunchCharacter(FVector(0.f, 0.f, 400.f), true, true);
+		}
+	}
+}
+
 UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
 {
 	return ASC;
