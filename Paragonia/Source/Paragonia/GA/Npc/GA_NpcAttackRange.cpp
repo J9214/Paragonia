@@ -60,9 +60,11 @@ void UGA_NpcAttackRange::OnMontageCompleted()
 
 void UGA_NpcAttackRange::OnAttackEventReceived(FGameplayEventData Payload)
 {
-	ApplyAttackDataEffects_OnHit(AttackData, Payload);
+	if (Payload.Target != nullptr)
+	{
+		ApplyAttackDataEffects_OnHit(AttackData, Payload);
+	}
 
-	// 부딪히면 그때 종료
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 

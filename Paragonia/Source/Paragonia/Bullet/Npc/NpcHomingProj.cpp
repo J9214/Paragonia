@@ -49,6 +49,7 @@ void ANpcHomingProj::InitializeProjectile(AActor* Target, float Speed)
 		return;
 	}
 
+	bHitConfirmed = false;
 	HomingTargetActor = Target;
 
 	MovementComp->InitialSpeed = Speed;
@@ -71,6 +72,20 @@ void ANpcHomingProj::DeactivateProjectile()
 {
 	if (HasAuthority())
 	{
+		if (bHitConfirmed == false)
+		{
+			FGameplayEventData Payload;
+			Payload.EventTag = HitEventTag;
+			Payload.Instigator = GetInstigator();
+			Payload.Target = nullptr;
+
+			if (GetInstigator())
+			{
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetInstigator(), HitEventTag, Payload);
+			}
+		}
+
+		GetWorld()->GetTimerManager().ClearTimer(TargetCheckTimerHandle);
 		Destroy();
 	}
 }
@@ -110,6 +125,7 @@ void ANpcHomingProj::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		return;
 	}
 
+	bHitConfirmed = true;
 	FGameplayEventData Payload;
 	Payload.EventTag = HitEventTag;
 	Payload.Instigator = GetInstigator();

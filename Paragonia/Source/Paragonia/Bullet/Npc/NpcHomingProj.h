@@ -58,4 +58,6 @@ protected:
 	AActor* HomingTargetActor;
 
 	FTimerHandle TargetCheckTimerHandle;
+
+	bool bHitConfirmed = false;
 };
