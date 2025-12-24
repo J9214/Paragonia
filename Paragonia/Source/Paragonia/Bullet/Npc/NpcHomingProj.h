@@ -32,6 +32,9 @@ protected:
 	UFUNCTION()
 	void OnRep_HomingTarget();
 
+	UFUNCTION()
+	void CheckTargetStatus();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USphereComponent> SphereComp;
@@ -42,12 +45,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UProjectileMovementComponent> MovementComp;
 
-	UPROPERTY(EditDefaultsOnly, Category = "LifeTime")
+	UPROPERTY(EditDefaultsOnly, Category = "Time|Life")
 	float MaxLifeTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Time|TargetCheck")
+	float TargetCheckTime;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	FGameplayTag HitEventTag;
 
 	UPROPERTY(ReplicatedUsing = OnRep_HomingTarget)
 	AActor* HomingTargetActor;
+
+	FTimerHandle TargetCheckTimerHandle;
 };

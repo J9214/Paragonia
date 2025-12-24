@@ -10,7 +10,8 @@
 #include "Net/UnrealNetwork.h"
 
 ANpcHomingProj::ANpcHomingProj()
-	:MaxLifeTime(10.0f)
+	:MaxLifeTime(10.0f),
+	TargetCheckTime(0.1f)
 {
 	bReplicates = true;
 	SetReplicateMovement(true);
@@ -53,6 +54,17 @@ void ANpcHomingProj::InitializeProjectile(AActor* Target, float Speed)
 	MovementComp->InitialSpeed = Speed;
 	MovementComp->MaxSpeed = Speed;
 	MovementComp->HomingTargetComponent = Target->GetRootComponent();
+
+	if (HasAuthority())
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			TargetCheckTimerHandle,
+			this,
+			&ANpcHomingProj::CheckTargetStatus,
+			TargetCheckTime,
+			true
+		);
+	}
 }
 
 void ANpcHomingProj::DeactivateProjectile()
@@ -124,4 +136,21 @@ void ANpcHomingProj::OnRep_HomingTarget()
 	{
 		MovementComp->HomingTargetComponent = HomingTargetActor->GetRootComponent();
 	}
+}
+
+void ANpcHomingProj::CheckTargetStatus()
+{
+	if (HasAuthority() == false)
+	{
+		return;
+	}
+	
+	if (IsValid(HomingTargetActor) == false)
+	{
+		DeactivateProjectile();
+		return;
+	}
+
+	// TODO : 타겟의 사망처리 중인 경우에 대한 처리
+
 }
