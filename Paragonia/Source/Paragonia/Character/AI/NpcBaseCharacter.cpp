@@ -274,7 +274,7 @@ void ANpcBaseCharacter::OnRep_TeamId()
 		return;
 	}
 
-	UMaterialInterface* MaterialToUse = nullptr;
+	USkeletalMesh* MeshToUse = nullptr;
 
 	int32 MyTeamId = 255;
 	if (APGPlayerState* PS = LocalPC->GetPlayerState<APGPlayerState>())
@@ -284,15 +284,19 @@ void ANpcBaseCharacter::OnRep_TeamId()
 
 	if (TeamId == MyTeamId)
 	{
-		MaterialToUse = AllyMaterial;
+		MeshToUse = AllyMesh;
 	}
 	else
 	{
-		MaterialToUse = EnemyMaterial;
+		MeshToUse = EnemyMesh;
 	}
 
-	if (MaterialToUse && GetMesh())
+	if (MeshToUse && GetMesh())
 	{
-		GetMesh()->SetMaterial(MaterialCounts, MaterialToUse);
+		// ABP 를 공유하기에 SkeltalMesh 에셋만 교체
+		if (GetMesh()->GetSkeletalMeshAsset() != MeshToUse)
+		{
+			GetMesh()->SetSkeletalMeshAsset(MeshToUse);
+		}
 	}
 }

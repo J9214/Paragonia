@@ -107,13 +107,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	float SightRange;
 
-	// 아군에게 보일 머테리얼
+	// 아군에게 보일 외형 (Mesh)
 	UPROPERTY(EditDefaultsOnly, Category = "Visual|Team")
-	TObjectPtr<UMaterialInterface> AllyMaterial;
+	TObjectPtr<USkeletalMesh> AllyMesh;
 
-	// 적군에게 보일 머테리얼
+	// 적군에게 보일 외형 (Mesh)
 	UPROPERTY(EditDefaultsOnly, Category = "Visual|Team")
-	TObjectPtr<UMaterialInterface> EnemyMaterial;
+	TObjectPtr<USkeletalMesh> EnemyMesh;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Visual|Team")
 	int32 MaterialCounts;
