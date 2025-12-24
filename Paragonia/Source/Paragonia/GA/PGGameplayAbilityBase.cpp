@@ -155,17 +155,28 @@ int32 UPGGameplayAbilityBase::GetTeamIdFromActor(const AActor* Actor) const
 	{
 		return TEAM_NONE;
 	}
+	
+	// Object / Minion etc
+	const UObject* InterfaceObject = Cast<UObject>(Actor);
+	if(InterfaceObject->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UPGGameplayAbilityBase::GetTeamIdFromActor : TeamId is %d"), IPGTeamStatusInterface::Execute_GetTeamID(InterfaceObject));
+		return IPGTeamStatusInterface::Execute_GetTeamID(InterfaceObject);
+	}
 
+	// Character
 	const APawn* Pawn = Cast<APawn>(Actor);
 	if (IsValid(Pawn))
 	{
 		const APGPlayerState* PS = Pawn->GetPlayerState<APGPlayerState>();
 		if (IsValid(PS) && PS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("UPGGameplayAbilityBase::GetTeamIdFromActor : TeamId is %d"), IPGTeamStatusInterface::Execute_GetTeamID(PS));
 			return IPGTeamStatusInterface::Execute_GetTeamID(PS);
 		}
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("UPGGameplayAbilityBase::GetTeamIdFromActor : TeamId is TeamNone"));
 	return TEAM_NONE;
 }
 
@@ -202,7 +213,7 @@ FGameplayAbilityTargetDataHandle UPGGameplayAbilityBase::FilterTargetDataByTeamR
 		}
 
 		const int32 TargetTeamID = GetTeamIdFromActor(TargetActor);
-		// GetTeamIdFromActor�� Pawn �������� �� ID�� ��ȯ�ϹǷ� Pawn�� �ƴ� Object/Minion ���� TEAM_NONE ��ȯ
+		// GetTeamIdFromActor는 Pawn 기준으로 팀 ID를 반환하므로 Pawn이 아닌 Object/Minion 등은 TEAM_NONE 반환
 		// - SameTeamOnly: skip
 		// - OtherTeamOnly: pass
 		bool bPass = false;
