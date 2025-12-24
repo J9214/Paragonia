@@ -303,11 +303,11 @@ void APGPlayerController::BeginPlay()
         GS->OnTeamResultChanged.AddDynamic(this, &APGPlayerController::OnTeamResultChanged);
     }
 
-    /*if (IsLocalPlayerController())
+    if (IsLocalPlayerController())
     {
         StartReadyCheck();
         ShowLoadingHUD();
-    }*/
+    }
 }
 
 #pragma region GameResult
