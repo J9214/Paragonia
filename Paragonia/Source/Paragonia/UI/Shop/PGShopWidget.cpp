@@ -32,13 +32,21 @@ void UPGShopWidget::InitWithShopComponent(UPGShopComponent* InShop)
         ShopComp->OnBuyResult.AddDynamic(this, &UPGShopWidget::OnBuyResult);
     }
 
+    APGPlayerState* PS = Cast<APGPlayerState>(GetOwningPlayerState());
+    if (IsValid(PS))
+    {
+        PS->OnGoldChanged.AddUObject(this, &UPGShopWidget::HandleGoldChange);
+    }
+
     BuildCategoryButtons();
     RebuildList();
-    RefreshGoldText();
+    HandleGoldChange(PS->GetGold());
 
     if (PlayerInventoryWidget)
     {
         PlayerInventoryWidget->InitFromOwningPlayer();
+        PlayerInventoryWidget->OnInventorySlotSelected.AddUObject(this, &UPGShopWidget::HandleInventorySlotSelected);
+        PlayerInventoryWidget->OnInventorySlotRightClick.AddUObject(this, &UPGShopWidget::HandleInventorySlotRightClick);
     }
 }
 
@@ -88,6 +96,40 @@ void UPGShopWidget::OnCategoryWeapon() { CurrentCategory = EShopCategory::Weapon
 void UPGShopWidget::OnCategoryArmor() { CurrentCategory = EShopCategory::Armor;      RebuildList(); }
 void UPGShopWidget::OnCategoryConsumable() { CurrentCategory = EShopCategory::Consumable; RebuildList(); }
 void UPGShopWidget::OnCategoryEtc() { CurrentCategory = EShopCategory::Etc;        RebuildList(); }
+
+void UPGShopWidget::HandleInventorySlotSelected(int32 SlotIndex)
+{
+    if (!DetailWidget)
+    {
+        return;
+    }
+
+    DetailWidget->SetCurrentSlotIndex(SlotIndex);
+}
+
+void UPGShopWidget::HandleInventorySlotRightClick(int32 SlotIndex)
+{
+    if (!ShopComp)
+    {
+        return;
+    }
+
+    ShopComp->RequestSell(SlotIndex);
+}
+
+void UPGShopWidget::HandleGoldChange(int32 NewGold)
+{
+    if (!GoldText)
+    {
+        return;
+    }
+
+    GoldText->SetText(
+        FText::FromString(
+            FString::Printf(TEXT("Gold: %d"), NewGold)
+        )
+    );
+}
 
 void UPGShopWidget::RebuildList()
 {
@@ -150,8 +192,6 @@ void UPGShopWidget::HandleItemClicked(UObject* Item)
 
 void UPGShopWidget::OnBuyResult(EShopBuyResult Result, FName ItemId)
 {
-    RefreshGoldText();
-
     if (DetailWidget)
     {
         DetailWidget->RefreshStock();
@@ -159,24 +199,4 @@ void UPGShopWidget::OnBuyResult(EShopBuyResult Result, FName ItemId)
 
     // 필요하면 여기서 성공/실패 띄우기
     // Result == Success / NotEnoughGold / OutOfStock / InvalidItem
-}
-
-void UPGShopWidget::RefreshGoldText()
-{
-    if (!GoldText) 
-    {
-        return;
-    }
-
-    APGPlayerState* PS = Cast<APGPlayerState>(GetOwningPlayerState());
-    if (!PS)
-    {
-        return;
-    }
-
-    GoldText->SetText(
-        FText::FromString(
-            FString::Printf(TEXT("Gold: %d"), PS->Gold)
-        )
-    );
 }

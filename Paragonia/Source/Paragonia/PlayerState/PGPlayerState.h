@@ -5,7 +5,7 @@
 #include "Interface/PGTeamStatusInterface.h"
 #include "PGPlayerState.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGoldChanged, int32, NewGold);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnGoldChanged, int32 /*NewGold*/);
 
 class UPGInventoryComponent;
 class UPGInventoryWidget;
@@ -30,6 +30,7 @@ public:
 	int32 GetTeamID() const { return TeamID; }
 	void SetCharID(int32 NewCharID);
 	void SetTeamID(int32 NewTeamID);
+	int32 GetGold() const { return Gold; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, Replicated)
@@ -46,10 +47,6 @@ public:
 
 #pragma region Shop
 public:
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Gold, BlueprintReadOnly)
-	int32 Gold = 1000;
-
-	UPROPERTY(BlueprintAssignable)
 	FOnGoldChanged OnGoldChanged;
 
 	UFUNCTION()
@@ -57,6 +54,10 @@ public:
 
 	bool CanAfford(int32 Cost) const { return Gold >= Cost; }
 	void AddGold(int32 Delta);
+
+protected:
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Gold, BlueprintReadOnly)
+	int32 Gold = 1000;
 #pragma endregion Shop
 
 #pragma region Inventory

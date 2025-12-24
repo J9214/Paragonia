@@ -13,6 +13,7 @@ void UPGShopDetailWidget::NativeConstruct()
     if (BuyButton)
     {
         BuyButton->OnClicked.AddDynamic(this, &UPGShopDetailWidget::OnBuyClicked);
+        SellButton->OnClicked.AddDynamic(this, &UPGShopDetailWidget::OnSellClicked);
     }
 
     if (CountSpin)
@@ -81,4 +82,14 @@ void UPGShopDetailWidget::OnBuyClicked()
     }
 
     ShopComp->RequestBuy(CurrentItem.ItemId);
+}
+
+void UPGShopDetailWidget::OnSellClicked()
+{
+    if (!ShopComp)
+    {
+        return;
+    }
+
+    ShopComp->RequestSell(CurrentSlotIndex);
 }

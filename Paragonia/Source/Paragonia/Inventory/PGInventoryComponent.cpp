@@ -67,6 +67,32 @@ bool UPGInventoryComponent::AddItem(FName ItemId)
     return false; 
 }
 
+bool UPGInventoryComponent::RemoveItem(int32 Index)
+{
+    if (GetOwnerRole() < ROLE_Authority)
+    {
+        ServerRemoveItem(Index);
+        return true;
+    }
+
+    if (!Slots[Index].bEmpty)
+    {
+        if(Slots[Index].Count > 1)
+        {
+            Slots[Index].Count -= 1;
+            OnInventoryChanged.Broadcast();
+            return true;
+		}
+        else {
+            Slots[Index] = FInventorySlot();
+            OnInventoryChanged.Broadcast();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void UPGInventoryComponent::RequestSwapSlot(int32 FromIndex, int32 ToIndex)
 {
     if (!Slots.IsValidIndex(FromIndex) || !Slots.IsValidIndex(ToIndex))
@@ -98,6 +124,11 @@ void UPGInventoryComponent::ServerSwapSlot_Implementation(int32 FromIndex, int32
 void UPGInventoryComponent::ServerAddItem_Implementation(FName ItemId)
 {
     AddItem(ItemId);
+}
+
+void UPGInventoryComponent::ServerRemoveItem_Implementation(int32 Index)
+{
+    RemoveItem(Index);
 }
 
 void UPGInventoryComponent::OnRep_Inventory()

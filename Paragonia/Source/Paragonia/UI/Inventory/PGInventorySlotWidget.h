@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "PGInventorySlotWidget.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotClicked, int32 /*SlotIndex*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotRightClicked, int32 /*SlotIndex*/);
+
 class UImage;
 class UTextBlock;
 class UPGInventoryComponent;
@@ -22,6 +25,9 @@ public:
 
     UPROPERTY(EditDefaultsOnly, Category = "DragDrop")
     TSubclassOf<UUserWidget> DragVisualWidgetClass;
+
+    FOnSlotClicked OnSlotClicked;
+    FOnSlotClicked OnSlotRightClicked;
 
 protected:
     virtual void NativeConstruct() override;

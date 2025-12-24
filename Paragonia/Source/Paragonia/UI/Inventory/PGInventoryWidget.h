@@ -4,6 +4,9 @@
 #include "Blueprint/UserWidget.h"
 #include "PGInventoryWidget.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventorySlotSelected, int32 /*SlotIndex*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInventorySlotRightClick, int32 /*SlotIndex*/);
+
 class UUniformGridPanel;
 class UPGInventoryComponent;
 class UPGInventorySlotWidget;
@@ -27,6 +30,14 @@ protected:
     void BuildSlots();
 
     void RefreshAll();
+
+private:
+    void HandleSlotClicked(int32 SlotIndex);
+	void HandleSlotRightClicked(int32 SlotIndex);
+
+public:
+    FOnInventorySlotSelected OnInventorySlotSelected;
+	FOnInventorySlotRightClick OnInventorySlotRightClick;
 
 protected:
     UPROPERTY(meta = (BindWidget)) 

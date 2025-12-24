@@ -92,11 +92,23 @@ void UPGInventorySlotWidget::SetEmptyVisual()
 
 FReply UPGInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-    if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+    const FKey Button = InMouseEvent.GetEffectingButton();
+
+    if (Button == EKeys::RightMouseButton)
     {
+        OnSlotRightClicked.Broadcast(SlotIndex);
+        return FReply::Handled();
+    }
+
+    if (Button == EKeys::LeftMouseButton)
+
+    {
+        OnSlotClicked.Broadcast(SlotIndex);
+
         return UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton).NativeReply;
     }
-    return FReply::Unhandled();
+
+    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
 void UPGInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
