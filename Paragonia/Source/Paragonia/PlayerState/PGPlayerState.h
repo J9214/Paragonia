@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Interface/PGTeamStatusInterface.h"
 #include "PGPlayerState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGoldChanged, int32, NewGold);
@@ -10,7 +11,7 @@ class UPGInventoryComponent;
 class UPGInventoryWidget;
 
 UCLASS()
-class PARAGONIA_API APGPlayerState : public APlayerState
+class PARAGONIA_API APGPlayerState : public APlayerState, public IPGTeamStatusInterface
 {
 	GENERATED_BODY()
 
@@ -20,6 +21,9 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual int32 GetTeamID_Implementation() const override { return TeamID; }
+	virtual bool GetIsDead_Implementation() const override { return bIsDead; }
 
 public:
 	int32 GetCharID() const { return CharacterID; }
@@ -33,6 +37,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Replicated)
 	int32 TeamID;
 
+	UPROPERTY()
+	bool bIsDead;
 public:
 	UPROPERTY(VisibleAnywhere, Replicated)
 	bool bClientReady = false;

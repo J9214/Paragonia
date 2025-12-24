@@ -668,9 +668,17 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 
 	// PlayerState에서 팀ID 받기
 	APGPlayerState* PS = PlayerController->GetPlayerState<APGPlayerState>();
-	if (!PS) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+	if (!PS)
+	{
+		return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+	}
 
-	int32 TeamID = PS->GetTeamID();
+	int32 TeamID = 255;
+	if (PS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+	{
+		TeamID = IPGTeamStatusInterface::Execute_GetTeamID(PS);
+	}
+	
 
 	// GameMode나 다른 매니저에서 팀별 스폰 위치 쿼리
 	APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>();

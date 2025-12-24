@@ -222,7 +222,19 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
 
         APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
 
-        if (PGPS == LocalPS || PGPS->GetTeamID() != LocalPS->GetTeamID())
+        int32 PSTeamId= 255;
+        if (IsValid(PGPS) && PGPS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+        {
+            PSTeamId = IPGTeamStatusInterface::Execute_GetTeamID(PGPS);
+        }
+
+        int32 LocalPSTeamId = 255;
+        if (IsValid(LocalPS) && LocalPS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+        {
+            LocalPSTeamId = IPGTeamStatusInterface::Execute_GetTeamID(LocalPS);
+        }
+
+        if (PGPS == LocalPS || PSTeamId != LocalPSTeamId)
         {
             continue;
         }
@@ -341,14 +353,20 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
             return;
         }
 
+        int32 TeamId = 255;
+        if (IsValid(MyPS) && MyPS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+        {
+            TeamId = IPGTeamStatusInterface::Execute_GetTeamID(MyPS);
+        }
+
         bool bIsWinner = false;
         switch (GS->TeamResult)
         {
         case ETeamResult::Team1Win:
-            bIsWinner = (MyPS->GetTeamID() == 0);
+            bIsWinner = (TeamId == 0);
             break;
         case ETeamResult::Team2Win:
-            bIsWinner = (MyPS->GetTeamID() == 1);
+            bIsWinner = (TeamId == 1);
             break;
         default:
             break;

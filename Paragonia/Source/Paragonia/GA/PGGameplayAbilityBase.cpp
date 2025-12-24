@@ -1,4 +1,4 @@
-#include "GA/PGGameplayAbilityBase.h"
+ï»¿#include "GA/PGGameplayAbilityBase.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "GameplayAbilitySpec.h"
@@ -160,9 +160,9 @@ int32 UPGGameplayAbilityBase::GetTeamIdFromActor(const AActor* Actor) const
 	if (IsValid(Pawn))
 	{
 		const APGPlayerState* PS = Pawn->GetPlayerState<APGPlayerState>();
-		if (IsValid(PS))
+		if (IsValid(PS) && PS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
 		{
-			return PS->GetTeamID();
+			return IPGTeamStatusInterface::Execute_GetTeamID(PS);
 		}
 	}
 
@@ -202,7 +202,7 @@ FGameplayAbilityTargetDataHandle UPGGameplayAbilityBase::FilterTargetDataByTeamR
 		}
 
 		const int32 TargetTeamID = GetTeamIdFromActor(TargetActor);
-		// GetTeamIdFromActor´Â Pawn ±âÁØÀ¸·Î ÆÀ ID¸¦ ¹ÝÈ¯ÇÏ¹Ç·Î PawnÀÌ ¾Æ´Ñ Object/Minion µîÀº TEAM_NONE ¹ÝÈ¯
+		// GetTeamIdFromActorï¿½ï¿½ Pawn ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï¹Ç·ï¿½ Pawnï¿½ï¿½ ï¿½Æ´ï¿½ Object/Minion ï¿½ï¿½ï¿½ï¿½ TEAM_NONE ï¿½ï¿½È¯
 		// - SameTeamOnly: skip
 		// - OtherTeamOnly: pass
 		bool bPass = false;
