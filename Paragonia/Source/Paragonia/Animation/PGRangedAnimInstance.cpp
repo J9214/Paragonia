@@ -3,6 +3,8 @@
 #include "Character/PGPlayerCharacterBase.h"
 #include "Struct/BulletDataWrapper.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include "AbilitySystemBlueprintLibrary.h"
 
 void UPGRangedAnimInstance::AnimNotify_SpawnBullet()
@@ -30,6 +32,24 @@ void UPGRangedAnimInstance::AnimNotify_SpawnBullet()
 			FGameplayTag::RequestGameplayTag(FName("Event.Character.SpawnBullet")),
 			EventData
 		);
+	}
+}
+
+void UPGRangedAnimInstance::AnimNotify_MoveLockOn()
+{
+	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
+	if (IsValid(PlayerCharacter))
+	{
+		PlayerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	}
+}
+
+void UPGRangedAnimInstance::AnimNotify_MoveLockOff()
+{
+	APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(OwnerCharacter);
+	if (IsValid(PlayerCharacter))
+	{
+		PlayerCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 }
 
