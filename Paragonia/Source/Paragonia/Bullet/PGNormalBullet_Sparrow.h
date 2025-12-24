@@ -47,4 +47,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsPierce;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TArray<TSubclassOf<AActor>> OverlapIgnoreClasses;
 };
