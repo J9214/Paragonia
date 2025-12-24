@@ -91,12 +91,10 @@ void UGA_SpawnBullet_Sparrow::ActivateAbility(
 	APGTaskRelatedBullet* CreatingBullet = Cast<APGTaskRelatedBullet>(NewBullet);
 	if (IsValid(CreatingBullet))
 	{
-		CurrentTargetActor = CreatingBullet;
-		CurrentTargetActor->InitBullet(CurrentAttackData);
+		CreatingBullet->InitBullet(CurrentAttackData);
 	}
 
 	EndAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
-
 }
 
 void UGA_SpawnBullet_Sparrow::EndAbility(
