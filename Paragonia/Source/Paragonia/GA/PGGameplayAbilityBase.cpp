@@ -1,13 +1,13 @@
 #include "GA/PGGameplayAbilityBase.h"
-
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "GameplayAbilitySpec.h"
-
 #include "Struct/FAttackData.h"
 #include "Struct/FAttackEffectEntry.h"
-
 #include "GameplayTag/PGGameplayTags.h"
+#include "PlayerState/PGPlayerState.h"
+#include "GameFramework/Pawn.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
 
 bool UPGGameplayAbilityBase::HasNetAuthority() const
 {
@@ -97,6 +97,9 @@ void UPGGameplayAbilityBase::ApplyEntriesToTargets(
 	const FAttackData& InAttackData
 )
 {
+	const FGameplayAbilityTargetDataHandle SameTeamData = FilterTargetDataByTeamRule(TargetData, EPGTeamRule::SameTeamOnly);
+	const FGameplayAbilityTargetDataHandle OtherTeamData = FilterTargetDataByTeamRule(TargetData, EPGTeamRule::OtherTeamOnly);
+
 	for (const FAttackEffectEntry& Entry : Entries)
 	{
 		if (!Entry.EffectClass)
@@ -105,6 +108,21 @@ void UPGGameplayAbilityBase::ApplyEntriesToTargets(
 		}
 
 		if (Entry.ApplyTarget != EPGEffectApplyTarget::Target)
+		{
+			continue;
+		}
+
+		const FGameplayAbilityTargetDataHandle* UseData = &TargetData;
+		if (Entry.TeamRule == EPGTeamRule::SameTeamOnly)
+		{
+			UseData = &SameTeamData;
+		}
+		else if (Entry.TeamRule == EPGTeamRule::OtherTeamOnly)
+		{
+			UseData = &OtherTeamData;
+		}
+
+		if (UseData->Num() == 0)
 		{
 			continue;
 		}
@@ -126,7 +144,89 @@ void UPGGameplayAbilityBase::ApplyEntriesToTargets(
 			GetCurrentActorInfo(),
 			GetCurrentActivationInfo(),
 			SpecHandle,
-			TargetData
+			*UseData
 		);
 	}
+}
+
+int32 UPGGameplayAbilityBase::GetTeamIdFromActor(const AActor* Actor) const
+{
+	if (!IsValid(Actor))
+	{
+		return TEAM_NONE;
+	}
+
+	const APawn* Pawn = Cast<APawn>(Actor);
+	if (IsValid(Pawn))
+	{
+		const APGPlayerState* PS = Pawn->GetPlayerState<APGPlayerState>();
+		if (IsValid(PS))
+		{
+			return PS->GetTeamID();
+		}
+	}
+
+	return TEAM_NONE;
+}
+
+FGameplayAbilityTargetDataHandle UPGGameplayAbilityBase::FilterTargetDataByTeamRule(const FGameplayAbilityTargetDataHandle& InTargetData, EPGTeamRule Rule) const
+{
+	if (Rule == EPGTeamRule::Any)
+	{
+		return InTargetData;
+	}
+
+	const AActor* OwnerActor = GetOwningActorFromActorInfo();
+	const int32 OwnerTeamID = GetTeamIdFromActor(OwnerActor);
+
+	if (OwnerTeamID == TEAM_NONE)
+	{
+		return InTargetData;
+	}
+
+	FGameplayAbilityTargetDataHandle OutTargetData;
+
+	for (int32 i = 0; i < InTargetData.Num(); ++i)
+	{
+		const FGameplayAbilityTargetData* Data = InTargetData.Get(i);
+		if (!Data)
+		{
+			continue;
+		}
+		
+		const FGameplayAbilityTargetData_SingleTargetHit* HitData = static_cast<const FGameplayAbilityTargetData_SingleTargetHit*>(Data);
+		AActor* TargetActor = HitData->HitResult.GetActor();
+		if (!IsValid(TargetActor))
+		{
+			continue;
+		}
+
+		const int32 TargetTeamID = GetTeamIdFromActor(TargetActor);
+		// GetTeamIdFromActor는 Pawn 기준으로 팀 ID를 반환하므로 Pawn이 아닌 Object/Minion 등은 TEAM_NONE 반환
+		// - SameTeamOnly: skip
+		// - OtherTeamOnly: pass
+		bool bPass = false;
+		if (TargetTeamID == INDEX_NONE)
+		{
+			bPass = (Rule == EPGTeamRule::OtherTeamOnly);
+		}
+		else
+		{
+			if (Rule == EPGTeamRule::SameTeamOnly)
+			{
+				bPass = (OwnerTeamID == TargetTeamID);
+			}
+			else if (Rule == EPGTeamRule::OtherTeamOnly)
+			{
+				bPass = (OwnerTeamID != TargetTeamID);
+			}
+		}
+
+		if (bPass)
+		{
+			OutTargetData.Add(new FGameplayAbilityTargetData_SingleTargetHit(HitData->HitResult));
+		}
+	}
+
+	return OutTargetData;
 }

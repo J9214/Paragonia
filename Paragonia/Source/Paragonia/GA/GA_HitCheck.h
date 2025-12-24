@@ -35,4 +35,8 @@ private:
 
 	UFUNCTION()
 	void OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle);
+
+private:
+	UPROPERTY()
+	TWeakObjectPtr<const UObject> RequestIdentifier;
 };

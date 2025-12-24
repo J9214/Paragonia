@@ -62,18 +62,32 @@ void APGNormalBullet_Sparrow::OnBeginOverlap(
 	else if (Owner == OtherActor ||
 			 Owner == OtherActor->GetOwner())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Available Target"));
-	}
-	else if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
-	{
-		HitCheckNotify();
-		if (!bIsPierce)
-		{
-			Destroy();
-		}
+		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Available Target"));
 	}
 	else
 	{
-		Destroy();
+		if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
+		{
+			HitCheckNotify();
+			if (!bIsPierce)
+			{
+				Destroy();
+			}
+		}
+		else
+		{
+			for (auto& Ignore : OverlapIgnoreClasses)
+			{
+				if (IsValid(Ignore))
+				{
+					if (OtherActor->IsA(Ignore))
+					{
+						return;
+					}
+				}
+			}
+
+			Destroy();
+		}
 	}
 }
