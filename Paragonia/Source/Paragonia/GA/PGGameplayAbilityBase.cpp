@@ -39,11 +39,6 @@ void UPGGameplayAbilityBase::ApplyAttackDataEffects_OnHit(const FAttackData& InA
 
 void UPGGameplayAbilityBase::ApplyAttackDataOwnerEffects_OnActivate(const FAttackData& InAttackData)
 {
-	if (!HasNetAuthority())
-	{
-		return;
-	}
-
 	ApplyEntriesToOwner(InAttackData.BuffEffects, false, InAttackData);
 	ApplyEntriesToOwner(InAttackData.DebuffEffects, false, InAttackData);
 }

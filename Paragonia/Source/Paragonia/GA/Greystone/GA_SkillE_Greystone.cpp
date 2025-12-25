@@ -77,8 +77,6 @@ void UGA_SkillE_Greystone::ActivateAbility(
 		Task->OnCancelled.AddDynamic(this, &UGA_SkillE_Greystone::OnMontageCancelled);
 
 		Task->ReadyForActivation();
-
-		ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 	}
 	else
 	{
@@ -86,6 +84,8 @@ void UGA_SkillE_Greystone::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 }
 
 void UGA_SkillE_Greystone::EndAbility(
