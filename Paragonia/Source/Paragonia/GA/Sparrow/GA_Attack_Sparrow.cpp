@@ -60,8 +60,9 @@ void UGA_Attack_Sparrow::ActivateAbility(
 		}
 	}
 
-	if (!IsValid(AttackData.Montage))
+	if (!IsValid(RealAttackData.Montage))
 	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
@@ -88,7 +89,7 @@ void UGA_Attack_Sparrow::ActivateAbility(
 	}
 
 	UAbilityTask_WaitGameplayEvent* HitResultTask =
-		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
+		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, RealAttackData.HitResultTag);
 
 	if (IsValid(HitResultTask))
 	{

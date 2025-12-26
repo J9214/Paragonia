@@ -4,13 +4,17 @@
 #include "UI/HUDs/PG_IngameHUD.h"
 #include "UI/Panels/PG_InGameTeamSimpleInfo.h"
 #include "UI/Bars/PG_HPBar.h"
+#include "UI/Icons/PG_SkillIcon.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Character/PGPlayerCharacterBase.h"
+#include "GameplayTagContainer.h"
 #include "UI/MiniMap/PG_MiniMap.h"
 
 void UPG_IngameHUD::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+
+	BindCooldownToSkillIcon();
 }
 
 void UPG_IngameHUD::InitMinimap(UTextureRenderTarget2D* InRT)
@@ -74,4 +78,75 @@ void UPG_IngameHUD::HandleTeam2HealthChanged(float OldValue, float NewValue)
 void UPG_IngameHUD::HandleTeam2MaxHealthChanged(float OldValue, float NewValue)
 {
     Team2HPBar->HandleMaxHealthChanged(OldValue, NewValue);
+}
+
+void UPG_IngameHUD::HandleCooldownTimeChanged(FGameplayTag CooldownTag, float Remaining, float Duration)
+{
+    if (TObjectPtr<UPG_SkillIcon>* Found = CooldownTagToWidget.Find(CooldownTag))
+    {
+        if (UPG_SkillIcon* SkillIcon = Found->Get())
+        {
+            if (Remaining > 0.f && Duration > 0.f)
+            {
+                SkillIcon->UpdateCooldown(Remaining, Duration);
+            }
+            else
+            {
+                SkillIcon->ClearCooldown();
+            }
+        }
+    }
+}
+
+void UPG_IngameHUD::HandleCooldownTagChanged(FGameplayTag CooldownTag, int32 NewCount)
+{
+    if (TObjectPtr<UPG_SkillIcon>* Found = CooldownTagToWidget.Find(CooldownTag))
+    {
+        if (UPG_SkillIcon* SkillIcon = Found->Get())
+        {
+            if (NewCount > 0)
+            {
+                SkillIcon->StartCooldown();
+            }
+            else
+            {
+                SkillIcon->ClearCooldown();
+            }
+        }
+	}
+}
+
+void UPG_IngameHUD::BindCooldownToSkillIcon()
+{
+    APGPlayerCharacterBase* PlayerCharacter = Cast<APGPlayerCharacterBase>(GetOwningPlayerPawn());
+    if (!IsValid(PlayerCharacter))
+    {
+        return;
+    }
+
+    const FGameplayTag QCooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.Q"));
+    const FGameplayTag ECooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.E"));
+    const FGameplayTag RCooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.R"));
+
+    CooldownTagToWidget.Add(QCooldownTag, SkillIconQ);
+    CooldownTagToWidget.Add(ECooldownTag, SkillIconE);
+    CooldownTagToWidget.Add(RCooldownTag, SkillIconR);
+
+    if (SkillIconQ)
+    {
+        SkillIconQ->InitSlot(QCooldownTag);
+    }
+
+    if (SkillIconE)
+    {
+        SkillIconE->InitSlot(ECooldownTag);
+	}
+
+    if (SkillIconR)
+    {
+        SkillIconR->InitSlot(RCooldownTag);
+	}
+
+	PlayerCharacter->OnCooldownTimeChangedDelegate.AddDynamic(this, &ThisClass::HandleCooldownTimeChanged);
+	PlayerCharacter->OnCooldownTagChangedDelegate.AddDynamic(this, &ThisClass::HandleCooldownTagChanged);
 }

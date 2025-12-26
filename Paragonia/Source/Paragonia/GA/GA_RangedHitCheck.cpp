@@ -50,6 +50,7 @@ void UGA_RangedHitCheck::ActivateAbility(
 	}
 
 	FAttackData AttackData = Wrapper->Data;
+	CurrentHitResultTag = AttackData.HitResultTag;
 
 	UAbilityTask_WaitTargetData* Task =
 		UAbilityTask_WaitTargetData::WaitTargetData(
@@ -106,7 +107,7 @@ void UGA_RangedHitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHa
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		GetAvatarActorFromActorInfo(),
-		FGameplayTag::RequestGameplayTag(FName("Event.Character.HitResult")),
+		CurrentHitResultTag,
 		EventPayload
 	);
 

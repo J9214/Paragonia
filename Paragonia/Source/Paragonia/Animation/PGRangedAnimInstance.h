@@ -19,6 +19,12 @@ protected:
 	UFUNCTION()
 	void AnimNotify_SpawnBullet();
 
+	UFUNCTION()
+	void AnimNotify_MoveLockOn();
+
+	UFUNCTION()
+	void AnimNotify_MoveLockOff();
+
 protected:
 	TSubclassOf<AActor> BulletClass;
 	float TimeWaited;

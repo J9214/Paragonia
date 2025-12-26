@@ -8,6 +8,9 @@
 #include "Interface/PGTeamStatusInterface.h"
 #include "PGPlayerCharacterBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCooldownTagChanged, FGameplayTag, CooldownTag, int32, NewCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FCooldownTimeChanged, FGameplayTag, CooldownTag, float, TimeRemaining, float, Duration);
+
 class USpringArmComponent;
 class UCameraComponent;
 class USkeletalMeshComponent;
@@ -40,10 +43,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void SetInputLock(bool bLock);
 
+	UFUNCTION(BlueprintCallable, Category="Cooldown")
+    bool GetCooldownRemainingAndDurationByTag(FGameplayTag CooldownTag, float& OutRemaining, float& OutDuration) const;
+
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
 
 	UTextureRenderTarget2D* GetMinimapRenderTarget();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -74,6 +81,9 @@ protected:
 	void ToggleShopInput();
 
 private:
+	UFUNCTION()
+	void OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 	void InitializeActorInfo();
 
 	void InitializeAbilities();
@@ -97,6 +107,22 @@ private:
 	void SetupHeadHPWidget();
 
 	void UpdateHeadHPVisibility();
+
+	void OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	void BindCooldownTagEvent();
+
+	void StartCooldownTick(FGameplayTag CooldownTag);
+	void StopCooldownTick(FGameplayTag CooldownTag);
+	void TickCooldown(FGameplayTag CooldownTag);
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Cooldown")
+	FCooldownTagChanged OnCooldownTagChangedDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category = "Cooldown")
+	FCooldownTimeChanged OnCooldownTimeChangedDelegate;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> MiniMapSpringArm;
@@ -162,6 +188,8 @@ private:
 	bool bInputLock;
 
 	bool bHeadHPBound;
+
+	TMap<FGameplayTag, FTimerHandle> CooldownTickTimerHandles;
 
 #pragma region Respawn
 public:

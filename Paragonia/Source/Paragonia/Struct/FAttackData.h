@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Struct/FAttackEffectEntry.h"
+#include "GameplayTagContainer.h"
 #include "FAttackData.generated.h"
 
 class UGameplayEffect;
@@ -46,4 +47,7 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TArray<FAttackEffectEntry> DebuffEffects;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FGameplayTag HitResultTag;
 };

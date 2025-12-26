@@ -55,7 +55,7 @@ void UGA_SkillQ_Greystone::ActivateAbility(
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
 			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 				this,
-				FGameplayTag::RequestGameplayTag("Event.Character.HitResult"),
+				AttackData.HitResultTag,
 				nullptr,
 				true,
 				true

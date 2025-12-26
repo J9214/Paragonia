@@ -63,6 +63,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn", meta = (EditCondition = "!bIsUseSocket", EditConditionHides))
 	TSubclassOf<UActorComponent> TransformClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn", meta = (EditCondition = "!bIsUseSocket", EditConditionHides))
+	FString RelativeName;
 	FTransform SpawnTransform;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn")
