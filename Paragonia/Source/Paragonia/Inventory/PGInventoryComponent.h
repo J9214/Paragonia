@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayEffectTypes.h"
 #include "PGInventoryComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnInventoryChanged);
@@ -20,6 +21,9 @@ struct FInventorySlot
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
     int32 Count = 0;
+
+    UPROPERTY()
+    FActiveGameplayEffectHandle AppliedEffectHandle;
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -62,6 +66,8 @@ protected:
 
     UFUNCTION()
     void OnRep_Inventory();
+
+    FActiveGameplayEffectHandle ApplyItemStatsToOwner(FName ItemId);
 
 
 public:

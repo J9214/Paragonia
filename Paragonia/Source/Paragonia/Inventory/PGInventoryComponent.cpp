@@ -1,6 +1,11 @@
 ﻿#include "PGInventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/DataTable.h"
+#include "AbilitySystemComponent.h"
+#include "Shop/PGShopTypes.h" 
+#include "AbilitySystemInterface.h"
+#include "Character/PGPlayerCharacterBase.h"
+#include "PlayerState/PGPlayerState.h"
 
 UPGInventoryComponent::UPGInventoryComponent()
 {
@@ -59,6 +64,8 @@ bool UPGInventoryComponent::AddItem(FName ItemId)
             Slot.ItemId = ItemId;
             Slot.Count = 1;
 
+            Slot.AppliedEffectHandle = ApplyItemStatsToOwner(ItemId);
+
             OnInventoryChanged.Broadcast();
             return true;
         }
@@ -77,17 +84,29 @@ bool UPGInventoryComponent::RemoveItem(int32 Index)
 
     if (!Slots[Index].bEmpty)
     {
+        if (Slots[Index].AppliedEffectHandle.IsValid())
+        {
+            APGPlayerState* PS = Cast<APGPlayerState>(GetOwner());
+            if (PS && PS->GetPawn())
+            {
+                UAbilitySystemComponent* ASC = PS->GetPawn()->FindComponentByClass<UAbilitySystemComponent>();
+                if (ASC)
+                {
+                    ASC->RemoveActiveGameplayEffect(Slots[Index].AppliedEffectHandle);
+                }
+            }
+        }
+
         if(Slots[Index].Count > 1)
         {
             Slots[Index].Count -= 1;
-            OnInventoryChanged.Broadcast();
-            return true;
 		}
         else {
             Slots[Index] = FInventorySlot();
-            OnInventoryChanged.Broadcast();
-            return true;
         }
+
+        OnInventoryChanged.Broadcast();
+        return true;
     }
 
     return false;
@@ -134,4 +153,61 @@ void UPGInventoryComponent::ServerRemoveItem_Implementation(int32 Index)
 void UPGInventoryComponent::OnRep_Inventory()
 {
     OnInventoryChanged.Broadcast();
+}
+
+FActiveGameplayEffectHandle UPGInventoryComponent::ApplyItemStatsToOwner(FName ItemId)
+{
+    UDataTable* DT = GetItemDataTable();
+    if (!DT) 
+    {
+        return FActiveGameplayEffectHandle();
+    }
+
+    FPGShopItemRow* ItemRow = DT->FindRow<FPGShopItemRow>(ItemId, TEXT(""));
+    if (!ItemRow || !ItemRow->EquipmentGE) 
+    {
+        return FActiveGameplayEffectHandle();
+    }
+
+    APGPlayerState* PS = Cast<APGPlayerState>(GetOwner());
+    if (!PS) 
+    {
+        return FActiveGameplayEffectHandle();
+    }
+
+    APGPlayerCharacterBase* OwningPawn = Cast<APGPlayerCharacterBase>(PS->GetPawn());
+    if (!OwningPawn)
+    {
+        return FActiveGameplayEffectHandle();
+    }
+
+    IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwningPawn);
+    UAbilitySystemComponent* ASC = nullptr;
+
+    if (ASI)
+    {
+        ASC = ASI->GetAbilitySystemComponent();
+    }
+    else
+    {
+        ASC = OwningPawn->FindComponentByClass<UAbilitySystemComponent>();
+    }
+
+    if (ASC)
+    {
+        FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+        FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(ItemRow->EquipmentGE, 1.0f, Context);
+
+        if (SpecHandle.IsValid())
+        {
+            for (const auto& StatPair : ItemRow->ItemStats)
+            {
+                SpecHandle.Data.Get()->SetSetByCallerMagnitude(StatPair.Key, StatPair.Value);
+            }
+
+            return ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+        }
+    }
+
+    return FActiveGameplayEffectHandle();
 }
