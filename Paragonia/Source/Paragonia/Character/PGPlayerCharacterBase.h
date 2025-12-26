@@ -163,9 +163,6 @@ private:
 
 	bool bHeadHPBound;
 
-	UPROPERTY(VisibleAnywhere)
-	int32 TeamID;
-
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)
@@ -177,7 +174,6 @@ public:
 	virtual int32 GetTeamID_Implementation() const override; 
 	virtual bool GetIsDead_Implementation() const { return bIsDead; }
 
-	void SetTeamID(int32 NewTeamID) { TeamID = NewTeamID; }
 	bool GetIsDead() const;
 
 protected:
