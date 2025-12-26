@@ -27,10 +27,16 @@ void UPGInventoryWidget::NativeDestruct()
 void UPGInventoryWidget::InitFromOwningPlayer()
 {
     APGPlayerState* PS = Cast<APGPlayerState>(GetOwningPlayerState());
-    if (!PS) return;
+    if (!PS) 
+    {
+        return;
+    }
 
     Inventory = PS->FindComponentByClass<UPGInventoryComponent>();
-    if (!Inventory) return;
+    if (!Inventory) 
+    {
+        return;
+    }
 
     Inventory->OnInventoryChanged.RemoveAll(this);
     Inventory->OnInventoryChanged.AddUObject(this, &UPGInventoryWidget::RefreshAll);
@@ -88,6 +94,9 @@ void UPGInventoryWidget::BuildSlots()
 
         SlotGrid->AddChildToUniformGrid(SlotW, i / Columns, i % Columns);
         SlotWidgets.Add(SlotW);
+
+		SlotW->OnSlotClicked.AddUObject(this, &UPGInventoryWidget::HandleSlotClicked);
+		SlotW->OnSlotRightClicked.AddUObject(this, &UPGInventoryWidget::HandleSlotRightClicked);
     }
 
 }
@@ -103,5 +112,15 @@ void UPGInventoryWidget::RefreshAll()
             W->Refresh();
         }
     }
+}
+
+void UPGInventoryWidget::HandleSlotClicked(int32 SlotIndex)
+{
+    OnInventorySlotSelected.Broadcast(SlotIndex);
+}
+
+void UPGInventoryWidget::HandleSlotRightClicked(int32 SlotIndex)
+{
+    OnInventorySlotRightClick.Broadcast(SlotIndex);
 }
 

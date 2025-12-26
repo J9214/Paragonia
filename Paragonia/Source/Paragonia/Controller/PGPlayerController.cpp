@@ -222,7 +222,19 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
 
         APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
 
-        if (PGPS == LocalPS || PGPS->GetTeamID() != LocalPS->GetTeamID())
+        int32 PSTeamId= 255;
+        if (IsValid(PGPS))
+        {
+            PSTeamId = PGPS->GetTeamID();
+        }
+
+        int32 LocalPSTeamId = 255;
+        if (IsValid(LocalPS))
+        {
+            LocalPSTeamId = LocalPS->GetTeamID();
+        }
+
+        if (PGPS == LocalPS || PSTeamId != LocalPSTeamId)
         {
             continue;
         }
@@ -310,6 +322,17 @@ void APGPlayerController::BeginPlay()
     }
 }
 
+void APGPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    APGGameStateBase* GS = GetWorld() ? GetWorld()->GetGameState<APGGameStateBase>() : nullptr;
+    if (GS)
+    {
+        GS->OnTeamResultChanged.RemoveDynamic(this, &APGPlayerController::OnTeamResultChanged);
+    }
+}
+
 #pragma region GameResult
 void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
 {
@@ -330,14 +353,20 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
             return;
         }
 
+        int32 TeamId = 255;
+        if (IsValid(MyPS))
+        {
+            TeamId = MyPS->GetTeamID();
+        }
+
         bool bIsWinner = false;
         switch (GS->TeamResult)
         {
         case ETeamResult::Team1Win:
-            bIsWinner = (MyPS->GetTeamID() == 0);
+            bIsWinner = (TeamId == 0);
             break;
         case ETeamResult::Team2Win:
-            bIsWinner = (MyPS->GetTeamID() == 1);
+            bIsWinner = (TeamId == 1);
             break;
         default:
             break;
@@ -348,7 +377,7 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         {
             ShowWinWidget(1);
         }
-        else if (!bIsWinner)
+        else
         {
             ShowWinWidget(0);
         }
