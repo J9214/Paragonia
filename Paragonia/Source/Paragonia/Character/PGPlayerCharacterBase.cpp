@@ -565,28 +565,23 @@ void APGPlayerCharacterBase::OnRep_Dead()
 {
 	if (bIsDead == 1) 
 	{ // 사망
-
 		if (APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>())
 		{
 			GM->HandleCharacterDeath(this, GetController());
 		}
 
-		// 1) 입력 막기 
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			DisableInput(PC);
 		}
 
-		// 2) 이동 막기 
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
-			// 완전 정지
 			MoveComp->StopMovementImmediately();
 			MoveComp->DisableMovement();
 			MoveComp->GravityScale = 0.0f;
 		}
 
-		// 3) Capsule, Disable Collision
 		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 		if (IsValid(CapsuleComp))
 		{
@@ -600,7 +595,6 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		FTransform SpawnTransform = GetRespawnLocationForController();
 		MovePlayerToRespawnPoint(SpawnTransform);
 
-		// 2) 메쉬 다시 보여주기 + 자식까지 전부
 		if (USkeletalMeshComponent* SkelMesh = GetMesh())
 		{
 			SkelMesh->SetVisibility(true, true);
@@ -609,29 +603,24 @@ void APGPlayerCharacterBase::OnRep_Dead()
 			GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
 			GetMesh()->SetRelativeLocation({ 0, 0, -90 });
 			GetMesh()->SetRelativeRotation({ 0, -90, 0 });
-
 		}
 
-		// 3) 캡슐, 충돌 다시 활성화
 		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
 		{
 			Capsule->SetCollisionProfileName(TEXT("Pawn"));
 		}
 
-		// 4) 이동 다시 켜기	
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
 			MoveComp->SetMovementMode(MOVE_Walking);
 			MoveComp->GravityScale = 1.0f;
 		}
 
-		// 5) 입력 활성화
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			EnableInput(PC);
 		}
 
-		// 6) Reset Character State
 		ResetCharacterStateOnRespawn();
 	}
 }
@@ -676,7 +665,6 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 	AController* PlayerController = GetController();
 	if (!PlayerController) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 
-	// PlayerState에서 팀ID 받기
 	APGPlayerState* PS = PlayerController->GetPlayerState<APGPlayerState>();
 	if (!PS)
 	{
@@ -685,7 +673,6 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 
 	int32 SpawnTeamID = PS->GetTeamID();
 
-	// GameMode나 다른 매니저에서 팀별 스폰 위치 쿼리
 	APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>();
 	if (GM)
 	{
