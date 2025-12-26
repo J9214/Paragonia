@@ -7,6 +7,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "Components/StateTreeComponent.h"
+#include "Interface/PGTeamStatusInterface.h"
 #include "NpcBaseCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -15,7 +16,7 @@ class UGameplayAbility;
 class UGameplayEffect;
 
 UCLASS()
-class PARAGONIA_API ANpcBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class PARAGONIA_API ANpcBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IPGTeamStatusInterface
 {
 	GENERATED_BODY()
 
@@ -31,11 +32,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "AI")
-	void SetTeamId(uint8 NewTeamId);
+	int32 GetTeamID_Implementation() const;
+	bool GetIsDead_Implementation() const;
 
-	UFUNCTION(BlueprintPure, Category = "AI")
-	uint8 GetTeamId() const { return TeamId; }
+public:
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	void SetTeamId(int32 NewTeamId);
 
 	UFUNCTION(BlueprintCallable, Category = "AI|Target")
 	void SetAttackTarget(AActor* NewTarget);
@@ -57,9 +59,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetSightRange(float InRange);
-
-	UFUNCTION(BlueprintPure, Category = "GAS|Tags")
-	FGameplayTag GetDeadTag() const { return DeadTag; }
 
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetRotationToTarget(AActor* TargetActor);
@@ -99,7 +98,7 @@ protected:
 	FGameplayTag DeadTag;
 
 	UPROPERTY(ReplicatedUsing = OnRep_TeamId, EditAnywhere, BlueprintReadOnly, Category = "AI")
-	uint8 TeamId;
+	int32 TeamId;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	float AttackRange;

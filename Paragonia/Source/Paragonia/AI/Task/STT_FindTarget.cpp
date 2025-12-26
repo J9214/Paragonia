@@ -1,4 +1,4 @@
-﻿
+
 #include "AI/Task/STT_FindTarget.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreeLinker.h"
@@ -60,20 +60,35 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 
 	AActor* BestTarget = nullptr;
 	float MinDistSq = FLT_MAX;
-	int32 MyTeamId = NPC->GetTeamId();
+	int32 MyTeamId = 255;
+
+	if (NPC->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+	{
+		MyTeamId = IPGTeamStatusInterface::Execute_GetTeamID(NPC);
+	}
 
 	for (AActor* Target : OutActors)
 	{
-		ANpcBaseCharacter* Enemy = Cast<ANpcBaseCharacter>(Target);
-		if (IsValid(Enemy) == false ||
-			Enemy->GetTeamId() == MyTeamId)
+		if (IsValid(Target) == false)
 		{
 			continue;
 		}
 
-		UAbilitySystemComponent* EnemyASC = Enemy->GetAbilitySystemComponent();
-		if (IsValid(EnemyASC) == false ||
-			EnemyASC->HasMatchingGameplayTag(Enemy->GetDeadTag()) == true)
+		if (Target->Implements<UPGTeamStatusInterface>() == false)
+		{
+			continue;
+		}
+
+		int32 TargetTeamId = IPGTeamStatusInterface::Execute_GetTeamID(Target);
+
+		UE_LOG(LogTemp, Warning, TEXT("FSTT_FindTarget - My TeamId : %d, Target TeamId : %d"),MyTeamId,TargetTeamId);
+
+		if (TargetTeamId == MyTeamId)
+		{
+			continue;
+		}
+
+		if (IPGTeamStatusInterface::Execute_GetIsDead(Target) == true)
 		{
 			continue;
 		}

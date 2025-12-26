@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/AI/NpcBaseCharacter.h"
@@ -165,7 +165,22 @@ void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
 	}
 }
 
-void ANpcBaseCharacter::SetTeamId(uint8 NewTeamId)
+int32 ANpcBaseCharacter::GetTeamID_Implementation() const
+{
+	return TeamId;
+}
+
+bool ANpcBaseCharacter::GetIsDead_Implementation() const
+{
+	if (IsValid(AbilitySystemComponent) == false)
+	{
+		return false;
+	}
+
+	return AbilitySystemComponent->HasMatchingGameplayTag(DeadTag);
+}
+
+void ANpcBaseCharacter::SetTeamId(int32 NewTeamId)
 {
 	if (HasAuthority())
 	{
