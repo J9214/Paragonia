@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/AI/NpcBaseCharacter.h"
@@ -165,7 +165,22 @@ void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
 	}
 }
 
-void ANpcBaseCharacter::SetTeamId(uint8 NewTeamId)
+int32 ANpcBaseCharacter::GetTeamID_Implementation() const
+{
+	return TeamId;
+}
+
+bool ANpcBaseCharacter::GetIsDead_Implementation() const
+{
+	if (IsValid(AbilitySystemComponent) == false)
+	{
+		return false;
+	}
+
+	return AbilitySystemComponent->HasMatchingGameplayTag(DeadTag);
+}
+
+void ANpcBaseCharacter::SetTeamId(int32 NewTeamId)
 {
 	if (HasAuthority())
 	{
@@ -274,7 +289,7 @@ void ANpcBaseCharacter::OnRep_TeamId()
 		return;
 	}
 
-	UMaterialInterface* MaterialToUse = nullptr;
+	USkeletalMesh* MeshToUse = nullptr;
 
 	int32 MyTeamId = 255;
 	if (APGPlayerState* PS = LocalPC->GetPlayerState<APGPlayerState>())
@@ -287,15 +302,19 @@ void ANpcBaseCharacter::OnRep_TeamId()
 
 	if (TeamId == MyTeamId)
 	{
-		MaterialToUse = AllyMaterial;
+		MeshToUse = AllyMesh;
 	}
 	else
 	{
-		MaterialToUse = EnemyMaterial;
+		MeshToUse = EnemyMesh;
 	}
 
-	if (MaterialToUse && GetMesh())
+	if (MeshToUse && GetMesh())
 	{
-		GetMesh()->SetMaterial(MaterialCounts, MaterialToUse);
+		// ABP 를 공유하기에 SkeltalMesh 에셋만 교체
+		if (GetMesh()->GetSkeletalMeshAsset() != MeshToUse)
+		{
+			GetMesh()->SetSkeletalMeshAsset(MeshToUse);
+		}
 	}
 }
