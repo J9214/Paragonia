@@ -1,4 +1,4 @@
-#include "GA/PGGameplayAbilityBase.h"
+ï»¿#include "GA/PGGameplayAbilityBase.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 #include "GameplayAbilitySpec.h"
@@ -7,6 +7,7 @@
 #include "GameplayTag/PGGameplayTags.h"
 #include "PlayerState/PGPlayerState.h"
 #include "GameFramework/Pawn.h"
+#include "Interface/PGTeamStatusInterface.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 
 bool UPGGameplayAbilityBase::HasNetAuthority() const
@@ -155,16 +156,11 @@ int32 UPGGameplayAbilityBase::GetTeamIdFromActor(const AActor* Actor) const
 	{
 		return TEAM_NONE;
 	}
-
-	const APawn* Pawn = Cast<APawn>(Actor);
-	if (IsValid(Pawn))
+	
+	if (Actor->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
 	{
-		const APGPlayerState* PS = Pawn->GetPlayerState<APGPlayerState>();
-		if (IsValid(PS))
-		{
-			return PS->GetTeamID();
-		}
-	}
+		return IPGTeamStatusInterface::Execute_GetTeamID(Actor);
+	}	
 
 	return TEAM_NONE;
 }
@@ -202,7 +198,7 @@ FGameplayAbilityTargetDataHandle UPGGameplayAbilityBase::FilterTargetDataByTeamR
 		}
 
 		const int32 TargetTeamID = GetTeamIdFromActor(TargetActor);
-		// GetTeamIdFromActor´Â Pawn ±âÁØÀ¸·Î ÆÀ ID¸¦ ¹İÈ¯ÇÏ¹Ç·Î PawnÀÌ ¾Æ´Ñ Object/Minion µîÀº TEAM_NONE ¹İÈ¯
+		// GetTeamIdFromActorëŠ” Pawn ê¸°ì¤€ìœ¼ë¡œ íŒ€ IDë¥¼ ë°˜í™˜í•˜ë¯€ë¡œ Pawnì´ ì•„ë‹Œ Object/Minion ë“±ì€ TEAM_NONE ë°˜í™˜
 		// - SameTeamOnly: skip
 		// - OtherTeamOnly: pass
 		bool bPass = false;

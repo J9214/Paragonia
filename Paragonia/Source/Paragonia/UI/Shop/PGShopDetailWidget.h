@@ -10,6 +10,7 @@ class UTextBlock;
 class UButton;
 class USpinBox;
 class UPGShopComponent;
+class UPGInventorySlotWidget;
 
 UCLASS()
 class PARAGONIA_API UPGShopDetailWidget : public UUserWidget
@@ -27,9 +28,13 @@ public:
     UFUNCTION(BlueprintCallable)
     void RefreshStock();
 
+	UFUNCTION(BlueprintCallable)
+    void SetCurrentSlotIndex(int32 Index) { CurrentSlotIndex = Index; }
 protected:
     UFUNCTION()
     void OnBuyClicked();
+    UFUNCTION()
+    void OnSellClicked();
 
 protected:
     UPROPERTY(meta = (BindWidget)) 
@@ -47,10 +52,14 @@ protected:
     USpinBox* CountSpin;
     UPROPERTY(meta = (BindWidget)) 
     UButton* BuyButton;
+    UPROPERTY(meta = (BindWidget))
+    UButton* SellButton;
 
     UPROPERTY() 
     TObjectPtr<UPGShopComponent> ShopComp;
 
     UPROPERTY()
     FPGShopItemRow CurrentItem;
+    UPROPERTY()
+    int32 CurrentSlotIndex;
 };
