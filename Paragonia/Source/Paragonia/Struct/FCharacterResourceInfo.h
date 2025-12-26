@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"  
+#include "PaperSprite.h"
 #include "FCharacterResourceInfo.generated.h"
 
 USTRUCT(BlueprintType)
@@ -20,6 +21,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<UTexture2D> CircleIcon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UPaperSprite> MinimapIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<USkeletalMesh> LobbyMesh;
