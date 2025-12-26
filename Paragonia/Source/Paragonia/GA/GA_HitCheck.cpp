@@ -1,4 +1,4 @@
-#include "GA/GA_HitCheck.h"
+﻿#include "GA/GA_HitCheck.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "TargetActor/PGTargetActor.h"
@@ -38,8 +38,6 @@ void UGA_HitCheck::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
-
-	RequestIdentifier = TriggerEventData->OptionalObject2;
 
 	const UAttackDataWrapper* Wrapper = Cast<UAttackDataWrapper>(TriggerEventData->OptionalObject);
 	if (!Wrapper)
@@ -101,7 +99,6 @@ void UGA_HitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& 
 	FGameplayEventData EventPayload;
 	EventPayload.Instigator = GetAvatarActorFromActorInfo();
 	EventPayload.TargetData = DataHandle;
-	EventPayload.OptionalObject2 = RequestIdentifier.Get();
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		GetAvatarActorFromActorInfo(),
