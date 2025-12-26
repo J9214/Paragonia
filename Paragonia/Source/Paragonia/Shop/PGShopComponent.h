@@ -46,12 +46,18 @@ public:
     UFUNCTION(BlueprintCallable)
     void RequestBuy(FName ItemId);
 
+    UFUNCTION(BlueprintCallable)
+    void RequestSell(int32 Index);
+
 protected:
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     UFUNCTION(Server, Reliable)
     void ServerBuy(FName ItemId);
+
+    UFUNCTION(Server, Reliable)
+    void ServerSell(int32 Index);
 
     UFUNCTION(Client, Reliable)
     void ClientBuyResult(EShopBuyResult Result, FName ItemId);

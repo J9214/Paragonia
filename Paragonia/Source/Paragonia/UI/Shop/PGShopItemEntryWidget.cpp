@@ -5,7 +5,10 @@
 void UPGShopItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
     const UPGShopItemObject* Obj = Cast<UPGShopItemObject>(ListItemObject);
-    if (!Obj) return;
+    if (!Obj) 
+    {
+        return;
+    }
 
     if (IconImage)
     {

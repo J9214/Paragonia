@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/AI/NpcBaseCharacter.h"
@@ -279,7 +279,10 @@ void ANpcBaseCharacter::OnRep_TeamId()
 	int32 MyTeamId = 255;
 	if (APGPlayerState* PS = LocalPC->GetPlayerState<APGPlayerState>())
 	{
-		MyTeamId = PS->GetTeamID();
+		if (IsValid(PS))
+		{
+			MyTeamId = PS->GetTeamID();
+		}
 	}
 
 	if (TeamId == MyTeamId)
