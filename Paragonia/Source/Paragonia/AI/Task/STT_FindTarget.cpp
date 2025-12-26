@@ -45,6 +45,7 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 	TArray<AActor*> OutActors;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(NPC);
 
