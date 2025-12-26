@@ -52,7 +52,6 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 		NPC, MyLoc, Radius, ObjectTypes, nullptr, IgnoreActors, OutActors
 	);
 
-	// 탐색 결과 없음
 	if (bFoundAny == false)
 	{
 		return EStateTreeRunStatus::Running;
@@ -80,8 +79,6 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 		}
 
 		int32 TargetTeamId = IPGTeamStatusInterface::Execute_GetTeamID(Target);
-
-		UE_LOG(LogTemp, Warning, TEXT("FSTT_FindTarget - My TeamId : %d, Target TeamId : %d"),MyTeamId,TargetTeamId);
 
 		if (TargetTeamId == MyTeamId)
 		{
