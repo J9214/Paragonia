@@ -12,6 +12,7 @@ class APGPlayerState;
 class APlayerState;
 class UPGShopComponent;
 class UPGShopWidget;
+class APGPlayerCharacterBase;
 
 UCLASS()
 class PARAGONIA_API APGPlayerController : public APlayerController
@@ -33,8 +34,6 @@ public:
 	UFUNCTION()
 	bool BindIngameHUD();
 
-
-
 protected:
 
 	bool SetMyHPBar(APGPlayerState* LocalPS);
@@ -43,6 +42,8 @@ protected:
 	void StartReadyCheck();
 	void TickReadyCheck();
 	bool AreAllPlayersReplicatedOnThisClient() const;
+
+	bool SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter, APGPlayerState* LocalPS);
 
 	FTimerHandle ReadyCheckTimerHandle;
 	float ReadyCheckIntervalSeconds = 0.1f;

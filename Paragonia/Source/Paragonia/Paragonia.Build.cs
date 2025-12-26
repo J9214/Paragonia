@@ -26,7 +26,9 @@ public class Paragonia : ModuleRules
 			// NetWork
             "Sockets",
 			"Networking",
-			"NetCore"
+			"NetCore",
+
+			"Paper2D"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

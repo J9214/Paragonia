@@ -11,6 +11,8 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Shop/PGShopComponent.h"
 #include "UI/Shop/PGShopWidget.h"
+#include "Subsystem/PGCharacterDescriptionSubsystem.h"
+#include "Struct/FCharacterResourceInfo.h"
 
 void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
 {
@@ -130,6 +132,50 @@ bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
     return true;
 }
 
+bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter ,APGPlayerState* LocalPS)
+{
+    UGameInstance* GI = GetGameInstance();
+
+    if (!IsValid(GI))
+    {
+        return false;
+    }
+
+    UPGCharacterDescriptionSubsystem* CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
+
+    if (!IsValid(CharacterDescSubsys))
+    {
+        return false;
+    }
+
+    const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(LocalPS->GetCharID());
+
+    if (!ResourceInfo)
+    {
+        return false;
+    }
+
+    UPaperSprite* Sprite = nullptr;
+
+    if (ResourceInfo->MinimapIcon.IsValid())
+    {
+        Sprite = ResourceInfo->MinimapIcon.Get();
+    }
+    else
+    {
+        Sprite = ResourceInfo->MinimapIcon.LoadSynchronous();
+    }
+
+    if (!Sprite)
+    {
+        return false;
+    }
+
+    InCharacter->SetMinimapSprite(Sprite);
+
+    return true;
+}
+
 APGPlayerController::APGPlayerController()
 {
     ShopComponent = CreateDefaultSubobject<UPGShopComponent>(TEXT("ShopComponent"));
@@ -195,6 +241,11 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
         return false;
     }
 
+    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS))\
+    {
+        return false;
+    }
+
     MyAttributeSet->OnHealthChanged_UI.RemoveAll(IngameHUD);
     MyAttributeSet->OnMaxHealthChanged_UI.RemoveAll(IngameHUD);
 
@@ -222,7 +273,7 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
 
         APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
 
-        if (PGPS == LocalPS || PGPS->GetTeamID() != LocalPS->GetTeamID())
+        if (PGPS == LocalPS)
         {
             continue;
         }
@@ -236,6 +287,17 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
         if (!FoundCharacter->HasActorBegunPlay())
         {
             return false;
+        }
+
+        if (!SetCharacterMinimapIcon(FoundCharacter, PGPS))
+        {
+            return false;
+        }
+
+        if (PGPS->GetTeamID() != LocalPS->GetTeamID())
+        {
+
+            continue;
         }
 
         UCharacterAttributeSet* TeamAttributeSet = FoundCharacter->GetCharacterAttributeSet();

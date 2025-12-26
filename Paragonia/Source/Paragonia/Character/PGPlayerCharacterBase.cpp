@@ -19,6 +19,8 @@
 #include "UI/Panels/PG_IngameInfo.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "PaperSpriteComponent.h"
+#include "PaperSprite.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -72,6 +74,18 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	HeadHPWidgetComp->SetDrawAtDesiredSize(true);
 	HeadHPWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 240.f));
 	HeadHPWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	MinimapIcon = CreateDefaultSubobject<UPaperSpriteComponent>(TEXT("MinimapIcon"));
+	MinimapIcon->SetupAttachment(RootComponent);
+	MinimapIcon->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	MinimapIcon->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+
+	MinimapIcon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MinimapIcon->SetGenerateOverlapEvents(false);
+	MinimapIcon->CastShadow = false;
+
+	MinimapIcon->SetVisibleInSceneCaptureOnly(false);
+
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -158,6 +172,21 @@ void APGPlayerCharacterBase::Tick(float DeltaSeconds)
 	HeadHPWidgetComp->SetWorldRotation(FRotator(0.f, LookRot.Yaw, 0.f));
 }
 
+void APGPlayerCharacterBase::SetMinimapSprite(UPaperSprite* NewSprite)
+{
+	if (!MinimapIcon)
+	{
+		return;
+	}
+
+	MinimapIcon->SetSprite(NewSprite);
+
+	if (IsLocallyControlled() && MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->CaptureScene();
+	}
+}
+
 UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 {
 	if (GetNetMode() == NM_DedicatedServer)
@@ -165,15 +194,18 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 		return nullptr;
 	}
 
-	MinimapRT = NewObject<UTextureRenderTarget2D>(this);
-	MinimapRT->InitAutoFormat(512, 512);
-	MinimapRT->ClearColor = FLinearColor::Black;
-	MinimapRT->UpdateResourceImmediate(true);
-
-	if (MinimapCaptureComponent)
+	if (!MinimapRT)
 	{
-		MinimapCaptureComponent->TextureTarget = MinimapRT;
-		MinimapCaptureComponent->CaptureScene();
+		MinimapRT = NewObject<UTextureRenderTarget2D>(this);
+		MinimapRT->InitAutoFormat(512, 512);
+		MinimapRT->ClearColor = FLinearColor::Black;
+		MinimapRT->UpdateResourceImmediate(true);
+
+		if (MinimapCaptureComponent)
+		{
+			MinimapCaptureComponent->TextureTarget = MinimapRT;
+			MinimapCaptureComponent->CaptureScene();
+		}
 	}
 	return MinimapRT;
 }
@@ -181,6 +213,30 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (!IsLocallyControlled())
+	{
+		if (MinimapCaptureComponent)
+		{
+			MinimapCaptureComponent->Deactivate();
+			MinimapCaptureComponent->bCaptureOnMovement = false;
+			MinimapCaptureComponent->bCaptureEveryFrame = false;
+		}
+		return;
+	}
+
+	if (MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->ShowFlags.SetSkeletalMeshes(false);
+		MinimapCaptureComponent->ShowFlags.SetParticles(false);
+
+		MinimapCaptureComponent->MarkRenderStateDirty();
+	}
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

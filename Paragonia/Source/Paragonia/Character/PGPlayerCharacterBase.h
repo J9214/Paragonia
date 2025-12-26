@@ -17,8 +17,11 @@ class UWidgetComponent;
 class UCharacterAttributeSet;
 class UPG_IngameInfo;
 class USceneCaptureComponent2D;
+class UPaperSpriteComponent;
+class UPaperSprite;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
+
 
 UCLASS()
 class PARAGONIA_API APGPlayerCharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -41,6 +44,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetMinimapSprite(UPaperSprite* NewSprite);
 
 	UTextureRenderTarget2D* GetMinimapRenderTarget();
 protected:
@@ -158,6 +164,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UTextureRenderTarget2D> MinimapRT;
+
+	UPROPERTY()
+	TObjectPtr<UPaperSpriteComponent> MinimapIcon;
 
 private:
 	bool bInputLock;

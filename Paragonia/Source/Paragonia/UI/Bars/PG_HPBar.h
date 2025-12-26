@@ -6,7 +6,7 @@
 #include "CommonUserWidget.h"
 #include "PG_HPBar.generated.h"
 
-class UProgressBar;
+class UImage;
 class UHorizontalBox;
 /**
  * 
@@ -30,7 +30,16 @@ public:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UProgressBar> HPBar;
+	TObjectPtr<UImage> BarFill;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BarGlow;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Damaged;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> Healed;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UHorizontalBox> BuffBox;

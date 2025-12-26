@@ -201,21 +201,10 @@ void APGGameModeBase::CheckAllClientsReady()
             continue;
         }
 
-        ++TotalCount;
-        if (PGPS->bClientReady)
+        if (!PGPS->bClientReady)
         {
-            ++ReadyCount;
+            return;
         }
-    }
-
-    if (TotalCount < RequiredPlayers)
-    {
-        return;
-    }
-
-    if (ReadyCount < RequiredPlayers)
-    {
-        return;
     }
 
     bAllClientsReady = true;
