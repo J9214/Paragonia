@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GA/PGGameplayAbilityBase.h"
+#include "GameplayTagContainer.h"
 #include "GA_RangedHitCheck.generated.h"
 
 UCLASS()
@@ -33,4 +34,8 @@ private:
 
 	UFUNCTION()
 	void OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& Data);
+
+private:
+	UPROPERTY()
+	FGameplayTag CurrentHitResultTag;
 };

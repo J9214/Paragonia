@@ -54,7 +54,7 @@ void UGA_SkillR_Aurora::ActivateAbility(
 	if (HasAuthority(&ActivationInfo))
 	{
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
-			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
+			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, AttackData.HitResultTag);
 
 		if (IsValid(HitResultTask))
 		{

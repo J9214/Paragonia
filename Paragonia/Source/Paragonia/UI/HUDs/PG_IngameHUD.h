@@ -1,18 +1,16 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
+#include "GameplayTagContainer.h"
 #include "PG_IngameHUD.generated.h"
 
 class UPG_HPBar;
 class UPG_InGameTeamSimpleInfo;
 class UPG_MiniMap;
+class UPG_SkillIcon;
 class UTextureRenderTarget2D;
-/**
- *
- */
+
 UCLASS()
 class PARAGONIA_API UPG_IngameHUD : public UCommonUserWidget
 {
@@ -22,7 +20,6 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 public:
-
 	UFUNCTION(BlueprintCallable)
 	void InitMinimap(UTextureRenderTarget2D* InRT);
 
@@ -38,7 +35,6 @@ public:
 	UFUNCTION()
 	void HandlePlayerMaxHealthChanged(float OldValue, float NewValue);
 
-
 	UFUNCTION()
 	void HandleTeam1HealthChanged(float OldValue, float NewValue);
 
@@ -50,6 +46,15 @@ public:
 
 	UFUNCTION()
 	void HandleTeam2MaxHealthChanged(float OldValue, float NewValue);
+
+	UFUNCTION()
+	void HandleCooldownTimeChanged(FGameplayTag CooldownTag, float Remaining, float Duration);
+
+	UFUNCTION()
+	void HandleCooldownTagChanged(FGameplayTag CooldownTag, int32 NewCount);
+
+private:
+	void BindCooldownToSkillIcon();
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -63,4 +68,16 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_InGameTeamSimpleInfo> Team2HPBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_SkillIcon> SkillIconQ;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_SkillIcon> SkillIconE;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_SkillIcon> SkillIconR;
+
+private:
+	TMap<FGameplayTag, TObjectPtr<UPG_SkillIcon>> CooldownTagToWidget;
 };

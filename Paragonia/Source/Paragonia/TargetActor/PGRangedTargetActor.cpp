@@ -2,13 +2,15 @@
 
 #include "Bullet/PGNormalBullet_Sparrow.h"
 
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/Character.h"
+
 #include "AbilitySystemComponent.h"
 
 #include "DrawDebugHelpers.h"
 
 APGRangedTargetActor::APGRangedTargetActor()
 {
-	bReplicates = true;
 	ShouldProduceTargetDataOnServer = true;
 }
 
@@ -23,7 +25,7 @@ void APGRangedTargetActor::ConfirmTargetingAndContinue()
 	if (IsConfirmTargetingAllowed())
 	{
 		TArray<FHitResult> OutHitResults;
-		bool bHit = SphereTrace(OutHitResults);
+		bool bHit = PerformTrace(OutHitResults);
 
 		FGameplayAbilityTargetDataHandle DataHandle;
 		if (bHit)
@@ -35,31 +37,27 @@ void APGRangedTargetActor::ConfirmTargetingAndContinue()
 		}
 
 		TargetDataReadyDelegate.Broadcast(DataHandle);
-
-		APGCreateTargetActorBullet* Bullet = Cast<APGCreateTargetActorBullet>(SourceActor);
-		if (IsValid(Bullet))
-		{
-			FColor DrawColor = bHit ? FColor::Green : FColor::Red;
-			FVector TraceStart = SourceActor->GetActorLocation();
-			FVector TraceEnd = SourceActor->GetActorLocation() + SourceActor->GetActorForwardVector() * AttackData.Range;
-			FVector Center = TraceStart + (TraceEnd - TraceStart) * 0.5f;
-
-			DrawDebugSphere(
-				GetWorld(),
-				Center,
-				AttackData.Radius,
-				16,
-				DrawColor,
-				false,
-				5.0f
-			);
-		}
 	}
 }
 
 void APGRangedTargetActor::SetAttackData(const FAttackData& InAttackData)
 {
 	AttackData = InAttackData;
+}
+
+bool APGRangedTargetActor::PerformTrace(TArray<FHitResult>& OutHits) const
+{
+	switch (AttackData.SweepShape)
+	{
+	case EPGAttackShape::Sphere:
+		return SphereTrace(OutHits);
+
+	case EPGAttackShape::Box:
+		return BoxTrace(OutHits);
+
+	default:
+		return false;
+	}
 }
 
 bool APGRangedTargetActor::SphereTrace(TArray<FHitResult>& OutHitResults) const
@@ -95,6 +93,80 @@ bool APGRangedTargetActor::SphereTrace(TArray<FHitResult>& OutHitResults) const
 		{
 			++i;
 		}
+	}
+
+	APGCreateTargetActorBullet* Bullet = Cast<APGCreateTargetActorBullet>(SourceActor);
+	if (IsValid(Bullet))
+	{
+		FColor DrawColor = bHit ? FColor::Green : FColor::Red;
+		FVector TraceStart = SourceActor->GetActorLocation();
+		FVector TraceEnd = SourceActor->GetActorLocation() + SourceActor->GetActorForwardVector() * AttackData.Range;
+		FVector Center = TraceStart + (TraceEnd - TraceStart) * 0.5f;
+
+		DrawDebugSphere(
+			GetWorld(),
+			Center,
+			AttackData.Radius,
+			16,
+			DrawColor,
+			false,
+			5.0f
+		);
+	}
+
+	return bHit;
+}
+
+bool APGRangedTargetActor::BoxTrace(TArray<FHitResult>& OutHits) const
+{
+	FVector Start = SourceActor->GetActorLocation();
+	FVector End = Start + SourceActor->GetActorForwardVector() * AttackData.Range;
+
+	FCollisionQueryParams Params(NAME_None, false, SourceActor);
+
+	ACharacter* Character = Cast<ACharacter>(SourceActor);
+	float HalfHeight = 88.f;
+
+	if (Character)
+	{
+		UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
+		if (Capsule)
+		{
+			HalfHeight = Capsule->GetScaledCapsuleHalfHeight();
+		}
+	}
+
+	FVector BoxExtent;
+	BoxExtent.X = AttackData.Range * 0.5f;
+	BoxExtent.Y = AttackData.Radius;
+	BoxExtent.Z = HalfHeight;
+
+	bool bHit = SourceActor->GetWorld()->SweepMultiByChannel(
+		OutHits,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Pawn,
+		FCollisionShape::MakeBox(BoxExtent),
+		Params
+	);
+
+
+
+	APGCreateTargetActorBullet* Bullet = Cast<APGCreateTargetActorBullet>(SourceActor);
+	if (IsValid(Bullet))
+	{
+		FColor DrawColor = bHit ? FColor::Green : FColor::Red;
+		FVector Center = Start + (End - Start) * 0.5f;
+		DrawDebugBox(
+			GetWorld(),
+			Center,
+			BoxExtent,
+			GetActorRotation().Quaternion(),
+			DrawColor,
+			false,
+			3.0f
+		);
 	}
 
 	return bHit;
