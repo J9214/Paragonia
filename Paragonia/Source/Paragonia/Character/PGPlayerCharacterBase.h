@@ -5,6 +5,7 @@
 #include "AbilitySystemInterface.h"
 #include "Struct/FAttackData.h"
 #include "GameplayTagContainer.h"
+#include "Interface/PGTeamStatusInterface.h"
 #include "PGPlayerCharacterBase.generated.h"
 
 class USpringArmComponent;
@@ -21,7 +22,7 @@ struct FInputActionValue;
 struct FOnAttributeChangeData;
 
 UCLASS()
-class PARAGONIA_API APGPlayerCharacterBase : public ACharacter, public IAbilitySystemInterface
+class PARAGONIA_API APGPlayerCharacterBase : public ACharacter, public IAbilitySystemInterface, public IPGTeamStatusInterface
 {
 	GENERATED_BODY()
 
@@ -161,15 +162,19 @@ private:
 	bool bInputLock;
 
 	bool bHeadHPBound;
+
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)
-	void ServerRPCSetDeadState(uint8 bDead);
+	void ServerRPCSetDeadState(bool bDead);
 
 	UFUNCTION()
-	void SetDeadState(uint8 bDead); 
+	void SetDeadState(bool bDead); 
 
-	uint8 GetIsDead() const;
+	virtual int32 GetTeamID_Implementation() const override; 
+	virtual bool GetIsDead_Implementation() const { return bIsDead; }
+
+	bool GetIsDead() const;
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -185,7 +190,7 @@ protected:
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)
-	uint8 bIsDead;
+	bool bIsDead;
 #pragma endregion
 
 };

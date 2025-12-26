@@ -6,6 +6,7 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -123,4 +124,12 @@ void APGObject::HandleHealthDepleted()
 	{
 		Destroy();
 	}
+}
+
+void APGObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APGObject, TeamID);
+	DOREPLIFETIME(APGObject, bIsDead);
 }
