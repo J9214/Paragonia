@@ -1,0 +1,37 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Struct/FAttackData.h"
+#include "Abilities/GameplayAbility.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
+#include "GA_SpawnBullet_LtBelica.generated.h"
+
+class APGTaskRelatedBullet;
+
+UCLASS()
+class PARAGONIA_API UGA_SpawnBullet_LtBelica : public UGameplayAbility
+{
+	GENERATED_BODY()
+
+public:
+	UGA_SpawnBullet_LtBelica();
+
+	virtual void ActivateAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		const FGameplayEventData* TriggerEventData
+	) override;
+
+	virtual void EndAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		bool bReplicateEndAbility,
+		bool bWasCancelled
+	) override;
+
+protected:
+	FAttackData CurrentAttackData;
+	
+};

@@ -35,13 +35,6 @@ void APGTargetActor::ConfirmTargetingAndContinue()
 		}
 
 		TargetDataReadyDelegate.Broadcast(DataHandle);
-
-		APGPlayerCharacterBase* Player = Cast<APGPlayerCharacterBase>(SourceActor);
-		if (IsValid(Player))
-		{
-			FColor Color = bHit ? FColor::Green : FColor::Red;
-			Player->DrawDebugAttackCollision(Color, SourceActor->GetActorLocation(), SourceActor->GetActorLocation() + SourceActor->GetActorForwardVector() * AttackData.Range, SourceActor->GetActorForwardVector(), AttackData);
-		}
 	}
 }
 

@@ -33,17 +33,6 @@ void UGA_SkillE_Greystone::ActivateAbility(
 		return;
 	}
 
-	if (ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
-	{
-		if (UAnimInstance* AI = Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr)
-		{
-			if (UPGAnimInstance* PGAnimInstance = Cast<UPGAnimInstance>(AI))
-			{
-				PGAnimInstance->SetCurrentAttackData(AttackData);
-			}
-		}
-	}
-
 	if (!IsValid(AttackData.Montage))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Greystone::ActivateAbility - Invalid AttackData Montage"));
@@ -59,9 +48,8 @@ void UGA_SkillE_Greystone::ActivateAbility(
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
 			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 				this,
-				FGameplayTag::RequestGameplayTag(FName("Event.Character.HitResult"))
+				AttackData.HitResultTag
 			);
-
 		if (IsValid(HitResultTask))
 		{
 			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillE_Greystone::OnHitResultEvent);
@@ -89,8 +77,6 @@ void UGA_SkillE_Greystone::ActivateAbility(
 		Task->OnCancelled.AddDynamic(this, &UGA_SkillE_Greystone::OnMontageCancelled);
 
 		Task->ReadyForActivation();
-
-		ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 	}
 	else
 	{
@@ -98,6 +84,8 @@ void UGA_SkillE_Greystone::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 }
 
 void UGA_SkillE_Greystone::EndAbility(
@@ -118,11 +106,6 @@ void UGA_SkillE_Greystone::EndAbility(
 
 void UGA_SkillE_Greystone::OnHitResultEvent(const FGameplayEventData Payload)
 {
-	if (Payload.OptionalObject2.Get() != this)
-	{
-		return;
-	}
-
 	ApplyAttackDataEffects_OnHit(AttackData, Payload);
 }
 
@@ -192,7 +175,6 @@ void UGA_SkillE_Greystone::TickHitCheck()
 	FGameplayEventData EventData;
 	EventData.Instigator = Avatar;
 	EventData.OptionalObject = Wrapper;
-	EventData.OptionalObject2 = this; // check identifier
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		Avatar,
