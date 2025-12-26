@@ -53,7 +53,8 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 500.0f;
+	SpringArm->TargetArmLength = 400.0f;
+	SpringArm->TargetOffset = FVector(0.f, 0.f, 150.f);
 	SpringArm->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
