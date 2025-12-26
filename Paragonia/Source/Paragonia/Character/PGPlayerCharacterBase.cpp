@@ -19,10 +19,13 @@
 #include "UI/Panels/PG_IngameInfo.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "PaperSpriteComponent.h"
+#include "PaperSprite.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	Accum = 0.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -53,7 +56,8 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 500.0f;
+	SpringArm->TargetArmLength = 400.0f;
+	SpringArm->TargetOffset = FVector(0.f, 0.f, 150.f);
 	SpringArm->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -67,11 +71,23 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 
 	HeadHPWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadHPWidgetComp"));
-	HeadHPWidgetComp->SetupAttachment(GetMesh());
-	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	HeadHPWidgetComp->SetupAttachment(GetMesh());    
+	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::World);
 	HeadHPWidgetComp->SetDrawAtDesiredSize(true);
 	HeadHPWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 240.f));
 	HeadHPWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	MinimapIcon = CreateDefaultSubobject<UPaperSpriteComponent>(TEXT("MinimapIcon"));
+	MinimapIcon->SetupAttachment(RootComponent);
+	MinimapIcon->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	MinimapIcon->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+
+	MinimapIcon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MinimapIcon->SetGenerateOverlapEvents(false);
+	MinimapIcon->CastShadow = false;
+
+	MinimapIcon->SetVisibleInSceneCaptureOnly(false);
+
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -108,6 +124,8 @@ void APGPlayerCharacterBase::OnRep_Controller()
 	{
 		PC->SetInputMode(InputMode);
 	}
+
+	BindCooldownTagEvent();
 }
 
 UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
@@ -116,11 +134,13 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 	{
 		return nullptr;
 	}
-
-	MinimapRT = NewObject<UTextureRenderTarget2D>(this);
-	MinimapRT->InitAutoFormat(512, 512);
-	MinimapRT->ClearColor = FLinearColor::Black;
-	MinimapRT->UpdateResourceImmediate(true);
+	if (!MinimapRT)
+	{
+		MinimapRT = NewObject<UTextureRenderTarget2D>(this);
+		MinimapRT->InitAutoFormat(512, 512);
+		MinimapRT->ClearColor = FLinearColor::Black;
+		MinimapRT->UpdateResourceImmediate(true);
+	}
 
 	if (MinimapCaptureComponent)
 	{
@@ -133,6 +153,93 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (!IsLocallyControlled())
+	{
+		if (MinimapCaptureComponent)
+		{
+			MinimapCaptureComponent->Deactivate();
+			MinimapCaptureComponent->bCaptureOnMovement = false;
+			MinimapCaptureComponent->bCaptureEveryFrame = false;
+		}
+		return;
+	}
+
+	if (MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->ShowFlags.SetSkeletalMeshes(false);
+		MinimapCaptureComponent->ShowFlags.SetParticles(false);
+
+		MinimapCaptureComponent->MarkRenderStateDirty();
+	}
+}
+
+void APGPlayerCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	Accum += DeltaSeconds;
+	if (Accum < 0.05f)
+	{
+		return;
+	}
+	Accum = 0.f;
+
+	if (!GetMesh()->WasRecentlyRendered(0.2f))
+	{
+		return;
+	}
+
+	if (!HeadHPWidgetComp)
+	{
+		return;
+	}
+
+	if (!IsNetMode(NM_Standalone) && !GetWorld())
+	{
+		return;
+	}
+
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC)
+	{
+		return;
+	}
+
+	FVector CamLoc;
+	FRotator CamRot;
+	PC->GetPlayerViewPoint(CamLoc, CamRot);
+
+	const FVector WidgetLoc = HeadHPWidgetComp->GetComponentLocation();
+	const FRotator LookRot = (CamLoc - WidgetLoc).Rotation();
+
+	HeadHPWidgetComp->SetWorldRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+}
+
+void APGPlayerCharacterBase::SetMinimapSprite(UPaperSprite* NewSprite)
+{
+	if (!MinimapIcon)
+	{
+		return;
+	}
+
+	MinimapIcon->SetSprite(NewSprite);
+
+	if (IsLocallyControlled() && MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->CaptureScene();
+	}
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -297,6 +404,9 @@ void APGPlayerCharacterBase::InitializeAbilities()
 			ASC->GiveAbility(Spec);
 		}
 	}
+
+	const FGameplayTag AirborneTag = FGameplayTag::RequestGameplayTag("Character.State.Airborne");
+	ASC->RegisterGameplayTagEvent(AirborneTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAirborneTagChanged);
 }
 
 void APGPlayerCharacterBase::InitializeAttributes()
@@ -453,6 +563,144 @@ void APGPlayerCharacterBase::UpdateHeadHPVisibility()
 	HeadHPWidgetComp->SetHiddenInGame(bHide);
 	HeadHPWidgetComp->SetVisibility(!bHide);
 }
+
+void APGPlayerCharacterBase::OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		if (HasAuthority())
+		{
+			LaunchCharacter(FVector(0.f, 0.f, 400.f), true, true);
+		}
+	}
+}
+
+void APGPlayerCharacterBase::BindCooldownTagEvent()
+{
+	if (!IsValid(ASC))
+	{
+		return;
+	}
+
+	TArray<FGameplayTag> CooldownTags;
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.Q")));
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.E")));
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.R")));
+
+	for (const FGameplayTag& Tag : CooldownTags)
+	{
+		ASC->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCooldownTagChanged);
+	}
+}
+
+void APGPlayerCharacterBase::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	OnCooldownTagChangedDelegate.Broadcast(CallbackTag, NewCount);
+
+	if (NewCount > 0)
+	{
+		StartCooldownTick(CallbackTag);
+	}
+	else
+	{
+		StopCooldownTick(CallbackTag);
+		OnCooldownTimeChangedDelegate.Broadcast(CallbackTag, 0.f, 0.f);
+	}
+}
+
+void APGPlayerCharacterBase::StartCooldownTick(FGameplayTag CooldownTag)
+{
+	if (CooldownTickTimerHandles.Contains(CooldownTag))
+	{
+		return;
+	}
+
+	FTimerHandle Handle;
+	CooldownTickTimerHandles.Add(CooldownTag, Handle);
+
+	GetWorldTimerManager().SetTimer(
+		CooldownTickTimerHandles[CooldownTag],
+		FTimerDelegate::CreateUObject(this, &ThisClass::TickCooldown, CooldownTag),
+		0.1f,
+		true
+	);
+
+	TickCooldown(CooldownTag);
+}
+
+void APGPlayerCharacterBase::StopCooldownTick(FGameplayTag CooldownTag)
+{
+	if (FTimerHandle* Handle = CooldownTickTimerHandles.Find(CooldownTag))
+	{
+		GetWorldTimerManager().ClearTimer(*Handle);
+		CooldownTickTimerHandles.Remove(CooldownTag);
+	}
+}
+
+void APGPlayerCharacterBase::TickCooldown(FGameplayTag CooldownTag)
+{
+	float Remaining = 0.f;
+	float Duration = 0.f;
+	if (GetCooldownRemainingAndDurationByTag(CooldownTag, Remaining, Duration))
+	{
+		OnCooldownTimeChangedDelegate.Broadcast(CooldownTag, Remaining, Duration);
+	}
+	else
+	{
+		StopCooldownTick(CooldownTag);
+		OnCooldownTimeChangedDelegate.Broadcast(CooldownTag, 0.f, 0.f);
+	}
+}
+
+bool APGPlayerCharacterBase::GetCooldownRemainingAndDurationByTag(FGameplayTag CooldownTag, float& OutRemaining, float& OutDuration) const
+{
+	OutRemaining = 0.f;
+	OutDuration = 0.f;
+
+	if (!IsValid(ASC))
+	{
+		return false;
+	}
+
+	FGameplayTagContainer CooldonwTags;
+	CooldonwTags.AddTag(CooldownTag);
+
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldonwTags);
+	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+	if (Handles.Num() == 0)
+	{
+		return false;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+
+	float BestRemaining = 0.f;
+	float BestDuration = 0.f;
+
+	for (const FActiveGameplayEffectHandle& Handle : Handles)
+	{
+		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle);
+		if (!ActiveGE)
+		{
+			continue;
+		}
+
+		const float Duration = ActiveGE->GetDuration();
+		const float Remaining = ActiveGE->GetTimeRemaining(Now);
+
+		if (Remaining > BestRemaining)
+		{
+			BestRemaining = Remaining;
+			BestDuration = Duration;
+		}
+	}
+
+	OutRemaining = BestRemaining;
+	OutDuration = BestDuration;
+
+	return true;
+}
+
 UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
 {
 	return ASC;

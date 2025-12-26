@@ -8,6 +8,9 @@
 #include "Interface/PGTeamStatusInterface.h"
 #include "PGPlayerCharacterBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCooldownTagChanged, FGameplayTag, CooldownTag, int32, NewCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FCooldownTimeChanged, FGameplayTag, CooldownTag, float, TimeRemaining, float, Duration);
+
 class USpringArmComponent;
 class UCameraComponent;
 class USkeletalMeshComponent;
@@ -17,7 +20,9 @@ class UGameplayAbility;
 class UWidgetComponent;
 class UCharacterAttributeSet;
 class UPG_IngameInfo;
-class USceneCaptureComponent2D;
+class USceneCaptureComponent2D; 
+class UPaperSpriteComponent;
+class UPaperSprite;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -40,12 +45,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character")
 	void SetInputLock(bool bLock);
 
+	UFUNCTION(BlueprintCallable, Category="Cooldown")
+    bool GetCooldownRemainingAndDurationByTag(FGameplayTag CooldownTag, float& OutRemaining, float& OutDuration) const;
+
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetMinimapSprite(UPaperSprite* NewSprite);
+
 	UTextureRenderTarget2D* GetMinimapRenderTarget();
+
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -74,6 +88,9 @@ protected:
 	void ToggleShopInput();
 
 private:
+	UFUNCTION()
+	void OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
 	void InitializeActorInfo();
 
 	void InitializeAbilities();
@@ -97,6 +114,22 @@ private:
 	void SetupHeadHPWidget();
 
 	void UpdateHeadHPVisibility();
+
+	void OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	void BindCooldownTagEvent();
+
+	void StartCooldownTick(FGameplayTag CooldownTag);
+	void StopCooldownTick(FGameplayTag CooldownTag);
+	void TickCooldown(FGameplayTag CooldownTag);
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Cooldown")
+	FCooldownTagChanged OnCooldownTagChangedDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category = "Cooldown")
+	FCooldownTimeChanged OnCooldownTimeChangedDelegate;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> MiniMapSpringArm;
@@ -158,11 +191,17 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UTextureRenderTarget2D> MinimapRT;
 
+	UPROPERTY()
+	TObjectPtr<UPaperSpriteComponent> MinimapIcon;
+
 private:
 	bool bInputLock;
 
 	bool bHeadHPBound;
 
+	TMap<FGameplayTag, FTimerHandle> CooldownTickTimerHandles;
+
+	float Accum;
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)

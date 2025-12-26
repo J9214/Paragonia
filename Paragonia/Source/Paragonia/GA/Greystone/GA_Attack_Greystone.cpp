@@ -126,7 +126,7 @@ void UGA_Attack_Greystone::SetupHitResultTask()
 
 	HitResultTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this,
-		FGameplayTag::RequestGameplayTag("Event.Character.HitResult"),
+		ComboAttackDatas[CurrentComboIndex].HitResultTag,
 		nullptr,
 		true,
 		true

@@ -33,6 +33,4 @@ public:
 
 protected:
 	FAttackData CurrentAttackData;
-	TObjectPtr<APGTaskRelatedBullet> CurrentTargetActor;
-	EGameplayTargetingConfirmation::Type CurrentConfimationType;
 };

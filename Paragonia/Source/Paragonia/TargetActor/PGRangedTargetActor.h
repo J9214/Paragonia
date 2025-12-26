@@ -19,8 +19,13 @@ public:
 
 	void SetAttackData(const FAttackData& InAttackData);
 
+protected:
+	bool PerformTrace(TArray<FHitResult>& OutHits) const;
+
 private:
 	bool SphereTrace(TArray<FHitResult>& OutHits) const;
+
+	bool BoxTrace(TArray<FHitResult>& OutHits) const;
 	
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
