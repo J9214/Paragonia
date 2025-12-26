@@ -7,6 +7,7 @@
 #include "GameplayTag/PGGameplayTags.h"
 #include "PlayerState/PGPlayerState.h"
 #include "GameFramework/Pawn.h"
+#include "Interface/PGTeamStatusInterface.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 
 bool UPGGameplayAbilityBase::HasNetAuthority() const
@@ -156,27 +157,11 @@ int32 UPGGameplayAbilityBase::GetTeamIdFromActor(const AActor* Actor) const
 		return TEAM_NONE;
 	}
 	
-	// Object / Minion etc
-	const UObject* InterfaceObject = Cast<UObject>(Actor);
-	if(InterfaceObject->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+	if (Actor->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UPGGameplayAbilityBase::GetTeamIdFromActor : TeamId is %d"), IPGTeamStatusInterface::Execute_GetTeamID(InterfaceObject));
-		return IPGTeamStatusInterface::Execute_GetTeamID(InterfaceObject);
-	}
+		return IPGTeamStatusInterface::Execute_GetTeamID(Actor);
+	}	
 
-	// Character
-	const APawn* Pawn = Cast<APawn>(Actor);
-	if (IsValid(Pawn))
-	{
-		const APGPlayerState* PS = Pawn->GetPlayerState<APGPlayerState>();
-		if (IsValid(PS) && PS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("UPGGameplayAbilityBase::GetTeamIdFromActor : TeamId is %d"), IPGTeamStatusInterface::Execute_GetTeamID(PS));
-			return IPGTeamStatusInterface::Execute_GetTeamID(PS);
-		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("UPGGameplayAbilityBase::GetTeamIdFromActor : TeamId is TeamNone"));
 	return TEAM_NONE;
 }
 

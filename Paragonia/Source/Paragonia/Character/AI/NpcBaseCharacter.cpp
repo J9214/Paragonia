@@ -279,9 +279,9 @@ void ANpcBaseCharacter::OnRep_TeamId()
 	int32 MyTeamId = 255;
 	if (APGPlayerState* PS = LocalPC->GetPlayerState<APGPlayerState>())
 	{
-		if (IsValid(PS) && PS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+		if (IsValid(PS))
 		{
-			MyTeamId = IPGTeamStatusInterface::Execute_GetTeamID(PS);
+			MyTeamId = PS->GetTeamID();
 		}
 	}
 

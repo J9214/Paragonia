@@ -556,7 +556,7 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 }
 
 #pragma region Respawn
-void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(uint8 bDead)
+void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(bool bDead)
 {
 	SetDeadState(bDead);
 }
@@ -636,7 +636,7 @@ void APGPlayerCharacterBase::OnRep_Dead()
 	}
 }
 
-void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
+void APGPlayerCharacterBase::SetDeadState(bool bDead)
 {
 	if (bIsDead == bDead)
 	{
@@ -648,7 +648,17 @@ void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
 	OnRep_Dead();
 }
 
-uint8 APGPlayerCharacterBase::GetIsDead() const
+int32 APGPlayerCharacterBase::GetTeamID_Implementation() const
+{
+	APGPlayerState* PS = GetPlayerState<APGPlayerState>();
+	if (IsValid(PS))
+	{
+		return PS->GetTeamID();
+	}
+	return -1;
+}
+
+bool APGPlayerCharacterBase::GetIsDead() const
 {
 	return bIsDead;
 }
@@ -667,17 +677,8 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 	if (!PlayerController) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 
 	// PlayerState에서 팀ID 받기
-	APGPlayerState* PS = PlayerController->GetPlayerState<APGPlayerState>();
-	if (!PS)
-	{
-		return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
-	}
-
-	int32 TeamID = 255;
-	if (PS->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
-	{
-		TeamID = IPGTeamStatusInterface::Execute_GetTeamID(PS);
-	}
+	
+	
 	
 
 	// GameMode나 다른 매니저에서 팀별 스폰 위치 쿼리
