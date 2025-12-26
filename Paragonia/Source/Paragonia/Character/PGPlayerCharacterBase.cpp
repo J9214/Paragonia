@@ -19,10 +19,13 @@
 #include "UI/Panels/PG_IngameInfo.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "PaperSpriteComponent.h"
+#include "PaperSprite.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	Accum = 0.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -68,11 +71,23 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 
 	HeadHPWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadHPWidgetComp"));
-	HeadHPWidgetComp->SetupAttachment(GetMesh());
-	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	HeadHPWidgetComp->SetupAttachment(GetMesh());    
+	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::World);
 	HeadHPWidgetComp->SetDrawAtDesiredSize(true);
 	HeadHPWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 240.f));
 	HeadHPWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	MinimapIcon = CreateDefaultSubobject<UPaperSpriteComponent>(TEXT("MinimapIcon"));
+	MinimapIcon->SetupAttachment(RootComponent);
+	MinimapIcon->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	MinimapIcon->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+
+	MinimapIcon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MinimapIcon->SetGenerateOverlapEvents(false);
+	MinimapIcon->CastShadow = false;
+
+	MinimapIcon->SetVisibleInSceneCaptureOnly(false);
+
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -119,11 +134,13 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 	{
 		return nullptr;
 	}
-
-	MinimapRT = NewObject<UTextureRenderTarget2D>(this);
-	MinimapRT->InitAutoFormat(512, 512);
-	MinimapRT->ClearColor = FLinearColor::Black;
-	MinimapRT->UpdateResourceImmediate(true);
+	if (!MinimapRT)
+	{
+		MinimapRT = NewObject<UTextureRenderTarget2D>(this);
+		MinimapRT->InitAutoFormat(512, 512);
+		MinimapRT->ClearColor = FLinearColor::Black;
+		MinimapRT->UpdateResourceImmediate(true);
+	}
 
 	if (MinimapCaptureComponent)
 	{
@@ -136,6 +153,93 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (!IsLocallyControlled())
+	{
+		if (MinimapCaptureComponent)
+		{
+			MinimapCaptureComponent->Deactivate();
+			MinimapCaptureComponent->bCaptureOnMovement = false;
+			MinimapCaptureComponent->bCaptureEveryFrame = false;
+		}
+		return;
+	}
+
+	if (MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->ShowFlags.SetSkeletalMeshes(false);
+		MinimapCaptureComponent->ShowFlags.SetParticles(false);
+
+		MinimapCaptureComponent->MarkRenderStateDirty();
+	}
+}
+
+void APGPlayerCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	Accum += DeltaSeconds;
+	if (Accum < 0.05f)
+	{
+		return;
+	}
+	Accum = 0.f;
+
+	if (!GetMesh()->WasRecentlyRendered(0.2f))
+	{
+		return;
+	}
+
+	if (!HeadHPWidgetComp)
+	{
+		return;
+	}
+
+	if (!IsNetMode(NM_Standalone) && !GetWorld())
+	{
+		return;
+	}
+
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC)
+	{
+		return;
+	}
+
+	FVector CamLoc;
+	FRotator CamRot;
+	PC->GetPlayerViewPoint(CamLoc, CamRot);
+
+	const FVector WidgetLoc = HeadHPWidgetComp->GetComponentLocation();
+	const FRotator LookRot = (CamLoc - WidgetLoc).Rotation();
+
+	HeadHPWidgetComp->SetWorldRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+}
+
+void APGPlayerCharacterBase::SetMinimapSprite(UPaperSprite* NewSprite)
+{
+	if (!MinimapIcon)
+	{
+		return;
+	}
+
+	MinimapIcon->SetSprite(NewSprite);
+
+	if (IsLocallyControlled() && MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->CaptureScene();
+	}
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

@@ -14,6 +14,9 @@
 #include "PlayerState/LobbyPlayerState.h"
 #include "Character/PG_LobbyPreviewCharacter.h"
 #include "Pawn/LobbyPawn.h"
+#include "Subsystem/PGAttributeDataSubsystem.h"
+#include "Struct/FStatDescription.h"
+#include "Struct/FCharacterAttributeData.h"
 
 void UPG_CharacterSelectWidget::NativeOnInitialized()
 {
@@ -199,7 +202,48 @@ void UPG_CharacterSelectWidget::HandleCharacterItemClicked(UObject* Item)
         UE_LOG(LogTemp, Warning, TEXT("PlayerState is not ready yet!"));
     }
 
+    UPGAttributeDataSubsystem* AttributeSubsystem = GetGameInstance()->GetSubsystem<UPGAttributeDataSubsystem>();
+    if (!IsValid(AttributeSubsystem))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UPG_CharacterDescription::InitDescription - AttributeSubsystem is not valid"));
+        return;
+    }
+
+    const FCharacterAttributeData* AttributeData = AttributeSubsystem->GetAttributeDataByName(Entry->DescriptionData.DisplayName);
+
+    if (!AttributeData)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UPG_CharacterDescription::InitDescription - AttributeData is null (%s)"), *Entry->DescriptionData.DisplayName.ToString());
+        return;
+    }
+
     CharacterDescription->InitDescription(*DetailRow);
+
+    UScriptStruct* Struct = FCharacterAttributeData::StaticStruct();
+    if (!Struct)
+    {
+        return;
+    }
+
+    for (TFieldIterator<FProperty> It(Struct); It; ++It)
+    {
+        FProperty* Prop = *It;
+        const FFloatProperty* FloatProp = CastField<FFloatProperty>(Prop);
+        if (!FloatProp)
+        {
+            continue;
+        }
+
+        const float Value = FloatProp->GetPropertyValue_InContainer(AttributeData);
+        if (FMath::IsNearlyZero(Value))
+        {
+            continue;
+        }
+
+        const FName StatName = Prop->GetFName();
+        CharacterDescription->SetStatInfo(StatName, Value);
+    }
+
     SelectedCharacterUID = Entry->DescriptionData.UID;
 
     if (SpawnPreviewActorIfNeeded())

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -34,6 +34,8 @@ public class Paragonia : ModuleRules
 			// State Tree
 			"StateTreeModule",
             "GameplayStateTreeModule",
+			
+			"Paper2D"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
