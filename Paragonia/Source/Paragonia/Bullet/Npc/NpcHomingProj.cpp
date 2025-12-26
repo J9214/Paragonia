@@ -8,6 +8,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "Net/UnrealNetwork.h"
+#include "Interface/PGTeamStatusInterface.h"
 
 ANpcHomingProj::ANpcHomingProj()
 	:MaxLifeTime(10.0f),
@@ -47,6 +48,36 @@ void ANpcHomingProj::InitializeProjectile(AActor* Target, float Speed)
 	{
 		DeactivateProjectile();
 		return;
+	}
+
+	if (Target->Implements<UPGTeamStatusInterface>())
+	{
+		bool bIsTargetDead = IPGTeamStatusInterface::Execute_GetIsDead(Target);
+		if (bIsTargetDead == true)
+		{
+			DeactivateProjectile();
+			return;
+		}
+
+		int32 MyTeamId = 255;
+		AActor* MyInstigator = GetInstigator();
+
+		if (IsValid(MyInstigator) == true &&
+			MyInstigator->Implements<UPGTeamStatusInterface>() == true)
+		{
+			MyTeamId = IPGTeamStatusInterface::Execute_GetTeamID(MyInstigator);
+		}
+
+		if (MyTeamId != 255)
+		{
+			int32 TargetTeamId = IPGTeamStatusInterface::Execute_GetTeamID(Target);
+
+			if (MyTeamId == TargetTeamId)
+			{
+				DeactivateProjectile();
+				return;
+			}
+		}
 	}
 
 	bHitConfirmed = false;
@@ -141,8 +172,6 @@ void ANpcHomingProj::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(MyOwner, HitEventTag, Payload);
 	}
 
-	// TODO : 이펙트 , 사운드? GC?
-
 	DeactivateProjectile();
 }
 
@@ -167,6 +196,14 @@ void ANpcHomingProj::CheckTargetStatus()
 		return;
 	}
 
-	// TODO : 타겟의 사망처리 중인 경우에 대한 처리
+	if (HomingTargetActor->Implements<UPGTeamStatusInterface>())
+	{
+		bool bIsTargetDead = IPGTeamStatusInterface::Execute_GetIsDead(HomingTargetActor);
 
+		if (bIsTargetDead == true)
+		{
+			DeactivateProjectile();
+			return;
+		}
+	}
 }
