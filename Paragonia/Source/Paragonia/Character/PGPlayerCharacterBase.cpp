@@ -108,6 +108,8 @@ void APGPlayerCharacterBase::OnRep_Controller()
 	{
 		PC->SetInputMode(InputMode);
 	}
+
+	BindCooldownTagEvent();
 }
 
 UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
@@ -466,6 +468,132 @@ void APGPlayerCharacterBase::OnAirborneTagChanged(const FGameplayTag CallbackTag
 			LaunchCharacter(FVector(0.f, 0.f, 400.f), true, true);
 		}
 	}
+}
+
+void APGPlayerCharacterBase::BindCooldownTagEvent()
+{
+	if (!IsValid(ASC))
+	{
+		return;
+	}
+
+	TArray<FGameplayTag> CooldownTags;
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.Q")));
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.E")));
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.R")));
+
+	for (const FGameplayTag& Tag : CooldownTags)
+	{
+		ASC->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCooldownTagChanged);
+	}
+}
+
+void APGPlayerCharacterBase::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	OnCooldownTagChangedDelegate.Broadcast(CallbackTag, NewCount);
+
+	if (NewCount > 0)
+	{
+		StartCooldownTick(CallbackTag);
+	}
+	else
+	{
+		StopCooldownTick(CallbackTag);
+		OnCooldownTimeChangedDelegate.Broadcast(CallbackTag, 0.f, 0.f);
+	}
+}
+
+void APGPlayerCharacterBase::StartCooldownTick(FGameplayTag CooldownTag)
+{
+	if (CooldownTickTimerHandles.Contains(CooldownTag))
+	{
+		return;
+	}
+
+	FTimerHandle Handle;
+	CooldownTickTimerHandles.Add(CooldownTag, Handle);
+
+	GetWorldTimerManager().SetTimer(
+		CooldownTickTimerHandles[CooldownTag],
+		FTimerDelegate::CreateUObject(this, &ThisClass::TickCooldown, CooldownTag),
+		0.1f,
+		true
+	);
+
+	TickCooldown(CooldownTag);
+}
+
+void APGPlayerCharacterBase::StopCooldownTick(FGameplayTag CooldownTag)
+{
+	if (FTimerHandle* Handle = CooldownTickTimerHandles.Find(CooldownTag))
+	{
+		GetWorldTimerManager().ClearTimer(*Handle);
+		CooldownTickTimerHandles.Remove(CooldownTag);
+	}
+}
+
+void APGPlayerCharacterBase::TickCooldown(FGameplayTag CooldownTag)
+{
+	float Remaining = 0.f;
+	float Duration = 0.f;
+	if (GetCooldownRemainingAndDurationByTag(CooldownTag, Remaining, Duration))
+	{
+		OnCooldownTimeChangedDelegate.Broadcast(CooldownTag, Remaining, Duration);
+	}
+	else
+	{
+		StopCooldownTick(CooldownTag);
+		OnCooldownTimeChangedDelegate.Broadcast(CooldownTag, 0.f, 0.f);
+	}
+}
+
+bool APGPlayerCharacterBase::GetCooldownRemainingAndDurationByTag(FGameplayTag CooldownTag, float& OutRemaining, float& OutDuration) const
+{
+	OutRemaining = 0.f;
+	OutDuration = 0.f;
+
+	if (!IsValid(ASC))
+	{
+		return false;
+	}
+
+	FGameplayTagContainer CooldonwTags;
+	CooldonwTags.AddTag(CooldownTag);
+
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldonwTags);
+	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+	if (Handles.Num() == 0)
+	{
+		return false;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+
+	float BestRemaining = 0.f;
+	float BestDuration = 0.f;
+
+	for (const FActiveGameplayEffectHandle& Handle : Handles)
+	{
+		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle);
+		if (!ActiveGE)
+		{
+			continue;
+		}
+
+		const float Duration = ActiveGE->GetDuration();
+		const float Remaining = ActiveGE->GetTimeRemaining(Now);
+
+		if (Remaining > BestRemaining)
+		{
+			BestRemaining = Remaining;
+			BestDuration = Duration;
+		}
+	}
+
+	OutRemaining = BestRemaining;
+	OutDuration = BestDuration;
+
+	return true;
 }
 
 UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
