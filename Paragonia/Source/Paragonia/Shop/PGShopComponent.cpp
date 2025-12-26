@@ -88,6 +88,17 @@ void UPGShopComponent::RequestBuy(FName ItemId)
     }
 }
 
+void UPGShopComponent::RequestSell(int32 Index)
+{
+    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+    {
+        if (PC->IsLocalController())
+        {
+            ServerSell(Index);
+        }
+    }
+}
+
 void UPGShopComponent::ServerBuy_Implementation(FName ItemId)
 {
     FPGShopItemRow Item;
@@ -122,6 +133,43 @@ void UPGShopComponent::ServerBuy_Implementation(FName ItemId)
     PS->AddGold(-TotalCost);
 
     GrantItemToOwner(Item);
+
+    ClientBuyResult(EShopBuyResult::Success, ItemId);
+}
+
+void UPGShopComponent::ServerSell_Implementation(int32 Index)
+{
+    APlayerController* PC = Cast<APlayerController>(GetOwner());
+    if (!PC)
+    {
+        return;
+    }
+
+    APGPlayerState* PS = PC->GetPlayerState<APGPlayerState>();
+    if (!PS)
+    {
+        return;
+    }
+
+    UPGInventoryComponent* Inv = PS->FindComponentByClass<UPGInventoryComponent>();
+    if (!Inv)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[Shop] GrantItemToOwner: InventoryComponent not found on PlayerState"));
+        return;
+    }
+
+    FPGShopItemRow Item;
+    FName ItemId = Inv->Slots[Index].ItemId;
+    if (!FindItem(ItemId, Item))
+    {
+        return;
+    }
+
+    const int32 TotalCost = Item.Price * 7 / 10;
+
+    PS->AddGold(TotalCost);
+
+	Inv->RemoveItem(Index);
 
     ClientBuyResult(EShopBuyResult::Success, ItemId);
 }

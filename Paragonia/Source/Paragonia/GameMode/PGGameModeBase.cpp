@@ -401,14 +401,24 @@ void APGGameModeBase::RespawnPlayer(APGPlayerController* Controller)
 void APGGameModeBase::OnObjectiveDestroyed(AActor* DestroyedActor)
 {
     APGGameStateBase* GS = GetGameState<APGGameStateBase>();
-    if (!GS) return;
+    if (!GS) 
+    {
+        return;
+    }
 
-    if (!HasAuthority()) return;
+    if (!HasAuthority()) 
+    {
+        return;
+    }
 
     if (DestroyedActor->ActorHasTag("Team1Nexus"))
+    {
         GS->TeamResult = ETeamResult::Team2Win;
+    }
     else if (DestroyedActor->ActorHasTag("Team2Nexus"))
+    {
         GS->TeamResult = ETeamResult::Team1Win;
+    }
 }
 
 

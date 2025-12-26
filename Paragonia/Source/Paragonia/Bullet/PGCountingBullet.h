@@ -21,7 +21,7 @@ protected:
 	UFUNCTION()
 	void OnCreateTargetActor();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void OnEffectCreate();
 
 protected:
@@ -30,7 +30,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 MaxCount;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 CurrentCount;
 
 	FTimerHandle SpawnActorTimer;
