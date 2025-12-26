@@ -37,6 +37,9 @@ public:
     bool AddItem(FName ItemId);
 
     UFUNCTION(BlueprintCallable)
+    bool RemoveItem(int32 Index);
+
+    UFUNCTION(BlueprintCallable)
     const FInventorySlot& GetSlot(int32 Index) const;
 
     UFUNCTION(BlueprintCallable)
@@ -53,6 +56,9 @@ protected:
     /** 서버 아이템 추가 */
     UFUNCTION(Server, Reliable)
     void ServerAddItem(FName ItemId);
+
+    UFUNCTION(Server, Reliable)
+    void ServerRemoveItem(int32 Index);
 
     UFUNCTION()
     void OnRep_Inventory();

@@ -27,24 +27,15 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (IsValid(Character))
-	{
-		if (UAnimInstance* AI = Character->GetMesh()->GetAnimInstance())
-		{
-			if (auto PGAnimInstance = Cast<UPGAnimInstance>(AI))
-			{
-				PGAnimInstance->SetCurrentAttackData(AttackData);
-			}
-		}
-	}
-
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::ActivateAbility - Montage is invalid"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 
@@ -63,7 +54,7 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("AttackTask"),
+			TEXT("SkillQ_Task"),
 			AttackData.Montage,
 			1.0f
 		);
@@ -107,11 +98,6 @@ void UGA_SkillQ_Aurora::EndAbility(
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UGA_SkillQ_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
-{
-	// Add Damage Logic Here If Needed
-}
-
 void UGA_SkillQ_Aurora::OnMontageCompleted()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
@@ -132,6 +118,7 @@ void UGA_SkillQ_Aurora::OnDashFinished()
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}
 
@@ -153,6 +140,7 @@ void UGA_SkillQ_Aurora::OnDashStartEvent(const FGameplayEventData Payload)
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}
 

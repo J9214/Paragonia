@@ -13,6 +13,7 @@ void UPGShopDetailWidget::NativeConstruct()
     if (BuyButton)
     {
         BuyButton->OnClicked.AddDynamic(this, &UPGShopDetailWidget::OnBuyClicked);
+        SellButton->OnClicked.AddDynamic(this, &UPGShopDetailWidget::OnSellClicked);
     }
 
     if (CountSpin)
@@ -27,9 +28,18 @@ void UPGShopDetailWidget::SetItem(const FPGShopItemRow& InItem)
 {
     CurrentItem = InItem;
 
-    if (NameText)  NameText->SetText(InItem.DisplayName);
-    if (DescText)  DescText->SetText(InItem.Description);
-    if (PriceText) PriceText->SetText(FText::AsNumber(InItem.Price));
+    if (NameText)  
+    {
+        NameText->SetText(InItem.DisplayName);
+    }
+    if (DescText)  
+    {
+        DescText->SetText(InItem.Description);
+    }
+    if (PriceText)
+    {
+        PriceText->SetText(FText::AsNumber(InItem.Price));
+    }
 
     if (IconImage)
     {
@@ -50,7 +60,9 @@ void UPGShopDetailWidget::SetItem(const FPGShopItemRow& InItem)
 void UPGShopDetailWidget::RefreshStock()
 {
     if (!StockText)
+    {
         return;
+    }
 
     if (!ShopComp)
     {
@@ -64,7 +76,20 @@ void UPGShopDetailWidget::RefreshStock()
 
 void UPGShopDetailWidget::OnBuyClicked()
 {
-    if (!ShopComp) return;
+    if (!ShopComp) 
+    {
+        return;
+    }
 
     ShopComp->RequestBuy(CurrentItem.ItemId);
+}
+
+void UPGShopDetailWidget::OnSellClicked()
+{
+    if (!ShopComp)
+    {
+        return;
+    }
+
+    ShopComp->RequestSell(CurrentSlotIndex);
 }

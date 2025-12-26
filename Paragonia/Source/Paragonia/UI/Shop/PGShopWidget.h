@@ -39,14 +39,18 @@ protected:
     UFUNCTION()
     void OnBuyResult(EShopBuyResult Result, FName ItemId);
 
-    void RefreshGoldText();
-
     UFUNCTION() void OnCategoryAll();
     UFUNCTION() void OnCategoryWeapon();
     UFUNCTION() void OnCategoryArmor();
     UFUNCTION() void OnCategoryConsumable();
     UFUNCTION() void OnCategoryEtc();
 
+    UFUNCTION()
+    void HandleInventorySlotSelected(int32 SlotIndex);
+    UFUNCTION()
+    void HandleInventorySlotRightClick(int32 SlotIndex);
+    UFUNCTION()
+    void HandleGoldChange(int32 NewGold);
 
 protected:
     UPROPERTY(meta = (BindWidget)) 

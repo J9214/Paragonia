@@ -8,7 +8,6 @@
 
 struct FCharacterDescription;
 struct FCharacterResourceInfo;
-struct FStatDescription;
 /**
  * 
  */
@@ -30,8 +29,6 @@ public:
 	const FCharacterResourceInfo* GetCharacterResource(const FName& CharacterName) const;
 	const FCharacterResourceInfo* GetCharacterResource(const int32 UID) const;
 
-	const FStatDescription* GetStatDescription(const FName& StatName) const;
-
 	TArray<FName> GetAllRowNames() const;
 protected:
 
@@ -40,9 +37,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UDataTable> CharacterResourceInfoDataTable;
-
-	UPROPERTY()
-	TObjectPtr<UDataTable> StatDescriptionDataTable;
 
 	UPROPERTY(Transient)
 	TMap<int32, FName> UIDToRowName;

@@ -32,9 +32,6 @@ public:
 
 private:
 	UFUNCTION()
-	void OnHitResultEvent(const FGameplayEventData Payload);
-
-	UFUNCTION()
 	void OnMontageCompleted();
 
 	UFUNCTION()
