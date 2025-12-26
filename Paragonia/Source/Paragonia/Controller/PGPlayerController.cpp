@@ -11,8 +11,6 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Shop/PGShopComponent.h"
 #include "UI/Shop/PGShopWidget.h"
-#include "Subsystem/PGCharacterDescriptionSubsystem.h"
-#include "Struct/FCharacterResourceInfo.h"
 
 void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
 {
@@ -132,50 +130,6 @@ bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
     return true;
 }
 
-bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter ,APGPlayerState* LocalPS)
-{
-    UGameInstance* GI = GetGameInstance();
-
-    if (!IsValid(GI))
-    {
-        return false;
-    }
-
-    UPGCharacterDescriptionSubsystem* CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
-
-    if (!IsValid(CharacterDescSubsys))
-    {
-        return false;
-    }
-
-    const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(LocalPS->GetCharID());
-
-    if (!ResourceInfo)
-    {
-        return false;
-    }
-
-    UPaperSprite* Sprite = nullptr;
-
-    if (ResourceInfo->MinimapIcon.IsValid())
-    {
-        Sprite = ResourceInfo->MinimapIcon.Get();
-    }
-    else
-    {
-        Sprite = ResourceInfo->MinimapIcon.LoadSynchronous();
-    }
-
-    if (!Sprite)
-    {
-        return false;
-    }
-
-    InCharacter->SetMinimapSprite(Sprite);
-
-    return true;
-}
-
 APGPlayerController::APGPlayerController()
 {
     ShopComponent = CreateDefaultSubobject<UPGShopComponent>(TEXT("ShopComponent"));
@@ -241,11 +195,6 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
         return false;
     }
 
-    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS))\
-    {
-        return false;
-    }
-
     MyAttributeSet->OnHealthChanged_UI.RemoveAll(IngameHUD);
     MyAttributeSet->OnMaxHealthChanged_UI.RemoveAll(IngameHUD);
 
@@ -273,7 +222,19 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
 
         APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
 
-        if (PGPS == LocalPS)
+        int32 PSTeamId= 255;
+        if (IsValid(PGPS))
+        {
+            PSTeamId = PGPS->GetTeamID();
+        }
+
+        int32 LocalPSTeamId = 255;
+        if (IsValid(LocalPS))
+        {
+            LocalPSTeamId = LocalPS->GetTeamID();
+        }
+
+        if (PGPS == LocalPS || PSTeamId != LocalPSTeamId)
         {
             continue;
         }
@@ -287,17 +248,6 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
         if (!FoundCharacter->HasActorBegunPlay())
         {
             return false;
-        }
-
-        if (!SetCharacterMinimapIcon(FoundCharacter, PGPS))
-        {
-            return false;
-        }
-
-        if (PGPS->GetTeamID() != LocalPS->GetTeamID())
-        {
-
-            continue;
         }
 
         UCharacterAttributeSet* TeamAttributeSet = FoundCharacter->GetCharacterAttributeSet();
@@ -372,6 +322,17 @@ void APGPlayerController::BeginPlay()
     }
 }
 
+void APGPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+    APGGameStateBase* GS = GetWorld() ? GetWorld()->GetGameState<APGGameStateBase>() : nullptr;
+    if (GS)
+    {
+        GS->OnTeamResultChanged.RemoveDynamic(this, &APGPlayerController::OnTeamResultChanged);
+    }
+}
+
 #pragma region GameResult
 void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
 {
@@ -392,14 +353,20 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
             return;
         }
 
+        int32 TeamId = 255;
+        if (IsValid(MyPS))
+        {
+            TeamId = MyPS->GetTeamID();
+        }
+
         bool bIsWinner = false;
         switch (GS->TeamResult)
         {
         case ETeamResult::Team1Win:
-            bIsWinner = (MyPS->GetTeamID() == 0);
+            bIsWinner = (TeamId == 0);
             break;
         case ETeamResult::Team2Win:
-            bIsWinner = (MyPS->GetTeamID() == 1);
+            bIsWinner = (TeamId == 1);
             break;
         default:
             break;
@@ -410,7 +377,7 @@ void APGPlayerController::OnTeamResultChanged(ETeamResult NewResult)
         {
             ShowWinWidget(1);
         }
-        else if (!bIsWinner)
+        else
         {
             ShowWinWidget(0);
         }
