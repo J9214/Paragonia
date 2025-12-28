@@ -558,10 +558,10 @@ bool APGPlayerCharacterBase::GetCooldownRemainingAndDurationByTag(FGameplayTag C
 		return false;
 	}
 
-	FGameplayTagContainer CooldonwTags;
-	CooldonwTags.AddTag(CooldownTag);
+	FGameplayTagContainer CooldownTags;
+	CooldownTags.AddTag(CooldownTag);
 
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldonwTags);
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags);
 	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
 	if (Handles.Num() == 0)
 	{
