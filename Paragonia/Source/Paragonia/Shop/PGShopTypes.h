@@ -45,4 +45,10 @@ struct FPGShopItemRow : public FTableRowBase
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "bLimited"))
     int32 Stock = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Stats")
+    TMap<FGameplayTag, float> ItemStats; 
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Stats")
+    TSubclassOf<class UGameplayEffect> EquipmentGE;
 };

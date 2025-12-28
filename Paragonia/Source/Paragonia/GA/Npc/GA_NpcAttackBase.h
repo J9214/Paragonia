@@ -23,7 +23,7 @@ public:
 protected:
 
 	UFUNCTION()
-	void OnMontageCompleted();
+	virtual void OnMontageCompleted();
 
 	UFUNCTION()
 	void OnMontageInterrupted();

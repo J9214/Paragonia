@@ -12,6 +12,9 @@ USTRUCT()
 struct FSTT_ChaseTargetInstanceData
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Parameter")
+	float DistanceCushion = 50.0f;
 };
 
 USTRUCT(meta = (DisplayName = "Chase Target", Category = "Task|AI"))

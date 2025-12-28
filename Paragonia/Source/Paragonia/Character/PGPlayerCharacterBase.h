@@ -20,7 +20,9 @@ class UGameplayAbility;
 class UWidgetComponent;
 class UCharacterAttributeSet;
 class UPG_IngameInfo;
-class USceneCaptureComponent2D;
+class USceneCaptureComponent2D; 
+class UPaperSpriteComponent;
+class UPaperSprite;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -49,10 +51,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetMinimapSprite(UPaperSprite* NewSprite);
+
 	UTextureRenderTarget2D* GetMinimapRenderTarget();
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -184,6 +191,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UTextureRenderTarget2D> MinimapRT;
 
+	UPROPERTY()
+	TObjectPtr<UPaperSpriteComponent> MinimapIcon;
+
 private:
 	bool bInputLock;
 
@@ -191,6 +201,7 @@ private:
 
 	TMap<FGameplayTag, FTimerHandle> CooldownTickTimerHandles;
 
+	float Accum;
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)
@@ -215,6 +226,8 @@ protected:
 	FTransform GetRespawnLocationForController() const;
 
 	void ResetCharacterStateOnRespawn();
+
+	void ClearAllTagsAndEffectOnDeath();
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)

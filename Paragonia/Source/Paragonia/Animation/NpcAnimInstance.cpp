@@ -8,6 +8,7 @@
 #include "GameplayTag/PGGameplayTags.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
+#include "Interface/PGTeamStatusInterface.h"
 
 UNpcAnimInstance::UNpcAnimInstance()
 {
@@ -40,10 +41,9 @@ void UNpcAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	GroundSpeed = MovementComponent->Velocity.Size2D();
 	bShouldMove = (GroundSpeed > 3.0f) && (MovementComponent->GetCurrentAcceleration() != FVector::ZeroVector);
 
-	UAbilitySystemComponent* ASC = OwnerCharacter->GetAbilitySystemComponent();
-	if (IsValid(ASC))
+	if (OwnerCharacter->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
 	{
-		bIsDead = ASC->HasMatchingGameplayTag(OwnerCharacter->GetDeadTag());
+		bIsDead = IPGTeamStatusInterface::Execute_GetIsDead(OwnerCharacter);
 	}
 }
 
