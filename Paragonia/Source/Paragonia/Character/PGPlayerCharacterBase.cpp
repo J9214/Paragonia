@@ -736,6 +736,8 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		{
 			CapsuleComp->SetCollisionProfileName(TEXT("NoCollision"));
 		}
+
+		ClearAllTagsAndEffectOnDeath();
 	}
 	else { // 리스폰
 
@@ -842,10 +844,23 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 
 void APGPlayerCharacterBase::ResetCharacterStateOnRespawn()
 {
-	if (IsValid(CharacterAttributeSet))
+	if (!HasAuthority() || !IsValid(CharacterAttributeSet))
 	{
-		CharacterAttributeSet->SetHealth(CharacterAttributeSet->GetMaxHealth());
+		return;
 	}
+
+	CharacterAttributeSet->SetHealth(CharacterAttributeSet->GetMaxHealth());
+}
+
+void APGPlayerCharacterBase::ClearAllTagsAndEffectOnDeath()
+{
+	if (!HasAuthority() || !IsValid(ASC))
+	{
+		return;
+	}
+
+	ASC->CancelAllAbilities();
+	ASC->RemoveAllGameplayCues();
 }
 
 void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
