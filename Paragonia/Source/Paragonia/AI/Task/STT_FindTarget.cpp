@@ -1,4 +1,4 @@
-﻿
+
 #include "AI/Task/STT_FindTarget.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreeLinker.h"
@@ -45,6 +45,7 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 	TArray<AActor*> OutActors;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(NPC);
 
@@ -52,7 +53,6 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 		NPC, MyLoc, Radius, ObjectTypes, nullptr, IgnoreActors, OutActors
 	);
 
-	// 탐색 결과 없음
 	if (bFoundAny == false)
 	{
 		return EStateTreeRunStatus::Running;
@@ -60,20 +60,33 @@ EStateTreeRunStatus FSTT_FindTarget::Tick(FStateTreeExecutionContext& Context, c
 
 	AActor* BestTarget = nullptr;
 	float MinDistSq = FLT_MAX;
-	int32 MyTeamId = NPC->GetTeamId();
+	int32 MyTeamId = 255;
+
+	if (NPC->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+	{
+		MyTeamId = IPGTeamStatusInterface::Execute_GetTeamID(NPC);
+	}
 
 	for (AActor* Target : OutActors)
 	{
-		ANpcBaseCharacter* Enemy = Cast<ANpcBaseCharacter>(Target);
-		if (IsValid(Enemy) == false ||
-			Enemy->GetTeamId() == MyTeamId)
+		if (IsValid(Target) == false)
 		{
 			continue;
 		}
 
-		UAbilitySystemComponent* EnemyASC = Enemy->GetAbilitySystemComponent();
-		if (IsValid(EnemyASC) == false ||
-			EnemyASC->HasMatchingGameplayTag(Enemy->GetDeadTag()) == true)
+		if (Target->Implements<UPGTeamStatusInterface>() == false)
+		{
+			continue;
+		}
+
+		int32 TargetTeamId = IPGTeamStatusInterface::Execute_GetTeamID(Target);
+
+		if (TargetTeamId == MyTeamId)
+		{
+			continue;
+		}
+
+		if (IPGTeamStatusInterface::Execute_GetIsDead(Target) == true)
 		{
 			continue;
 		}

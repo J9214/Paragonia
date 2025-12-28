@@ -11,6 +11,8 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Shop/PGShopComponent.h"
 #include "UI/Shop/PGShopWidget.h"
+#include "Subsystem/PGCharacterDescriptionSubsystem.h"
+#include "Struct/FCharacterResourceInfo.h"
 
 void APGPlayerController::Client_SetExpectedPlayerCount_Implementation(int32 InExpectedPlayerCount)
 {
@@ -129,6 +131,49 @@ bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
 
     return true;
 }
+bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter, APGPlayerState* LocalPS)
+{
+    UGameInstance* GI = GetGameInstance();
+
+    if (!IsValid(GI))
+    {
+        return false;
+    }
+
+    UPGCharacterDescriptionSubsystem* CharacterDescSubsys = GI->GetSubsystem<UPGCharacterDescriptionSubsystem>();
+
+    if (!IsValid(CharacterDescSubsys))
+    {
+        return false;
+    }
+
+    const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(LocalPS->GetCharID());
+
+    if (!ResourceInfo)
+    {
+        return false;
+    }
+
+    UPaperSprite* Sprite = nullptr;
+
+    if (ResourceInfo->MinimapIcon.IsValid())
+    {
+        Sprite = ResourceInfo->MinimapIcon.Get();
+    }
+    else
+    {
+        Sprite = ResourceInfo->MinimapIcon.LoadSynchronous();
+    }
+
+    if (!Sprite)
+    {
+        return false;
+    }
+
+    InCharacter->SetMinimapSprite(Sprite);
+
+    return true;
+}
 
 APGPlayerController::APGPlayerController()
 {
@@ -193,6 +238,11 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
     if (!IsValid(MyAttributeSet))
     {
         return false;
+    }    
+    
+    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS))\
+    {
+        return false;
     }
 
     MyAttributeSet->OnHealthChanged_UI.RemoveAll(IngameHUD);
@@ -253,6 +303,11 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
         UCharacterAttributeSet* TeamAttributeSet = FoundCharacter->GetCharacterAttributeSet();
 
         if (!IsValid(TeamAttributeSet))
+        {
+            return false;
+        }
+
+        if (!SetCharacterMinimapIcon(FoundCharacter, PGPS))
         {
             return false;
         }

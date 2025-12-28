@@ -19,10 +19,13 @@
 #include "UI/Panels/PG_IngameInfo.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "PaperSpriteComponent.h"
+#include "PaperSprite.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	Accum = 0.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -68,11 +71,23 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
 
 	HeadHPWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("HeadHPWidgetComp"));
-	HeadHPWidgetComp->SetupAttachment(GetMesh());
-	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	HeadHPWidgetComp->SetupAttachment(GetMesh());    
+	HeadHPWidgetComp->SetWidgetSpace(EWidgetSpace::World);
 	HeadHPWidgetComp->SetDrawAtDesiredSize(true);
 	HeadHPWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, 240.f));
 	HeadHPWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	MinimapIcon = CreateDefaultSubobject<UPaperSpriteComponent>(TEXT("MinimapIcon"));
+	MinimapIcon->SetupAttachment(RootComponent);
+	MinimapIcon->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	MinimapIcon->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+
+	MinimapIcon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MinimapIcon->SetGenerateOverlapEvents(false);
+	MinimapIcon->CastShadow = false;
+
+	MinimapIcon->SetVisibleInSceneCaptureOnly(false);
+
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -119,11 +134,13 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 	{
 		return nullptr;
 	}
-
-	MinimapRT = NewObject<UTextureRenderTarget2D>(this);
-	MinimapRT->InitAutoFormat(512, 512);
-	MinimapRT->ClearColor = FLinearColor::Black;
-	MinimapRT->UpdateResourceImmediate(true);
+	if (!MinimapRT)
+	{
+		MinimapRT = NewObject<UTextureRenderTarget2D>(this);
+		MinimapRT->InitAutoFormat(512, 512);
+		MinimapRT->ClearColor = FLinearColor::Black;
+		MinimapRT->UpdateResourceImmediate(true);
+	}
 
 	if (MinimapCaptureComponent)
 	{
@@ -136,6 +153,93 @@ UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (!IsLocallyControlled())
+	{
+		if (MinimapCaptureComponent)
+		{
+			MinimapCaptureComponent->Deactivate();
+			MinimapCaptureComponent->bCaptureOnMovement = false;
+			MinimapCaptureComponent->bCaptureEveryFrame = false;
+		}
+		return;
+	}
+
+	if (MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->ShowFlags.SetSkeletalMeshes(false);
+		MinimapCaptureComponent->ShowFlags.SetParticles(false);
+
+		MinimapCaptureComponent->MarkRenderStateDirty();
+	}
+}
+
+void APGPlayerCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	Accum += DeltaSeconds;
+	if (Accum < 0.05f)
+	{
+		return;
+	}
+	Accum = 0.f;
+
+	if (!GetMesh()->WasRecentlyRendered(0.2f))
+	{
+		return;
+	}
+
+	if (!HeadHPWidgetComp)
+	{
+		return;
+	}
+
+	if (!IsNetMode(NM_Standalone) && !GetWorld())
+	{
+		return;
+	}
+
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC)
+	{
+		return;
+	}
+
+	FVector CamLoc;
+	FRotator CamRot;
+	PC->GetPlayerViewPoint(CamLoc, CamRot);
+
+	const FVector WidgetLoc = HeadHPWidgetComp->GetComponentLocation();
+	const FRotator LookRot = (CamLoc - WidgetLoc).Rotation();
+
+	HeadHPWidgetComp->SetWorldRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+}
+
+void APGPlayerCharacterBase::SetMinimapSprite(UPaperSprite* NewSprite)
+{
+	if (!MinimapIcon)
+	{
+		return;
+	}
+
+	MinimapIcon->SetSprite(NewSprite);
+
+	if (IsLocallyControlled() && MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->CaptureScene();
+	}
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -709,28 +813,23 @@ void APGPlayerCharacterBase::OnRep_Dead()
 {
 	if (bIsDead == 1) 
 	{ // 사망
-
 		if (APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>())
 		{
 			GM->HandleCharacterDeath(this, GetController());
 		}
 
-		// 1) 입력 막기 
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			DisableInput(PC);
 		}
 
-		// 2) 이동 막기 
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
-			// 완전 정지
 			MoveComp->StopMovementImmediately();
 			MoveComp->DisableMovement();
 			MoveComp->GravityScale = 0.0f;
 		}
 
-		// 3) Capsule, Disable Collision
 		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 		if (IsValid(CapsuleComp))
 		{
@@ -746,7 +845,6 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		FTransform SpawnTransform = GetRespawnLocationForController();
 		MovePlayerToRespawnPoint(SpawnTransform);
 
-		// 2) 메쉬 다시 보여주기 + 자식까지 전부
 		if (USkeletalMeshComponent* SkelMesh = GetMesh())
 		{
 			SkelMesh->SetVisibility(true, true);
@@ -755,29 +853,24 @@ void APGPlayerCharacterBase::OnRep_Dead()
 			GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
 			GetMesh()->SetRelativeLocation({ 0, 0, -90 });
 			GetMesh()->SetRelativeRotation({ 0, -90, 0 });
-
 		}
 
-		// 3) 캡슐, 충돌 다시 활성화
 		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
 		{
 			Capsule->SetCollisionProfileName(TEXT("Pawn"));
 		}
 
-		// 4) 이동 다시 켜기	
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
 			MoveComp->SetMovementMode(MOVE_Walking);
 			MoveComp->GravityScale = 1.0f;
 		}
 
-		// 5) 입력 활성화
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			EnableInput(PC);
 		}
 
-		// 6) Reset Character State
 		ResetCharacterStateOnRespawn();
 	}
 }
@@ -822,7 +915,6 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 	AController* PlayerController = GetController();
 	if (!PlayerController) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 
-	// PlayerState에서 팀ID 받기
 	APGPlayerState* PS = PlayerController->GetPlayerState<APGPlayerState>();
 	if (!PS)
 	{
@@ -831,7 +923,6 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 
 	int32 SpawnTeamID = PS->GetTeamID();
 
-	// GameMode나 다른 매니저에서 팀별 스폰 위치 쿼리
 	APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>();
 	if (GM)
 	{
