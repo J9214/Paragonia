@@ -1,13 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "AbilitySystemInterface.h"
-#include "GameplayTagContainer.h"
+#include "Character/PGCharacterBase.h"
 #include "Components/StateTreeComponent.h"
-#include "Interface/PGTeamStatusInterface.h"
 #include "NpcBaseCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -16,14 +13,12 @@ class UGameplayAbility;
 class UGameplayEffect;
 
 UCLASS()
-class PARAGONIA_API ANpcBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IPGTeamStatusInterface
+class PARAGONIA_API ANpcBaseCharacter : public APGCharacterBase
 {
 	GENERATED_BODY()
 
 public:
 	ANpcBaseCharacter();
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -32,8 +27,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	int32 GetTeamID_Implementation() const;
-	bool GetIsDead_Implementation() const;
+	int32 GetTeamID_Implementation() const override;
+	bool GetIsDead_Implementation() const override;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "AI")
@@ -64,6 +59,7 @@ public:
 	void SetRotationToTarget(AActor* TargetActor);
 
 protected:
+
 	void GrantStartupAbilities();
 
 	UFUNCTION()
@@ -82,12 +78,6 @@ protected:
 	void Multicast_HandleDeath();
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UCharacterAttributeSet> AttributeSet;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|StateTree")
 	TObjectPtr<UStateTreeComponent> StateTreeComponent;
 

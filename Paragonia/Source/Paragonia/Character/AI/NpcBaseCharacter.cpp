@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/AI/NpcBaseCharacter.h"
@@ -30,23 +30,11 @@ ANpcBaseCharacter::ANpcBaseCharacter()
 	GetCharacterMovement()->bUseRVOAvoidance = true;
 	GetCharacterMovement()->AvoidanceConsiderationRadius = 150.0f;
 
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	// Minimal : GameplayCue 와 Tag만 복제
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
-	AbilitySystemComponent->SetIsReplicated(true);
-
-	AttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("AttributeSet"));
-
 	StateTreeComponent = CreateDefaultSubobject<UStateTreeComponent>(TEXT("StateTreeComponent"));
 	StateTreeComponent->SetAutoActivate(true);
 
 	AIControllerClass = AAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-}
-
-UAbilitySystemComponent* ANpcBaseCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
 }
 
 void ANpcBaseCharacter::PossessedBy(AController* NewController)
@@ -58,13 +46,13 @@ void ANpcBaseCharacter::PossessedBy(AController* NewController)
 		StateTreeComponent->StartLogic();
 	}
 
-	if (AbilitySystemComponent)
+	if (ASC)
 	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		ASC->InitAbilityActorInfo(this, this);
 
-		if (AttributeSet)
+		if (CharacterAttributeSet)
 		{
-			AttributeSet->OnHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+			CharacterAttributeSet->OnHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
 		}
 
 		if (HasAuthority())
@@ -73,6 +61,7 @@ void ANpcBaseCharacter::PossessedBy(AController* NewController)
 		}
 	}
 }
+
 
 void ANpcBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -110,10 +99,10 @@ void ANpcBaseCharacter::HandleDeath()
 {
 	if (HasAuthority())
 	{
-		if (IsValid(AbilitySystemComponent) == true
+		if (IsValid(ASC) == true
 			&& DeadTag.IsValid() == true)
 		{
-			AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+			ASC->AddLooseGameplayTag(DeadTag);
 		}
 
 		if (StateTreeComponent)
@@ -172,12 +161,12 @@ int32 ANpcBaseCharacter::GetTeamID_Implementation() const
 
 bool ANpcBaseCharacter::GetIsDead_Implementation() const
 {
-	if (IsValid(AbilitySystemComponent) == false)
+	if (IsValid(ASC) == false)
 	{
 		return false;
 	}
 
-	return AbilitySystemComponent->HasMatchingGameplayTag(DeadTag);
+	return ASC->HasMatchingGameplayTag(DeadTag);
 }
 
 void ANpcBaseCharacter::SetTeamId(int32 NewTeamId)
@@ -252,7 +241,7 @@ void ANpcBaseCharacter::SetRotationToTarget(AActor* TargetActor)
 
 void ANpcBaseCharacter::GrantStartupAbilities()
 {
-	if (IsValid(AbilitySystemComponent) == false)
+	if (IsValid(ASC) == false)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ANpcBaseCharacter::GrantStartupAbilities - ASC is Not Valid!"));
 		return;
@@ -267,7 +256,7 @@ void ANpcBaseCharacter::GrantStartupAbilities()
 	for (TSubclassOf<UGameplayAbility> AbilityClass : StartupAbilities)
 	{
 		FGameplayAbilitySpec Spec(AbilityClass, 1);
-		AbilitySystemComponent->GiveAbility(Spec);
+		ASC->GiveAbility(Spec);
 	}
 }
 

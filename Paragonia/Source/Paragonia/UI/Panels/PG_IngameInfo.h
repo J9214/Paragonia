@@ -8,6 +8,7 @@
 
 class UPG_HPBar;
 class UTextBlock;
+class UCharacterAttributeSet;
 /**
  * 
  */
@@ -17,6 +18,8 @@ class PARAGONIA_API UPG_IngameInfo : public UCommonUserWidget
 	GENERATED_BODY()
 
 public:
+	void BindToAttributeSet(UCharacterAttributeSet* InAttrSet);
+
 	UFUNCTION()
 	void HandleHealthChanged(float OldValue, float NewValue);
 
@@ -24,10 +27,21 @@ public:
 	void HandleMaxHealthChanged(float OldValue, float NewValue);
 
 protected:
+	virtual void NativeDestruct() override;
+
+private:
+
+	void UnbindFromAttributeSet();
+
+protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_HPBar> PlayerHPBar;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> PlayerName;
+	TObjectPtr<UTextBlock> PlayerName;\
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCharacterAttributeSet> BoundAttrSet;
 
 };

@@ -6,7 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "PG_PlayerUIComponent.generated.h"
 
-class APGPlayerCharacterBase;
+class APGCharacterBase;
+class APlayerCameraManager;
 class USceneCaptureComponent2D;
 class UWidgetComponent;
 class UPG_IngameInfo;
@@ -26,7 +27,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void InitComponents(APGPlayerCharacterBase* InOwnerCharacter, UWidgetComponent* InHeadHPWidgetComp, UPaperSpriteComponent* InMinimapIcon, UCharacterAttributeSet* InCharacterAttributeSet);
+	void InitComponents(APGCharacterBase* InOwnerCharacter, UWidgetComponent* InHeadHPWidgetComp, UPaperSpriteComponent* InMinimapIcon, UCharacterAttributeSet* InCharacterAttributeSet);
 
 	void SetupHeadHPWidget();
 
@@ -38,7 +39,7 @@ public:
 protected:
 
 	UPROPERTY()
-	TObjectPtr<APGPlayerCharacterBase> OwnerCharacter;
+	TObjectPtr<APGCharacterBase> OwnerCharacter;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UWidgetComponent> HeadHPWidgetComp;
@@ -57,6 +58,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UCharacterAttributeSet> CharacterAttributeSet;
+
+	UPROPERTY()
+	TObjectPtr<APlayerCameraManager> CameraManager;
 private:
 
 	float Accum;

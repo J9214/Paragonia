@@ -1,11 +1,9 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "AbilitySystemInterface.h"
+#include "Character/PGCharacterBase.h"
 #include "Struct/FAttackData.h"
 #include "GameplayTagContainer.h"
-#include "Interface/PGTeamStatusInterface.h"
 #include "PGPlayerCharacterBase.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FCooldownTagChanged, FGameplayTag, CooldownTag, int32, NewCount);
@@ -28,14 +26,12 @@ struct FInputActionValue;
 struct FOnAttributeChangeData;
 
 UCLASS()
-class PARAGONIA_API APGPlayerCharacterBase : public ACharacter, public IAbilitySystemInterface, public IPGTeamStatusInterface
+class PARAGONIA_API APGPlayerCharacterBase : public APGCharacterBase
 {
 	GENERATED_BODY()
 
 public:
 	APGPlayerCharacterBase();
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(Client, Reliable)
 	void DrawDebugAttackCollision(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward, const FAttackData& AttackData);
@@ -48,12 +44,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Cooldown")
     bool GetCooldownRemainingAndDurationByTag(FGameplayTag CooldownTag, float& OutRemaining, float& OutDuration) const;
-
-	UFUNCTION(BlueprintCallable)
-	UCharacterAttributeSet* GetCharacterAttributeSet() const { return CharacterAttributeSet; }
-
-	UFUNCTION(BlueprintCallable)
-	void SetMinimapSprite(UPaperSprite* NewSprite);
 
 	UTextureRenderTarget2D* GetMinimapRenderTarget();
 
@@ -136,15 +126,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TObjectPtr<UAbilitySystemComponent> ASC;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
-	TObjectPtr<UCharacterAttributeSet> CharacterAttributeSet;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
-	TObjectPtr<UPG_PlayerUIComponent> UIComponent;
-
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;
 
@@ -175,11 +156,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	FName CharacterName;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	TObjectPtr<UWidgetComponent> HeadHPWidgetComp;
-
-	UPROPERTY()
-	TObjectPtr<UPaperSpriteComponent> MinimapIcon;
 
 private:
 	bool bInputLock;

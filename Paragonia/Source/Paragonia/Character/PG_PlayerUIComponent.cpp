@@ -3,7 +3,7 @@
 
 #include "Character/PG_PlayerUIComponent.h"
 
-#include "Character/PGPlayerCharacterBase.h"
+#include "Character/PGCharacterBase.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -11,6 +11,7 @@
 #include "PaperSprite.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Panels/PG_IngameInfo.h"
+#include <Kismet/GameplayStatics.h>
 
 UPG_PlayerUIComponent::UPG_PlayerUIComponent()
 {
@@ -29,17 +30,10 @@ void UPG_PlayerUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		return;
 	}
 
-	Accum += DeltaTime;
-	if (Accum < 0.05f)
-	{
-		return;
-	}
-	Accum = 0.f;
-
-	if (!OwnerCharacter->GetMesh()->WasRecentlyRendered(0.2f))
-	{
-		return;
-	}
+	//if (!(OwnerCharacter->GetMesh()->WasRecentlyRendered(0.2f)))
+	//{
+	//	return;
+	//}
 
 	if (!HeadHPWidgetComp)
 	{
@@ -51,24 +45,21 @@ void UPG_PlayerUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		return;
 	}
 
-
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	if (!PC)
+	if (!IsValid(CameraManager))
 	{
+		CameraManager = UGameplayStatics::GetPlayerCameraManager(this, 0);
 		return;
 	}
 
-	FVector CamLoc;
-	FRotator CamRot;
-	PC->GetPlayerViewPoint(CamLoc, CamRot);
-
+	const FVector CamLoc = CameraManager->GetCameraLocation();
 	const FVector WidgetLoc = HeadHPWidgetComp->GetComponentLocation();
 	const FRotator LookRot = (CamLoc - WidgetLoc).Rotation();
 
 	HeadHPWidgetComp->SetWorldRotation(FRotator(0.f, LookRot.Yaw, 0.f));
+
 }
 
-void UPG_PlayerUIComponent::InitComponents(APGPlayerCharacterBase* InOwnerCharacter, UWidgetComponent* InHeadHPWidgetComp, UPaperSpriteComponent* InMinimapIcon, UCharacterAttributeSet* InCharacterAttributeSet)
+void UPG_PlayerUIComponent::InitComponents(APGCharacterBase* InOwnerCharacter, UWidgetComponent* InHeadHPWidgetComp, UPaperSpriteComponent* InMinimapIcon, UCharacterAttributeSet* InCharacterAttributeSet)
 {
 	OwnerCharacter = InOwnerCharacter;
 	HeadHPWidgetComp = InHeadHPWidgetComp;
@@ -117,15 +108,7 @@ void UPG_PlayerUIComponent::BindHeadHPDelegatesOnce()
 		return;
 	}
 
-	CharacterAttributeSet->OnHealthChanged_UI.RemoveDynamic(HeadHPWidget, &UPG_IngameInfo::HandleHealthChanged);
-	CharacterAttributeSet->OnMaxHealthChanged_UI.RemoveDynamic(HeadHPWidget, &UPG_IngameInfo::HandleMaxHealthChanged);
-
-	CharacterAttributeSet->OnHealthChanged_UI.AddDynamic(HeadHPWidget, &UPG_IngameInfo::HandleHealthChanged);
-	CharacterAttributeSet->OnMaxHealthChanged_UI.AddDynamic(HeadHPWidget, &UPG_IngameInfo::HandleMaxHealthChanged);
-
-	HeadHPWidget->HandleMaxHealthChanged(CharacterAttributeSet->GetMaxHealth(), CharacterAttributeSet->GetMaxHealth());
-	HeadHPWidget->HandleHealthChanged(CharacterAttributeSet->GetHealth(), CharacterAttributeSet->GetHealth());
-
+	HeadHPWidget->BindToAttributeSet(CharacterAttributeSet);
 	bHeadHPBound = true;
 }
 
