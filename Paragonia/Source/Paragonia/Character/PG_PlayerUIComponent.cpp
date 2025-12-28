@@ -11,7 +11,8 @@
 #include "PaperSprite.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Panels/PG_IngameInfo.h"
-#include <Kismet/GameplayStatics.h>
+#include "Kismet/GameplayStatics.h"
+#include "PlayerState/PGPlayerState.h"
 
 UPG_PlayerUIComponent::UPG_PlayerUIComponent()
 {
@@ -29,11 +30,6 @@ void UPG_PlayerUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	{
 		return;
 	}
-
-	//if (!(OwnerCharacter->GetMesh()->WasRecentlyRendered(0.2f)))
-	//{
-	//	return;
-	//}
 
 	if (!HeadHPWidgetComp)
 	{
@@ -108,7 +104,13 @@ void UPG_PlayerUIComponent::BindHeadHPDelegatesOnce()
 		return;
 	}
 
+	if (!OwnerCharacter)
+	{
+		return;
+	}
+
 	HeadHPWidget->BindToAttributeSet(CharacterAttributeSet);
+
 	bHeadHPBound = true;
 }
 
@@ -135,4 +137,14 @@ UTextureRenderTarget2D* UPG_PlayerUIComponent::GetMinimapRenderTarget()
 	}
 
 	return MinimapRT;
+}
+
+void UPG_PlayerUIComponent::SetHPBarColor(int32 TeamType)
+{
+	if (!IsValid(HeadHPWidget))
+	{
+		return;
+	}
+
+	HeadHPWidget->SetHPBarColor(TeamType);
 }

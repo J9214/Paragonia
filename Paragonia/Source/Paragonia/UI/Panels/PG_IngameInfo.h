@@ -18,6 +18,9 @@ class PARAGONIA_API UPG_IngameInfo : public UCommonUserWidget
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable)
+	void SetHPBarColor(int32 TeamType);
+
 	void BindToAttributeSet(UCharacterAttributeSet* InAttrSet);
 
 	UFUNCTION()
@@ -38,7 +41,7 @@ protected:
 	TObjectPtr<UPG_HPBar> PlayerHPBar;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> PlayerName;\
+	TObjectPtr<UTextBlock> PlayerName;
 
 private:
 	UPROPERTY()

@@ -27,6 +27,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AddBuff(int32 buffUID);
+
+	UFUNCTION(BlueprintCallable)
+	void SetTeamColor();
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_PlayerIcon> PlayerIcon;

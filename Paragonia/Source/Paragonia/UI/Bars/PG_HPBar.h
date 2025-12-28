@@ -8,6 +8,7 @@
 
 class UImage;
 class UHorizontalBox;
+class UWidgetAnimation;
 /**
  * 
  */
@@ -27,6 +28,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AddBuff(int32 buffUID);
+
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerColor();
+
+	UFUNCTION(BlueprintCallable)
+	void SetTeamColor(int32 TeamType);
 
 protected:
 	UPROPERTY(meta = (BindWidget))    

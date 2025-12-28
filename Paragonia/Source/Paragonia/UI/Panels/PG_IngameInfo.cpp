@@ -5,6 +5,14 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "UI/Bars/PG_HPBar.h"
 
+void UPG_IngameInfo::SetHPBarColor(int32 TeamType)
+{
+	if (PlayerHPBar)
+	{
+		PlayerHPBar->SetTeamColor(TeamType);
+	}
+}
+
 void UPG_IngameInfo::BindToAttributeSet(UCharacterAttributeSet* InAttrSet)
 {
 	if (BoundAttrSet == InAttrSet)

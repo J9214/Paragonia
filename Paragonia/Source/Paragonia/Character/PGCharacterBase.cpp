@@ -50,6 +50,14 @@ void APGCharacterBase::BeginPlay()
 	}
 }
 
+void APGCharacterBase::SetIngameHPBarColor(int32 TeamType)
+{
+	if (IsValid(UIComponent))
+	{
+		UIComponent->SetHPBarColor(TeamType);
+	}
+}
+
 UAbilitySystemComponent* APGCharacterBase::GetAbilitySystemComponent() const
 {
 	return ASC;

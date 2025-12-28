@@ -84,7 +84,7 @@ void APGPlayerCharacterBase::OnRep_PlayerState()
 
 	if (IsValid(UIComponent))
 	{
-		//UIComponent->SetupHeadHPWidget();
+		UIComponent->SetupHeadHPWidget();
 	}
 }
 
@@ -105,7 +105,7 @@ void APGPlayerCharacterBase::OnRep_Controller()
 
 	if (IsValid(UIComponent))
 	{
-		//UIComponent->SetupHeadHPWidget();
+		UIComponent->SetupHeadHPWidget();
 	}
 }
 

@@ -11,7 +11,8 @@
 #include "GameFramework/PlayerController.h"
 #include "PlayerState/PGPlayerState.h"
 #include "AIController.h"
-#include <Kismet/KismetMathLibrary.h>
+#include "Kismet/KismetMathLibrary.h"
+#include "Character/PG_PlayerUIComponent.h"
 
 ANpcBaseCharacter::ANpcBaseCharacter()
 	:TeamId(255),
@@ -239,6 +240,31 @@ void ANpcBaseCharacter::SetRotationToTarget(AActor* TargetActor)
 	SetActorRotation(FRotator(0.0f, LookAtRot.Yaw, 0.0f));
 }
 
+void ANpcBaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (TeamId != 255)
+	{
+		APlayerController* LocalPC = UGameplayStatics::GetPlayerController(this, 0);
+		if (LocalPC == nullptr)
+		{
+			return;
+		}
+
+		APGPlayerState* PS = LocalPC->GetPlayerState<APGPlayerState>();
+		if (!IsValid(PS))
+		{
+			return;
+		}
+
+		if (IsValid(UIComponent))
+		{
+			UIComponent->SetHPBarColor(TeamId != PS->GetTeamID());
+		}
+	}
+}
+
 void ANpcBaseCharacter::GrantStartupAbilities()
 {
 	if (IsValid(ASC) == false)
@@ -287,6 +313,11 @@ void ANpcBaseCharacter::OnRep_TeamId()
 		{
 			MyTeamId = PS->GetTeamID();
 		}
+	}
+
+	if (IsValid(UIComponent))
+	{
+		UIComponent->SetHPBarColor(TeamId != MyTeamId);
 	}
 
 	if (TeamId == MyTeamId)

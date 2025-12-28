@@ -10,16 +10,19 @@ class UPG_InGameTeamSimpleInfo;
 class UPG_MiniMap;
 class UPG_SkillIcon;
 class UTextureRenderTarget2D;
+class UCharacterAttributeSet;
 
 UCLASS()
 class PARAGONIA_API UPG_IngameHUD : public UCommonUserWidget
 {
 	GENERATED_BODY()
 
-protected:
-	virtual void NativeOnInitialized() override;
-
 public:
+
+	void BindToPlayerAttributeSet(UCharacterAttributeSet* InAttrSet);
+	void BindToTeam1AttributeSet(UCharacterAttributeSet* InAttrSet);
+	void BindToTeam2AttributeSet(UCharacterAttributeSet* InAttrSet);
+
 	UFUNCTION(BlueprintCallable)
 	void InitMinimap(UTextureRenderTarget2D* InRT);
 
@@ -53,8 +56,16 @@ public:
 	UFUNCTION()
 	void HandleCooldownTagChanged(FGameplayTag CooldownTag, int32 NewCount);
 
+protected:
+	virtual void NativeOnInitialized() override;
+
+	virtual void NativeDestruct() override;
 private:
 	void BindCooldownToSkillIcon();
+
+	void UnbindFromPlayerAttributeSet();
+	void UnbindFromTeam1AttributeSet();
+	void UnbindFromTeam2AttributeSet();
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -80,4 +91,11 @@ protected:
 
 private:
 	TMap<FGameplayTag, TObjectPtr<UPG_SkillIcon>> CooldownTagToWidget;
+
+	UPROPERTY()
+	TObjectPtr<UCharacterAttributeSet> BoundPlayerAttrSet;
+	UPROPERTY()
+	TObjectPtr<UCharacterAttributeSet> BoundTeam1AttrSet;
+	UPROPERTY()
+	TObjectPtr<UCharacterAttributeSet> BoundTeam2AttrSet;
 };

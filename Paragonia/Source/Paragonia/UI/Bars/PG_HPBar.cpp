@@ -80,3 +80,30 @@ void UPG_HPBar::HandleMaxHealthChanged(float OldValue, float NewValue)
 void UPG_HPBar::AddBuff(int32 BuffUID)
 {
 }
+
+void UPG_HPBar::SetPlayerColor()
+{
+    UMaterialInstanceDynamic* BarFillMID = BarFill->GetDynamicMaterial();
+
+    if (!BarFillMID)
+    {
+        return;
+    }
+
+    BarFillMID->SetScalarParameterValue(TEXT("PlayerCheck"), 1);
+}
+
+//0 팀
+//1 적
+void UPG_HPBar::SetTeamColor(int32 TeamType)
+{
+    UMaterialInstanceDynamic* BarFillMID = BarFill->GetDynamicMaterial();
+
+    if (!BarFillMID)
+    {
+        return;
+    }
+
+    BarFillMID->SetScalarParameterValue(TEXT("PlayerCheck"), 0);
+    BarFillMID->SetScalarParameterValue(TEXT("TeamCheck"), TeamType);
+}

@@ -35,6 +35,8 @@ public:
 
 	void UpdateHeadHPVisibility();
 
+	void SetHPBarColor(int32 TeamType);
+
 	UTextureRenderTarget2D* GetMinimapRenderTarget();
 protected:
 

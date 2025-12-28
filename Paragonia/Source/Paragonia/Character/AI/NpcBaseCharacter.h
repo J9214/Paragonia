@@ -59,6 +59,7 @@ public:
 	void SetRotationToTarget(AActor* TargetActor);
 
 protected:
+	virtual void BeginPlay() override;
 
 	void GrantStartupAbilities();
 
