@@ -30,8 +30,6 @@ void UGA_NpcAttackBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		AActor* CurrentTarget = NPC->GetAttackTarget();
 
-		// IsDead 및 TeamID 관련 체크? - 이건 다른쪽 Task쪽에서도 추가해야 함
-		// 이쪽에선 더블체크 용도
 		if (IsValid(CurrentTarget))
 		{
 			NPC->SetRotationToTarget(CurrentTarget);

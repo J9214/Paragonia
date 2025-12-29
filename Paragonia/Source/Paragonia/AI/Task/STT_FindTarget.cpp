@@ -17,7 +17,7 @@ bool FSTT_FindTarget::Link(FStateTreeLinker& Linker)
 EStateTreeRunStatus FSTT_FindTarget::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
-	InstanceData.CurrentTimer = 0.0f;
+	InstanceData.CurrentTimer = FMath::RandRange(0.0f, 0.2f);
 	return EStateTreeRunStatus::Running;
 }
 

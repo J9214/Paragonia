@@ -81,6 +81,8 @@ protected:
 	UFUNCTION()
 	void OnOutOfHealth(AActor* InstigatorActor);
 
+	bool IsTargetValid(AActor* TargetActor) const;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|StateTree")
 	TObjectPtr<UStateTreeComponent> StateTreeComponent;

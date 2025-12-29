@@ -245,12 +245,17 @@ void ANpcBaseCharacter::SetAttackTarget(AActor* NewTarget)
 
 AActor* ANpcBaseCharacter::GetAttackTarget() const
 {
+	if (IsTargetValid(CurrentAttackTarget.Get()) == false)
+	{
+		return nullptr;
+	}
+
 	return CurrentAttackTarget.Get();
 }
 
 bool ANpcBaseCharacter::CanAttack() const
 {
-	if (CurrentAttackTarget.IsValid() == false)
+	if (IsTargetValid(CurrentAttackTarget.Get()) == false)
 	{
 		return false;
 	}
@@ -259,6 +264,31 @@ bool ANpcBaseCharacter::CanAttack() const
 	float AttackRangeSq = AttackRange * AttackRange;
 
 	return DistSq <= AttackRangeSq;
+}
+
+bool ANpcBaseCharacter::IsTargetValid(AActor* TargetActor) const
+{
+	if (IsValid(TargetActor) == false)
+	{
+		return false;
+	}
+
+	if (TargetActor->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+	{
+		bool bTargetDead = IPGTeamStatusInterface::Execute_GetIsDead(TargetActor);
+		if (bTargetDead)
+		{
+			return false;
+		}
+
+		int32 TargetTeamId = IPGTeamStatusInterface::Execute_GetTeamID(TargetActor);
+		if (TeamId == TargetTeamId)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void ANpcBaseCharacter::SetAttackRange(float InRange)
