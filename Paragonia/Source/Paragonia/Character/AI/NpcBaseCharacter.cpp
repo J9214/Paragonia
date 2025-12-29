@@ -167,7 +167,6 @@ void ANpcBaseCharacter::StartDeathEffect()
 {
 	if (HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("StartDeathEffect - Called!"));
 		Multicast_HandleDeath();
 	}
 }
