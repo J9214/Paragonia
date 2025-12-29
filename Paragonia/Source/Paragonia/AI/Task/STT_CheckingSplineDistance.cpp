@@ -4,9 +4,6 @@
 #include "AI/Task/STT_CheckingSplineDistance.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreeLinker.h"
-#include "AbilitySystemInterface.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
 
 bool FSTT_CheckingSplineDistance::Link(FStateTreeLinker& Linker)
 {
@@ -33,15 +30,10 @@ EStateTreeRunStatus FSTT_CheckingSplineDistance::Tick(FStateTreeExecutionContext
 	}
 
 	AActor* Target = Minion->GetAttackTarget();
-	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-
-	if (TargetASC)
+	if (IsValid(Target) == false)
 	{
-		if (TargetASC->HasMatchingGameplayTag(InstanceData.DeadTag))
-		{
-			Minion->SetAttackTarget(nullptr);
-			return EStateTreeRunStatus::Failed;
-		}
+		Minion->SetAttackTarget(nullptr);
+		return EStateTreeRunStatus::Failed;
 	}
 
 	InstanceData.CurrentTimer -= DeltaTime;
@@ -63,7 +55,6 @@ EStateTreeRunStatus FSTT_CheckingSplineDistance::Tick(FStateTreeExecutionContext
 		if (DistSq > MaxDistSq)
 		{
 			Minion->SetAttackTarget(nullptr);
-
 			return EStateTreeRunStatus::Failed;
 		}
 	}

@@ -53,7 +53,7 @@ EStateTreeRunStatus FSTT_UseGameplayAbility::EnterState(FStateTreeExecutionConte
 
 	if (ASC->TryActivateAbility(FoundSpec->Handle) == false)
 	{
-		return EStateTreeRunStatus::Failed;
+		return EStateTreeRunStatus::Running;
 	}
 
 	if (InstanceData.bWaitForEnd == false)
