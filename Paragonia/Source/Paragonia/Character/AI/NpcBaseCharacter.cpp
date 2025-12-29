@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/AI/NpcBaseCharacter.h"
@@ -65,6 +65,8 @@ void ANpcBaseCharacter::PossessedBy(AController* NewController)
 		if (AttributeSet)
 		{
 			AttributeSet->OnHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+
+			AttributeSet->OutOfHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
 		}
 
 		if (HasAuthority())
@@ -106,7 +108,7 @@ void ANpcBaseCharacter::Tick(float DeltaTime)
 	}
 }
 
-void ANpcBaseCharacter::HandleDeath()
+void ANpcBaseCharacter::HandleDeath(AActor* KillerActor)
 {
 	if (HasAuthority())
 	{
@@ -119,6 +121,20 @@ void ANpcBaseCharacter::HandleDeath()
 		if (StateTreeComponent)
 		{
 			StateTreeComponent->SendStateTreeEvent(FStateTreeEvent(DeadTag));
+		}
+
+		if (KillerActor)
+		{
+			APawn* KillerPawn = Cast<APawn>(KillerActor);
+			if (KillerPawn)
+			{
+				if (APGPlayerState* KillerPS = KillerPawn->GetPlayerState<APGPlayerState>())
+				{
+					KillerPS->AddGold(RewardGoldAmount);
+
+					UE_LOG(LogTemp, Log, TEXT("Npc killed by %s. Gave %d Gold."), *KillerPS->GetPlayerName(), RewardGoldAmount);
+				}
+			}
 		}
 	}
 }
@@ -273,11 +289,11 @@ void ANpcBaseCharacter::GrantStartupAbilities()
 
 void ANpcBaseCharacter::OnHealthChanged(float OldValue, float NewValue)
 {
-	if (NewValue <= 0.0f &&
+	/*if (NewValue <= 0.0f &&
 		OldValue > 0.0f)
 	{
 		HandleDeath();
-	}
+	}*/
 }
 
 void ANpcBaseCharacter::OnRep_TeamId()
@@ -317,4 +333,9 @@ void ANpcBaseCharacter::OnRep_TeamId()
 			GetMesh()->SetSkeletalMeshAsset(MeshToUse);
 		}
 	}
+}
+
+void ANpcBaseCharacter::OnOutOfHealth(AActor* InstigatorActor)
+{
+	HandleDeath(InstigatorActor);
 }
