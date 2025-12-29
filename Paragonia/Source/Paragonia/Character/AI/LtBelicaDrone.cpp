@@ -10,7 +10,7 @@ ALtBelicaDrone::ALtBelicaDrone()
 
 void ALtBelicaDrone::OnDurationOver_Implementation()
 {
-	HandleDeath();
+	HandleDeath(nullptr);
 }
 
 void ALtBelicaDrone::PossessedBy(AController* NewController)
