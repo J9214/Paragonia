@@ -8,6 +8,11 @@ ALtBelicaDrone::ALtBelicaDrone()
 {
 }
 
+void ALtBelicaDrone::OnDurationOver_Implementation()
+{
+	HandleDeath();
+}
+
 void ALtBelicaDrone::PossessedBy(AController* NewController)
 {
 	//if (!IsValid(NewController))
