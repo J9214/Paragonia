@@ -39,7 +39,7 @@ EStateTreeRunStatus FSTT_FollowSpline::Tick(FStateTreeExecutionContext& Context,
 	if (CurrentDistance >= TotalLength - InstanceData.AcceptanceRadius)
 	{
 		AI->StopMovement();
-		return EStateTreeRunStatus::Succeeded; // 도착!
+		return EStateTreeRunStatus::Running;
 	}
 
 	float TargetDistance = CurrentDistance + InstanceData.LookAheadDistance;
