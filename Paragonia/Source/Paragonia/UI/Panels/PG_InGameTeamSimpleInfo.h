@@ -19,6 +19,8 @@ class PARAGONIA_API UPG_InGameTeamSimpleInfo : public UCommonUserWidget
 public:
 	void InitTeamSimpleInfo(int32 CharacterID);
 
+	UPG_HPBar* GetTeamHPBar() const { return HPBar; }
+
 	UFUNCTION()
 	void HandleHealthChanged(float OldValue, float NewValue);
 

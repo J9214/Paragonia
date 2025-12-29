@@ -214,7 +214,14 @@ bool APGPlayerController::BindIngameHUD()
         APGNexus* Nexus = *It;
         if (Nexus && Nexus->ActorHasTag(FName("Nexus")))
         {
-
+            if (Nexus->GetNexusTeamID() != LocalPS->GetTeamID())
+            {
+                IngameHUD->BindSlot(EHPBarSlot::EnemyNexus, Nexus->GetObjectAttributeSet());
+            }
+            else
+            {
+                IngameHUD->BindSlot(EHPBarSlot::OurNexus, Nexus->GetObjectAttributeSet());
+            }
         }
     }
 
@@ -256,7 +263,7 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
         return false;
     }
 
-    IngameHUD->BindToPlayerAttributeSet(MyAttributeSet);
+    IngameHUD->BindSlot(EHPBarSlot::Player, MyAttributeSet);
     IngameHUD->InitMinimap(FoundMyCharacter->GetMinimapRenderTarget());
 
     return true;
@@ -325,11 +332,11 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
         switch (index)
         {
         case 0:
-            IngameHUD->BindToTeam1AttributeSet(TeamAttributeSet);
+            IngameHUD->BindSlot(EHPBarSlot::Team1, TeamAttributeSet);
             IngameHUD->InitTeam1IngameIcon(PGPS->GetCharID());
             break;
         default:
-            IngameHUD->BindToTeam2AttributeSet(TeamAttributeSet);
+            IngameHUD->BindSlot(EHPBarSlot::Team2, TeamAttributeSet);
             IngameHUD->InitTeam2IngameIcon(PGPS->GetCharID());
             break;
         }

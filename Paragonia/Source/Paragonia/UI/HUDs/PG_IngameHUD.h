@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
+#include "UI/Bars/PG_AttrSetBindProxy.h"
 #include "GameplayTagContainer.h"
 #include "PG_IngameHUD.generated.h"
 
@@ -11,6 +12,7 @@ class UPG_MiniMap;
 class UPG_SkillIcon;
 class UTextureRenderTarget2D;
 class UCharacterAttributeSet;
+class UWidgetAnimation;
 
 UCLASS()
 class PARAGONIA_API UPG_IngameHUD : public UCommonUserWidget
@@ -19,9 +21,13 @@ class PARAGONIA_API UPG_IngameHUD : public UCommonUserWidget
 
 public:
 
-	void BindToPlayerAttributeSet(UCharacterAttributeSet* InAttrSet);
-	void BindToTeam1AttributeSet(UCharacterAttributeSet* InAttrSet);
-	void BindToTeam2AttributeSet(UCharacterAttributeSet* InAttrSet);
+	void BindSlot(EHPBarSlot InSlot, UCharacterAttributeSet* Set);
+
+	UFUNCTION()
+	void HandleHealthChangedBySlot(EHPBarSlot InSlot, float OldValue, float NewValue);
+
+	UFUNCTION()
+	void HandleMaxHealthChangedBySlot(EHPBarSlot InSlot, float OldValue, float NewValue);
 
 	UFUNCTION(BlueprintCallable)
 	void InitMinimap(UTextureRenderTarget2D* InRT);
@@ -31,24 +37,6 @@ public:
 
 	UFUNCTION()
 	void InitTeam2IngameIcon(int32 CharacterID);
-
-	UFUNCTION()
-	void HandlePlayerHealthChanged(float OldValue, float NewValue);
-
-	UFUNCTION()
-	void HandlePlayerMaxHealthChanged(float OldValue, float NewValue);
-
-	UFUNCTION()
-	void HandleTeam1HealthChanged(float OldValue, float NewValue);
-
-	UFUNCTION()
-	void HandleTeam1MaxHealthChanged(float OldValue, float NewValue);
-
-	UFUNCTION()
-	void HandleTeam2HealthChanged(float OldValue, float NewValue);
-
-	UFUNCTION()
-	void HandleTeam2MaxHealthChanged(float OldValue, float NewValue);
 
 	UFUNCTION()
 	void HandleCooldownTimeChanged(FGameplayTag CooldownTag, float Remaining, float Duration);
@@ -62,10 +50,6 @@ protected:
 	virtual void NativeDestruct() override;
 private:
 	void BindCooldownToSkillIcon();
-
-	void UnbindFromPlayerAttributeSet();
-	void UnbindFromTeam1AttributeSet();
-	void UnbindFromTeam2AttributeSet();
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -81,6 +65,12 @@ protected:
 	TObjectPtr<UPG_InGameTeamSimpleInfo> Team2HPBar;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_HPBar> OurNexusHPBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_HPBar> EnemyNexusHPBar;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_SkillIcon> SkillIconQ;
 
 	UPROPERTY(meta = (BindWidget))
@@ -89,13 +79,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_SkillIcon> SkillIconR;
 
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> OnDamaged;
+
 private:
 	TMap<FGameplayTag, TObjectPtr<UPG_SkillIcon>> CooldownTagToWidget;
 
-	UPROPERTY()
-	TObjectPtr<UCharacterAttributeSet> BoundPlayerAttrSet;
-	UPROPERTY()
-	TObjectPtr<UCharacterAttributeSet> BoundTeam1AttrSet;
-	UPROPERTY()
-	TObjectPtr<UCharacterAttributeSet> BoundTeam2AttrSet;
+	TMap<EHPBarSlot, TObjectPtr<UCharacterAttributeSet>> BoundAttrSets;
+	TMap<EHPBarSlot, TObjectPtr<UPG_HPBar>> HPBars;
+	TMap<EHPBarSlot, TObjectPtr<UPG_AttrSetBindProxy>> BindProxies;
 };

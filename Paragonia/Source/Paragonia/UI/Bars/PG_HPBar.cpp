@@ -10,7 +10,6 @@ void UPG_HPBar::NativeOnInitialized()
 
 }
 
-
 void UPG_HPBar::HandleHealthChanged(float OldValue, float NewValue)
 {
 	NowHPValue = NewValue;    

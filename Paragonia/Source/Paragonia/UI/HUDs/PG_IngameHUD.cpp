@@ -15,97 +15,77 @@ void UPG_IngameHUD::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
+    HPBars.Add(EHPBarSlot::Player, PlayerHPBar);
+    HPBars.Add(EHPBarSlot::Team1,  Team1HPBar->GetTeamHPBar());
+    HPBars.Add(EHPBarSlot::Team2, Team2HPBar->GetTeamHPBar());
+    HPBars.Add(EHPBarSlot::OurNexus, OurNexusHPBar);
+    HPBars.Add(EHPBarSlot::EnemyNexus, EnemyNexusHPBar);
+
 	BindCooldownToSkillIcon();
 }
 
 void UPG_IngameHUD::NativeDestruct()
 {
-    UnbindFromPlayerAttributeSet();
-    UnbindFromTeam1AttributeSet();
-    UnbindFromTeam2AttributeSet();
+    for (auto& Pair : BindProxies)
+    {
+        if (IsValid(Pair.Value))
+        {
+            Pair.Value->Unbind();
+        }
+    }
+    BindProxies.Empty();
+    BoundAttrSets.Empty();
+    HPBars.Empty();
 
     Super::NativeDestruct();
 }
 
-void UPG_IngameHUD::BindToPlayerAttributeSet(UCharacterAttributeSet* InAttrSet)
+void UPG_IngameHUD::BindSlot(EHPBarSlot InSlot, UCharacterAttributeSet* Set)
 {
-    if (PlayerHPBar)
+    BoundAttrSets.FindOrAdd(InSlot) = Set;
+
+    UPG_AttrSetBindProxy* Proxy = BindProxies.FindRef(InSlot);
+    if (!IsValid(Proxy))
     {
-        PlayerHPBar->SetPlayerColor();
+        Proxy = NewObject<UPG_AttrSetBindProxy>(this);
+        BindProxies.Add(InSlot, Proxy);
     }
 
-    if (BoundPlayerAttrSet == InAttrSet)
+    Proxy->Init(this, InSlot, Set);
+
+    if (UPG_HPBar* Bar = HPBars.FindRef(InSlot))
     {
-        return;
+        switch (InSlot)
+        {
+        case EHPBarSlot::Player: Bar->SetPlayerColor(); break;
+        case EHPBarSlot::Team1:  Bar->SetTeamColor(0); break;
+        case EHPBarSlot::Team2:  Bar->SetTeamColor(0); break;
+        case EHPBarSlot::OurNexus:  Bar->SetTeamColor(0); break;
+        case EHPBarSlot::EnemyNexus:  Bar->SetTeamColor(1); break;
+        default: break;
+        }
     }
-
-    UnbindFromPlayerAttributeSet();
-
-    BoundPlayerAttrSet = InAttrSet;
-    if (!IsValid(BoundPlayerAttrSet))
-    {
-        return;
-    }
-
-    BoundPlayerAttrSet->OnHealthChanged_UI.AddDynamic(this, &ThisClass::HandlePlayerHealthChanged);
-    BoundPlayerAttrSet->OnMaxHealthChanged_UI.AddDynamic(this, &ThisClass::HandlePlayerMaxHealthChanged);
-
-    HandlePlayerMaxHealthChanged(BoundPlayerAttrSet->GetMaxHealth(), BoundPlayerAttrSet->GetMaxHealth());
-    HandlePlayerHealthChanged(BoundPlayerAttrSet->GetHealth(), BoundPlayerAttrSet->GetHealth());
 }
 
-void UPG_IngameHUD::BindToTeam1AttributeSet(UCharacterAttributeSet* InAttrSet)
+void UPG_IngameHUD::HandleHealthChangedBySlot(EHPBarSlot InSlot, float OldValue, float NewValue)
 {
-    if (Team1HPBar)
+    if (InSlot == EHPBarSlot::Player && NewValue < OldValue)
     {
-        Team1HPBar->SetTeamColor();
+        PlayAnimation(OnDamaged, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
     }
 
-    if (BoundTeam1AttrSet == InAttrSet)
+    if (UPG_HPBar* Bar = HPBars.FindRef(InSlot))
     {
-        return;
+        Bar->HandleHealthChanged(OldValue, NewValue);
     }
-
-    UnbindFromTeam1AttributeSet();
-
-    BoundTeam1AttrSet = InAttrSet;
-    if (!IsValid(BoundTeam1AttrSet))
-    {
-        return;
-    }
-
-    BoundTeam1AttrSet->OnHealthChanged_UI.AddDynamic(this, &ThisClass::HandleTeam1HealthChanged);
-    BoundTeam1AttrSet->OnMaxHealthChanged_UI.AddDynamic(this, &ThisClass::HandleTeam1MaxHealthChanged);
-
-    HandleTeam1MaxHealthChanged(BoundTeam1AttrSet->GetMaxHealth(), BoundTeam1AttrSet->GetMaxHealth());
-    HandleTeam1HealthChanged(BoundTeam1AttrSet->GetHealth(), BoundTeam1AttrSet->GetHealth());
 }
 
-void UPG_IngameHUD::BindToTeam2AttributeSet(UCharacterAttributeSet* InAttrSet)
+void UPG_IngameHUD::HandleMaxHealthChangedBySlot(EHPBarSlot InSlot, float OldValue, float NewValue)
 {
-    if (Team2HPBar)
+    if (UPG_HPBar* Bar = HPBars.FindRef(InSlot))
     {
-        Team2HPBar->SetTeamColor();
+        Bar->HandleMaxHealthChanged(OldValue, NewValue);
     }
-
-    if (BoundTeam2AttrSet == InAttrSet)
-    {
-        return;
-    }
-
-    UnbindFromTeam2AttributeSet();
-
-    BoundTeam2AttrSet = InAttrSet;
-    if (!IsValid(BoundTeam2AttrSet))
-    {
-        return;
-    }
-
-    BoundTeam2AttrSet->OnHealthChanged_UI.AddDynamic(this, &ThisClass::HandleTeam2HealthChanged);
-    BoundTeam2AttrSet->OnMaxHealthChanged_UI.AddDynamic(this, &ThisClass::HandleTeam2MaxHealthChanged);
-
-    HandleTeam2MaxHealthChanged(BoundTeam2AttrSet->GetMaxHealth(), BoundTeam2AttrSet->GetMaxHealth());
-    HandleTeam2HealthChanged(BoundTeam2AttrSet->GetHealth(), BoundTeam2AttrSet->GetHealth());
 }
 
 void UPG_IngameHUD::InitMinimap(UTextureRenderTarget2D* InRT)
@@ -126,40 +106,6 @@ void UPG_IngameHUD::InitTeam1IngameIcon(int32 CharacterID)
 void UPG_IngameHUD::InitTeam2IngameIcon(int32 CharacterID)
 {
     Team2HPBar->InitTeamSimpleInfo(CharacterID);
-}
-
-void UPG_IngameHUD::HandlePlayerHealthChanged(float OldValue, float NewValue)
-{
-    if (NewValue < OldValue)
-    {
-        //HP 달면 나오는 화면 연출 (image 투명도 조절)
-    }
-    PlayerHPBar->HandleHealthChanged(OldValue, NewValue);
-}
-
-void UPG_IngameHUD::HandlePlayerMaxHealthChanged(float OldValue, float NewValue)
-{
-    PlayerHPBar->HandleMaxHealthChanged(OldValue, NewValue);
-}
-
-void UPG_IngameHUD::HandleTeam1HealthChanged(float OldValue, float NewValue)
-{
-    Team1HPBar->HandleHealthChanged(OldValue, NewValue);
-}
-
-void UPG_IngameHUD::HandleTeam1MaxHealthChanged(float OldValue, float NewValue)
-{
-    Team1HPBar->HandleMaxHealthChanged(OldValue, NewValue);
-}
-
-void UPG_IngameHUD::HandleTeam2HealthChanged(float OldValue, float NewValue)
-{
-    Team2HPBar->HandleHealthChanged(OldValue, NewValue);
-}
-
-void UPG_IngameHUD::HandleTeam2MaxHealthChanged(float OldValue, float NewValue)
-{
-    Team2HPBar->HandleMaxHealthChanged(OldValue, NewValue);
 }
 
 void UPG_IngameHUD::HandleCooldownTimeChanged(FGameplayTag CooldownTag, float Remaining, float Duration)
@@ -231,45 +177,4 @@ void UPG_IngameHUD::BindCooldownToSkillIcon()
 
 	PlayerCharacter->OnCooldownTimeChangedDelegate.AddDynamic(this, &ThisClass::HandleCooldownTimeChanged);
 	PlayerCharacter->OnCooldownTagChangedDelegate.AddDynamic(this, &ThisClass::HandleCooldownTagChanged);
-}
-
-void UPG_IngameHUD::UnbindFromPlayerAttributeSet()
-{
-    if (!IsValid(BoundPlayerAttrSet))
-    {
-        return;
-    }
-
-    BoundPlayerAttrSet->OnHealthChanged_UI.RemoveDynamic(this, &ThisClass::HandlePlayerHealthChanged);
-    BoundPlayerAttrSet->OnMaxHealthChanged_UI.RemoveDynamic(this, &ThisClass::HandlePlayerMaxHealthChanged);
-
-    BoundPlayerAttrSet = nullptr;
-}
-
-
-void UPG_IngameHUD::UnbindFromTeam1AttributeSet()
-{
-    if (!IsValid(BoundTeam1AttrSet))
-    {
-        return;
-    }
-
-    BoundTeam1AttrSet->OnHealthChanged_UI.RemoveDynamic(this, &ThisClass::HandleTeam1HealthChanged);
-    BoundTeam1AttrSet->OnMaxHealthChanged_UI.RemoveDynamic(this, &ThisClass::HandleTeam1MaxHealthChanged);
-
-    BoundTeam1AttrSet = nullptr;
-}
-
-
-void UPG_IngameHUD::UnbindFromTeam2AttributeSet()
-{
-    if (!IsValid(BoundTeam2AttrSet))
-    {
-        return;
-    }
-
-    BoundTeam2AttrSet->OnHealthChanged_UI.RemoveDynamic(this, &ThisClass::HandleTeam2HealthChanged);
-    BoundTeam2AttrSet->OnMaxHealthChanged_UI.RemoveDynamic(this, &ThisClass::HandleTeam2MaxHealthChanged);
-
-    BoundTeam2AttrSet = nullptr;
 }
