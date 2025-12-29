@@ -112,6 +112,12 @@ void UGA_NpcAttackRange::OnFireEventReceived(FGameplayEventData Payload)
 	if (IsValid(Projectile))
 	{
 		AActor* Target = AvatarNPC->GetAttackTarget();
+		if (IsValid(Target) == false)
+		{
+			AvatarNPC->SetAttackTarget(nullptr);
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+			return;
+		}
 		Projectile->InitializeProjectile(Target, ProjectileSpeed);
 	}
 }
