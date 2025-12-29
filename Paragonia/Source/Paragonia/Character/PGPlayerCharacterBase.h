@@ -232,6 +232,8 @@ protected:
 
 	void ResetCharacterStateOnRespawn();
 
+	void ClearAllTagsAndEffectOnDeath();
+
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)
 	bool bIsDead;

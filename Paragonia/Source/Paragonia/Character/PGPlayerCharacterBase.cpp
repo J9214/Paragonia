@@ -664,10 +664,10 @@ bool APGPlayerCharacterBase::GetCooldownRemainingAndDurationByTag(FGameplayTag C
 		return false;
 	}
 
-	FGameplayTagContainer CooldonwTags;
-	CooldonwTags.AddTag(CooldownTag);
+	FGameplayTagContainer CooldownTags;
+	CooldownTags.AddTag(CooldownTag);
 
-	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldonwTags);
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags);
 	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
 	if (Handles.Num() == 0)
 	{
@@ -837,6 +837,8 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		{
 			CapsuleComp->SetCollisionProfileName(TEXT("NoCollision"));
 		}
+
+		ClearAllTagsAndEffectOnDeath();
 	}
 	else { // 리스폰
 
@@ -935,10 +937,23 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 
 void APGPlayerCharacterBase::ResetCharacterStateOnRespawn()
 {
-	if (IsValid(CharacterAttributeSet))
+	if (!HasAuthority() || !IsValid(CharacterAttributeSet))
 	{
-		CharacterAttributeSet->SetHealth(CharacterAttributeSet->GetMaxHealth());
+		return;
 	}
+
+	CharacterAttributeSet->SetHealth(CharacterAttributeSet->GetMaxHealth());
+}
+
+void APGPlayerCharacterBase::ClearAllTagsAndEffectOnDeath()
+{
+	if (!HasAuthority() || !IsValid(ASC))
+	{
+		return;
+	}
+
+	ASC->CancelAllAbilities();
+	ASC->RemoveAllGameplayCues();
 }
 
 void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
