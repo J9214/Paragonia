@@ -8,17 +8,15 @@ void UPG_HPBar::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-
 }
 
-
-void UPG_HPBar::HandleHealthChanged(float OldValue, float NewValue)
+float UPG_HPBar::HandleHealthChanged(float OldValue, float NewValue)
 {
 	NowHPValue = NewValue;    
 
     if (MaxHPValue == 0)
     {
-        return;
+        return 0;
     }
 
     float SetOldValue = OldValue / MaxHPValue;
@@ -29,25 +27,22 @@ void UPG_HPBar::HandleHealthChanged(float OldValue, float NewValue)
 
     if (!BarFillMID || !BarGlowMID)
     {
-        return;
+        return 0;
     }
+
+    StopAnimation(Damaged);
 
     BarFillMID->SetScalarParameterValue(TEXT("HealthCurrent"), SetOldValue);
     BarFillMID->SetScalarParameterValue(TEXT("HealthUpdate"), SetNewValue);
     BarGlowMID->SetScalarParameterValue(TEXT("Health_Current"), SetOldValue);
-    BarGlowMID->SetScalarParameterValue(TEXT("Health_Update"), SetNewValue);
-
-    StopAnimation(Damaged);
-    StopAnimation(Healed);
+    BarGlowMID->SetScalarParameterValue(TEXT("Health_Updated"), SetNewValue);
 
     if (OldValue > NewValue)
     {
         PlayAnimation(Damaged, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
     }
-    else
-    {
-        PlayAnimation(Healed, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
-    }
+
+    return SetNewValue;
 }
 
 void UPG_HPBar::HandleMaxHealthChanged(float OldValue, float NewValue)
@@ -73,21 +68,43 @@ void UPG_HPBar::HandleMaxHealthChanged(float OldValue, float NewValue)
     BarFillMID->SetScalarParameterValue(TEXT("HealthCurrent"), SetOldValue);
     BarFillMID->SetScalarParameterValue(TEXT("HealthUpdate"), SetNewValue);
     BarGlowMID->SetScalarParameterValue(TEXT("Health_Current"), SetOldValue);
-    BarGlowMID->SetScalarParameterValue(TEXT("Health_Update"), SetNewValue);
+    BarGlowMID->SetScalarParameterValue(TEXT("Health_Updated"), SetNewValue);
 
     StopAnimation(Damaged);
-    StopAnimation(Healed);
 
     if (SetOldValue > SetNewValue)
     {
         PlayAnimation(Damaged, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
     }
-    else
-    {
-        PlayAnimation(Healed, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
-    }
 }
 
 void UPG_HPBar::AddBuff(int32 BuffUID)
 {
+}
+
+void UPG_HPBar::SetPlayerColor()
+{
+    UMaterialInstanceDynamic* BarFillMID = BarFill->GetDynamicMaterial();
+
+    if (!BarFillMID)
+    {
+        return;
+    }
+
+    BarFillMID->SetScalarParameterValue(TEXT("PlayerCheck"), 1);
+}
+
+//0 팀
+//1 적
+void UPG_HPBar::SetTeamColor(int32 TeamType)
+{
+    UMaterialInstanceDynamic* BarFillMID = BarFill->GetDynamicMaterial();
+
+    if (!BarFillMID)
+    {
+        return;
+    }
+
+    BarFillMID->SetScalarParameterValue(TEXT("PlayerCheck"), 0);
+    BarFillMID->SetScalarParameterValue(TEXT("TeamCheck"), TeamType);
 }

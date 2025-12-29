@@ -8,6 +8,7 @@
 
 class UImage;
 class UHorizontalBox;
+class UWidgetAnimation;
 /**
  * 
  */
@@ -20,13 +21,19 @@ public:
 	virtual void NativeOnInitialized() override;
 
 	UFUNCTION()
-	void HandleHealthChanged(float OldValue, float NewValue);
+	float HandleHealthChanged(float OldValue, float NewValue);
 
 	UFUNCTION()
 	void HandleMaxHealthChanged(float OldValue, float NewValue);
 
 	UFUNCTION(BlueprintCallable)
 	void AddBuff(int32 buffUID);
+
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerColor();
+
+	UFUNCTION(BlueprintCallable)
+	void SetTeamColor(int32 TeamType);
 
 protected:
 	UPROPERTY(meta = (BindWidget))    
@@ -37,9 +44,6 @@ protected:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Damaged;
-
-	UPROPERTY(Transient, meta = (BindWidgetAnim))
-	TObjectPtr<UWidgetAnimation> Healed;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UHorizontalBox> BuffBox;

@@ -1,4 +1,4 @@
-#include "Character/AI/LtBelicaDrone.h"
+﻿#include "Character/AI/LtBelicaDrone.h"
 
 #include "AttributeSet/CharacterAttributeSet.h"
 
@@ -30,13 +30,13 @@ void ALtBelicaDrone::PossessedBy(AController* NewController)
 		StateTreeComponent->StartLogic();
 	}
 
-	if (AbilitySystemComponent)
+	if (ASC)
 	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		ASC->InitAbilityActorInfo(this, this);
 
-		if (AttributeSet)
+		if (CharacterAttributeSet)
 		{
-			AttributeSet->OnHealthChanged.AddDynamic(this, &ALtBelicaDrone::OnHealthChanged);
+			CharacterAttributeSet->OnHealthChanged.AddDynamic(this, &ALtBelicaDrone::OnHealthChanged);
 		}
 
 		if (HasAuthority())
