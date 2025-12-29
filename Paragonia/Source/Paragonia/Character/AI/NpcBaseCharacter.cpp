@@ -107,8 +107,6 @@ void ANpcBaseCharacter::Tick(float DeltaTime)
 	{
 		DeathAccumulatedTime += DeltaTime;
 
-		UE_LOG(LogTemp, Log, TEXT("Npc killed, Alpha : %f"), DeathAccumulatedTime);
-
 		float Alpha = FMath::Clamp(DeathAccumulatedTime / DeathDuration, 0.0f, 1.0f);
 
 		for (UMaterialInstanceDynamic* MID : DissolveMaterials)
@@ -179,6 +177,14 @@ void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
 
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+
+		GetCapsuleComponent()->SetEnableGravity(false);
+	}
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
 	}
 
 	USkeletalMeshComponent* MeshComp = GetMesh();
@@ -203,6 +209,7 @@ void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
 	if (HasAuthority())
 	{
 		SetLifeSpan(DeathDuration + 0.1f);
+		SetAttackTarget(nullptr);
 	}
 }
 
