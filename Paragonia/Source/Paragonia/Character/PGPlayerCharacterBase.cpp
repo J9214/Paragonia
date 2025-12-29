@@ -374,6 +374,8 @@ void APGPlayerCharacterBase::InitializeAttributesData()
 		CharacterAttributeSet->InitAttackPower(AttributeData->AttackPower);
 		CharacterAttributeSet->InitMoveSpeed(AttributeData->MoveSpeed);
 		GetCharacterMovement()->MaxWalkSpeed = AttributeData->MoveSpeed;
+
+		CharacterAttributeSet->OutOfHealthChanged.AddDynamic(this, &ThisClass::OnOutOfHealth);
 	}
 	else
 	{
@@ -807,6 +809,39 @@ void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APGPlayerCharacterBase, bIsDead);
+}
+
+void APGPlayerCharacterBase::OnOutOfHealth(AActor* InstigatorActor)
+{
+	if (HasAuthority())
+	{
+		HandlePlayerDeathReward(InstigatorActor);
+	}
+}
+
+void APGPlayerCharacterBase::HandlePlayerDeathReward(AActor* InstigatorActor)
+{
+	APGPlayerState* VictimPS = GetPlayerState<APGPlayerState>();
+	if (!IsValid(VictimPS))
+	{
+		return;
+	}
+	APGPlayerState* KillerPS = nullptr;
+	if (IsValid(InstigatorActor))
+	{
+		if (APGPlayerCharacterBase* KillerChar = Cast<APGPlayerCharacterBase>(InstigatorActor))
+		{
+			KillerPS = KillerChar->GetPlayerState<APGPlayerState>();
+		}
+		else if (APGPlayerController* KillerPC = Cast<APGPlayerController>(InstigatorActor))
+		{
+			KillerPS = KillerPC->GetPlayerState<APGPlayerState>();
+		}
+	}
+	if (IsValid(KillerPS) && KillerPS != VictimPS)
+	{
+		KillerPS->AddGold(RewardGold);
+	}
 }
 
 #pragma endregion

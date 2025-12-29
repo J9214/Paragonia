@@ -69,7 +69,7 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_TeamId();
 
-	virtual void HandleDeath();
+	virtual void HandleDeath(AActor* KillerActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Death")
 	void StartDeathEffect();
@@ -77,6 +77,9 @@ protected:
 	// 클라 전달용 멀티캐스트 RPC
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_HandleDeath();
+
+	UFUNCTION()
+	void OnOutOfHealth(AActor* InstigatorActor);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|StateTree")
@@ -119,4 +122,7 @@ protected:
 
 	UPROPERTY()
 	TArray<UMaterialInstanceDynamic*> DissolveMaterials;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	int32 RewardGoldAmount = 100;
 };
