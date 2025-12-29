@@ -240,7 +240,7 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
         return false;
     }    
     
-    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS))\
+    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS))
     {
         return false;
     }

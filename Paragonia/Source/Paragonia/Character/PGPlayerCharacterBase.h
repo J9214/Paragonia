@@ -23,6 +23,7 @@ class UPG_IngameInfo;
 class USceneCaptureComponent2D; 
 class UPaperSpriteComponent;
 class UPaperSprite;
+class UPG_PlayerUIComponent;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -58,8 +59,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -109,12 +108,6 @@ private:
 
 	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
 
-	void BindHeadHPDelegatesOnce();
-
-	void SetupHeadHPWidget();
-
-	void UpdateHeadHPVisibility();
-
 	void OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	void BindCooldownTagEvent();
@@ -149,6 +142,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
 	TObjectPtr<UCharacterAttributeSet> CharacterAttributeSet;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute")
+	TObjectPtr<UPG_PlayerUIComponent> UIComponent;
+
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;
 
@@ -182,26 +178,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UWidgetComponent> HeadHPWidgetComp;
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UPG_IngameInfo> HeadHPWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<UPG_IngameInfo> HeadHPWidget;
-
-	UPROPERTY()
-	TObjectPtr<UTextureRenderTarget2D> MinimapRT;
-
 	UPROPERTY()
 	TObjectPtr<UPaperSpriteComponent> MinimapIcon;
 
 private:
 	bool bInputLock;
 
-	bool bHeadHPBound;
-
 	TMap<FGameplayTag, FTimerHandle> CooldownTickTimerHandles;
-
-	float Accum;
 #pragma region Respawn
 public:
 	UFUNCTION(Server, Reliable)

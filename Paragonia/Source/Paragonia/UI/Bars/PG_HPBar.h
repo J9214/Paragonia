@@ -38,9 +38,6 @@ protected:
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> Damaged;
 
-	UPROPERTY(Transient, meta = (BindWidgetAnim))
-	TObjectPtr<UWidgetAnimation> Healed;
-
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UHorizontalBox> BuffBox;
 

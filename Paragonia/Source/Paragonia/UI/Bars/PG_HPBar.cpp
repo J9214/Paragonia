@@ -8,7 +8,6 @@ void UPG_HPBar::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-
 }
 
 
@@ -32,21 +31,16 @@ void UPG_HPBar::HandleHealthChanged(float OldValue, float NewValue)
         return;
     }
 
+    StopAnimation(Damaged);
+
     BarFillMID->SetScalarParameterValue(TEXT("HealthCurrent"), SetOldValue);
     BarFillMID->SetScalarParameterValue(TEXT("HealthUpdate"), SetNewValue);
     BarGlowMID->SetScalarParameterValue(TEXT("Health_Current"), SetOldValue);
-    BarGlowMID->SetScalarParameterValue(TEXT("Health_Update"), SetNewValue);
-
-    StopAnimation(Damaged);
-    StopAnimation(Healed);
+    BarGlowMID->SetScalarParameterValue(TEXT("Health_Updated"), SetNewValue);
 
     if (OldValue > NewValue)
     {
         PlayAnimation(Damaged, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
-    }
-    else
-    {
-        PlayAnimation(Healed, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
     }
 }
 
@@ -73,18 +67,13 @@ void UPG_HPBar::HandleMaxHealthChanged(float OldValue, float NewValue)
     BarFillMID->SetScalarParameterValue(TEXT("HealthCurrent"), SetOldValue);
     BarFillMID->SetScalarParameterValue(TEXT("HealthUpdate"), SetNewValue);
     BarGlowMID->SetScalarParameterValue(TEXT("Health_Current"), SetOldValue);
-    BarGlowMID->SetScalarParameterValue(TEXT("Health_Update"), SetNewValue);
+    BarGlowMID->SetScalarParameterValue(TEXT("Health_Updated"), SetNewValue);
 
     StopAnimation(Damaged);
-    StopAnimation(Healed);
 
     if (SetOldValue > SetNewValue)
     {
         PlayAnimation(Damaged, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
-    }
-    else
-    {
-        PlayAnimation(Healed, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
     }
 }
 
