@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -72,7 +72,7 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_TeamId();
 
-	virtual void HandleDeath();
+	virtual void HandleDeath(AActor* KillerActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Death")
 	void StartDeathEffect();
@@ -80,6 +80,9 @@ protected:
 	// 클라 전달용 멀티캐스트 RPC
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_HandleDeath();
+
+	UFUNCTION()
+	void OnOutOfHealth(AActor* InstigatorActor);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
@@ -128,4 +131,7 @@ protected:
 
 	UPROPERTY()
 	TArray<UMaterialInstanceDynamic*> DissolveMaterials;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	int32 RewardGoldAmount = 100;
 };

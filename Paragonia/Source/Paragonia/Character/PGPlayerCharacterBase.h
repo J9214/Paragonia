@@ -210,6 +210,11 @@ public:
 	UFUNCTION()
 	void SetDeadState(bool bDead); 
 
+	UFUNCTION()
+	void OnOutOfHealth(AActor* InstigatorActor);
+
+	void HandlePlayerDeathReward(AActor* InstigatorActor);
+
 	virtual int32 GetTeamID_Implementation() const override; 
 	virtual bool GetIsDead_Implementation() const { return bIsDead; }
 
@@ -232,6 +237,9 @@ protected:
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Dead)
 	bool bIsDead;
+
+	UPROPERTY(EditAnywhere)
+	int32 RewardGold = 100;
 #pragma endregion
 
 };
