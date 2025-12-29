@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/AI/NpcBaseCharacter.h"
@@ -22,6 +22,8 @@ ANpcBaseCharacter::ANpcBaseCharacter()
 	DeathDuration(5.0f)
 {
 	bReplicates = true;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SetReplicateMovement(true);
 
@@ -105,6 +107,8 @@ void ANpcBaseCharacter::Tick(float DeltaTime)
 	{
 		DeathAccumulatedTime += DeltaTime;
 
+		UE_LOG(LogTemp, Log, TEXT("Npc killed, Alpha : %f"), DeathAccumulatedTime);
+
 		float Alpha = FMath::Clamp(DeathAccumulatedTime / DeathDuration, 0.0f, 1.0f);
 
 		for (UMaterialInstanceDynamic* MID : DissolveMaterials)
@@ -126,6 +130,12 @@ void ANpcBaseCharacter::HandleDeath(AActor* KillerActor)
 {
 	if (HasAuthority())
 	{
+		bool bIsDead = ASC->HasMatchingGameplayTag(DeadTag);
+		if (bIsDead == true)
+		{
+			return;
+		}
+
 		if (IsValid(ASC) == true
 			&& DeadTag.IsValid() == true)
 		{
@@ -188,6 +198,8 @@ void ANpcBaseCharacter::Multicast_HandleDeath_Implementation()
 
 	bIsDissolving = true;
 	DeathAccumulatedTime = 0.0f;
+
+	SetActorTickEnabled(true);
 
 	if (HasAuthority())
 	{
