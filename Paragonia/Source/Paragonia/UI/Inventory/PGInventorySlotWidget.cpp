@@ -83,6 +83,23 @@ void UPGInventorySlotWidget::Refresh()
                     IconImage->SetBrushFromTexture(nullptr);
                     IconImage->SetVisibility(ESlateVisibility::Hidden);
                 }
+
+                if (Row)
+                {
+                    if (InLineBorder)
+                    {
+                        InLineBorder->SetBrushColor(GetColorByRarity(Row->Rarity));
+                        // 혹은 SetColorAndOpacity 사용
+                    }
+                }
+                else
+                {
+                    // 아이템 없으면 기본색(투명 혹은 어두운색)
+                    if (InLineBorder)
+                    {
+                        InLineBorder->SetBrushColor(FLinearColor(0.1f, 0.1f, 0.1f, 1.0f));
+                    }
+                }
             }
         }
         else
@@ -202,4 +219,17 @@ bool UPGInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDr
         return true;
     }
     return false;
+}
+
+FLinearColor UPGInventorySlotWidget::GetColorByRarity(EItemRarity Rarity)
+{
+    switch (Rarity)
+    {
+        case EItemRarity::Common:    return FLinearColor(0.6f, 0.6f, 0.6f, 0.5f); break;
+        case EItemRarity::Uncommon:  return FLinearColor(0.2f, 1.0f, 0.2f, 0.5f); break;
+        case EItemRarity::Rare:      return FLinearColor(0.2f, 0.5f, 1.0f, 0.5f); break;
+        case EItemRarity::Unique:    return FLinearColor(0.7f, 0.2f, 1.0f, 0.5f); break;
+        case EItemRarity::Legendary: return FLinearColor(1.0f, 0.6f, 0.0f, 0.5f); break;
+        default:                     return FLinearColor(0.2f, 0.2f, 0.2f, 1.0f); break;
+    }
 }

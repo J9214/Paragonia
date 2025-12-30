@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Shop/PGShopTypes.h"
 #include "PGInventorySlotWidget.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotClicked, int32 /*SlotIndex*/);
@@ -42,9 +43,14 @@ protected:
 
     void SetEmptyVisual();
    
+    FLinearColor GetColorByRarity(EItemRarity Rarity);
+
 protected:
     UPROPERTY(meta = (BindWidget)) UImage* IconImage;
     UPROPERTY(meta = (BindWidgetOptional)) UTextBlock* CountText;
+    
+    UPROPERTY(meta = (BindWidgetOptional))
+    UBorder* InLineBorder;
 
     UPROPERTY(meta = (BindWidget))
     UBorder* SelectionBorder;
