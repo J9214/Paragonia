@@ -3,6 +3,7 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/Border.h"
 
 #include "UI/Inventory/PGInventoryDragOp.h"
 #include "Inventory/PGInventoryComponent.h"  
@@ -14,6 +15,11 @@
 void UPGInventorySlotWidget::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    if (SelectionBorder)
+    {
+        SelectionBorder->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 void UPGInventorySlotWidget::Init(UPGInventoryComponent* InInventory, int32 InSlotIndex)
@@ -21,6 +27,22 @@ void UPGInventorySlotWidget::Init(UPGInventoryComponent* InInventory, int32 InSl
     Inventory = InInventory;
     SlotIndex = InSlotIndex;
     Refresh();
+}
+
+void UPGInventorySlotWidget::SetSelected(bool bIsSelected)
+{
+    if (SelectionBorder)
+    {
+        if (bIsSelected)
+        {
+            // 보더가 보이되, 클릭을 가로채지 않도록 HitTestInvisible 권장
+            SelectionBorder->SetVisibility(ESlateVisibility::HitTestInvisible);
+        }
+        else
+        {
+            SelectionBorder->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
 }
 
 void UPGInventorySlotWidget::Refresh()
