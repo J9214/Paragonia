@@ -34,6 +34,9 @@ public:
 	UFUNCTION()
 	void OnChatInputTextcommitted(const FText& Text, ETextCommit::Type CommitMethod);
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void ReturnToGame();
+
 	virtual UChatLogBox* CreateLogBox();
 	virtual void AddLog(const FString& PlayerName, const FString& Log, int32 InTeamID);
 };
