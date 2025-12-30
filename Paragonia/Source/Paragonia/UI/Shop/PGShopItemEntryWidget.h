@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/IUserObjectListEntry.h"
+#include "Shop/PGShopTypes.h"
 #include "PGShopItemEntryWidget.generated.h"
 
 class UImage;
@@ -19,9 +20,14 @@ public:
     virtual void NativeOnItemSelectionChanged(bool bIsSelected) override;
 
 protected:
+    FLinearColor GetColorByRarity(EItemRarity Rarity);
+
     UPROPERTY(meta = (BindWidget)) 
     UImage* IconImage;
 
     UPROPERTY(meta = (BindWidget))
     UBorder* SelectionBorder;
+
+    UPROPERTY(meta = (BindWidgetOptional))
+    UBorder* InLineBorder;
 };
