@@ -18,7 +18,7 @@ UCLASS()
 class PARAGONIA_API APGPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
 public:
 	APGPlayerController();
 
@@ -44,7 +44,7 @@ protected:
 	void StartReadyCheck();
 	void TickReadyCheck();
 	bool AreAllPlayersReplicatedOnThisClient() const;
-	bool SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter, APGPlayerState* LocalPS);
+	bool SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter, APGPlayerState* PS, bool IsTeam);
 
 	FTimerHandle ReadyCheckTimerHandle;
 	float ReadyCheckIntervalSeconds = 0.1f;
