@@ -348,11 +348,11 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
         {
         case 0:
             IngameHUD->BindSlot(EHPBarSlot::Team1, TeamAttributeSet);
-            IngameHUD->InitTeam1IngameIcon(PGPS->GetCharID());
+            IngameHUD->InitTeam1IngameIcon(PGPS->GetCharID(), PGPS->GetPlayerNickName());
             break;
         default:
             IngameHUD->BindSlot(EHPBarSlot::Team2, TeamAttributeSet);
-            IngameHUD->InitTeam2IngameIcon(PGPS->GetCharID());
+            IngameHUD->InitTeam2IngameIcon(PGPS->GetCharID(), PGPS->GetPlayerNickName());
             break;
         }
 
