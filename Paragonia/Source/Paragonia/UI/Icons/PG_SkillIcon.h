@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
@@ -35,6 +35,12 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UTextBlock> CooldownText;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> SkillNameText;
+
+    UPROPERTY(EditAnywhere, Category = "Parameter")
+    FText SkillName;
 
 private:
     FGameplayTag CooldownTag;
