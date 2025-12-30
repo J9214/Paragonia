@@ -6,8 +6,6 @@ void UPG_SkillIcon::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	SkillNameText->SetText(SkillName);
-
 	if (SkillImage)
 	{
 		SkillImage->SetVisibility(ESlateVisibility::Hidden);
