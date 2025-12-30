@@ -23,7 +23,10 @@ public:
     TSoftObjectPtr<UTexture2D> CircleIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    TSoftObjectPtr<UPaperSprite> MinimapIcon;
+    TSoftObjectPtr<UPaperSprite> MinimapTeamIcon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UPaperSprite> MinimapEnemyIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<USkeletalMesh> LobbyMesh;

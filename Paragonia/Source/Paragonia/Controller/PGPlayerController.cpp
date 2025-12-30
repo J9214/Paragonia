@@ -133,7 +133,7 @@ bool APGPlayerController::AreAllPlayersReplicatedOnThisClient() const
 
     return true;
 }
-bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter, APGPlayerState* LocalPS)
+bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InCharacter, APGPlayerState* PS, bool IsTeam)
 {
     UGameInstance* GI = GetGameInstance();
 
@@ -149,7 +149,7 @@ bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InChar
         return false;
     }
 
-    const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(LocalPS->GetCharID());
+    const FCharacterResourceInfo* ResourceInfo = CharacterDescSubsys->GetCharacterResource(PS->GetCharID());
 
     if (!ResourceInfo)
     {
@@ -158,13 +158,27 @@ bool APGPlayerController::SetCharacterMinimapIcon(APGPlayerCharacterBase* InChar
 
     UPaperSprite* Sprite = nullptr;
 
-    if (ResourceInfo->MinimapIcon.IsValid())
+    if (IsTeam)
     {
-        Sprite = ResourceInfo->MinimapIcon.Get();
+        if (ResourceInfo->MinimapTeamIcon.IsValid())
+        {
+            Sprite = ResourceInfo->MinimapTeamIcon.Get();
+        }
+        else
+        {
+            Sprite = ResourceInfo->MinimapTeamIcon.LoadSynchronous();
+        }
     }
     else
     {
-        Sprite = ResourceInfo->MinimapIcon.LoadSynchronous();
+        if (ResourceInfo->MinimapEnemyIcon.IsValid())
+        {
+            Sprite = ResourceInfo->MinimapEnemyIcon.Get();
+        }
+        else
+        {
+            Sprite = ResourceInfo->MinimapEnemyIcon.LoadSynchronous();
+        }
     }
 
     if (!Sprite)
@@ -256,9 +270,9 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
     if (!IsValid(MyAttributeSet))
     {
         return false;
-    }    
-    
-    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS))
+    }
+
+    if (!SetCharacterMinimapIcon(FoundMyCharacter, LocalPS, true))
     {
         return false;
     }
@@ -282,7 +296,7 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
 
         APGPlayerState* PGPS = Cast<APGPlayerState>(PS);
 
-        int32 PSTeamId= 255;
+        int32 PSTeamId = 255;
         if (IsValid(PGPS))
         {
             PSTeamId = PGPS->GetTeamID();
@@ -324,7 +338,7 @@ bool APGPlayerController::SetTeamHPBar(const TArray<APlayerState*>& PlayerArray,
             return false;
         }
 
-        if (!SetCharacterMinimapIcon(FoundCharacter, PGPS))
+        if (!SetCharacterMinimapIcon(FoundCharacter, PGPS, LocalPS->GetTeamID() == PGPS->GetTeamID()))
         {
             return false;
         }
