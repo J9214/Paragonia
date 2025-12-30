@@ -12,6 +12,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnSlotRightClicked, int32 /*SlotIndex*/);
 class UImage;
 class UTextBlock;
 class UPGInventoryComponent;
+class UBorder;
 
 UCLASS()
 class PARAGONIA_API UPGInventorySlotWidget : public UUserWidget
@@ -22,6 +23,8 @@ public:
     void Init(UPGInventoryComponent* InInventory, int32 InSlotIndex);
 
     void Refresh();
+
+    void SetSelected(bool bIsSelected);
 
     UPROPERTY(EditDefaultsOnly, Category = "DragDrop")
     TSubclassOf<UUserWidget> DragVisualWidgetClass;
@@ -42,6 +45,9 @@ protected:
 protected:
     UPROPERTY(meta = (BindWidget)) UImage* IconImage;
     UPROPERTY(meta = (BindWidgetOptional)) UTextBlock* CountText;
+
+    UPROPERTY(meta = (BindWidget))
+    UBorder* SelectionBorder;
 
     UPROPERTY() TObjectPtr<UPGInventoryComponent> Inventory;
     int32 SlotIndex = INDEX_NONE;
