@@ -47,23 +47,23 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> PlayerName;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPGInventorySlotWidget> Item0;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UPGInventorySlotWidget> Item0;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPGInventorySlotWidget> Item1;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UPGInventorySlotWidget> Item1;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPGInventorySlotWidget> Item2;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UPGInventorySlotWidget> Item2;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPGInventorySlotWidget> Item3;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UPGInventorySlotWidget> Item3;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPGInventorySlotWidget> Item4;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UPGInventorySlotWidget> Item4;
 
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UPGInventorySlotWidget> Item5;
+	//UPROPERTY(meta = (BindWidget))
+	//TObjectPtr<UPGInventorySlotWidget> Item5;
 private:
 	UPROPERTY()
 	TObjectPtr<UCharacterAttributeSet> BoundAttrSet;
