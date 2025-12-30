@@ -1,4 +1,4 @@
-#include "UI/Icons/PG_SkillIcon.h"
+﻿#include "UI/Icons/PG_SkillIcon.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 
@@ -6,10 +6,11 @@ void UPG_SkillIcon::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
+	SkillNameText->SetText(SkillName);
+
 	if (SkillImage)
 	{
-		SkillImage->SetVisibility(ESlateVisibility::Visible);
-		SkillImage->SetColorAndOpacity(FLinearColor(255, 255, 255, 255));
+		SkillImage->SetVisibility(ESlateVisibility::Hidden);
 	}
 
 	if (CooldownText)
@@ -29,7 +30,7 @@ void UPG_SkillIcon::StartCooldown()
 {
 	if (SkillImage)
 	{
-		SkillImage->SetColorAndOpacity(FLinearColor::White);
+		SkillImage->SetVisibility(ESlateVisibility::Visible);
 	}
 
 	if (CooldownText)
@@ -57,7 +58,7 @@ void UPG_SkillIcon::ClearCooldown()
 {
 	if (SkillImage)
 	{
-		SkillImage->SetColorAndOpacity(FLinearColor(0.5f, 0.5f, 0.5f, 0.5f));
+		SkillImage->SetVisibility(ESlateVisibility::Hidden);
 	}
 
 	if (CooldownText)

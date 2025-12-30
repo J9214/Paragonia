@@ -37,6 +37,11 @@ void APGPlayerState::SetTeamID(int32 NewTeamID)
 	this->TeamID = NewTeamID;
 }
 
+void APGPlayerState::SetPlayerNickName(const FString& NewPlayerNickName)
+{
+	this->PlayerNickName = NewPlayerNickName;
+}
+
 void APGPlayerState::OnRep_Gold()
 {
 	OnGoldChanged.Broadcast(Gold);
