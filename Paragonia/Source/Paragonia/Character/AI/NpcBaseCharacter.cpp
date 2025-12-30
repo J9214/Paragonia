@@ -80,9 +80,11 @@ void ANpcBaseCharacter::PossessedBy(AController* NewController)
 
 		if (CharacterAttributeSet)
 		{
-			CharacterAttributeSet->OnHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+			CharacterAttributeSet->OnHealthChanged.RemoveDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+			CharacterAttributeSet->OutOfHealthChanged.RemoveDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
 
-			CharacterAttributeSet->OutOfHealthChanged.AddDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
+			CharacterAttributeSet->OnHealthChanged.AddUniqueDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+			CharacterAttributeSet->OutOfHealthChanged.AddUniqueDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
 		}
 
 		if (HasAuthority())
@@ -400,5 +402,11 @@ void ANpcBaseCharacter::OnRep_TeamId()
 
 void ANpcBaseCharacter::OnOutOfHealth(AActor* InstigatorActor)
 {
+	if (CharacterAttributeSet)
+	{
+		CharacterAttributeSet->OutOfHealthChanged.RemoveDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
+		CharacterAttributeSet->OnHealthChanged.RemoveDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+	}
+
 	HandleDeath(InstigatorActor);
 }
