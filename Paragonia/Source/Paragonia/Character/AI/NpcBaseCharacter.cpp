@@ -400,5 +400,11 @@ void ANpcBaseCharacter::OnRep_TeamId()
 
 void ANpcBaseCharacter::OnOutOfHealth(AActor* InstigatorActor)
 {
+	if (CharacterAttributeSet)
+	{
+		CharacterAttributeSet->OutOfHealthChanged.RemoveDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
+		CharacterAttributeSet->OnHealthChanged.RemoveDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
+	}
+
 	HandleDeath(InstigatorActor);
 }
