@@ -28,19 +28,12 @@ public:
 
 protected:
     virtual void NativeOnInitialized() override;
-
 protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UImage> SkillImage;
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UTextBlock> CooldownText;
-
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UTextBlock> SkillNameText;
-
-    UPROPERTY(EditAnywhere, Category = "Parameter")
-    FText SkillName;
 
 private:
     FGameplayTag CooldownTag;
