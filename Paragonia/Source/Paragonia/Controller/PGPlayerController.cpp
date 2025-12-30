@@ -484,10 +484,6 @@ void APGPlayerController::ShowWinWidget(uint8 IsWin)
 			GameResultUI->ResultText->SetText(GameResultText);
 
             FInputModeUIOnly Mode;
-            if (GameResultUI->ReturnToTitleButton != nullptr)
-            {
-                Mode.SetWidgetToFocus(GameResultUI->ReturnToTitleButton->TakeWidget());
-            }
             Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
             SetInputMode(Mode);
 
