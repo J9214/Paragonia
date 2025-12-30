@@ -55,7 +55,7 @@ public:
 
 protected:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Gold, BlueprintReadOnly)
-	int32 Gold = 1000;
+	int32 Gold = 400;
 #pragma endregion Shop
 
 #pragma region Inventory
