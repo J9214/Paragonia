@@ -48,8 +48,26 @@ void UChatWidget::OnChatInputTextcommitted(const FText& Text, ETextCommit::Type 
 
 		PGPC->SetChatMessageString(Text.ToString());
 
-		ChatInput->SetText(FText());
+		ReturnToGame();
 	}
+}
+
+void UChatWidget::ReturnToGame_Implementation()
+{
+	APlayerController* PlayerController = GetOwningPlayer();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	APGPlayerController* PGPC = Cast<APGPlayerController>(PlayerController);
+	if (!IsValid(PGPC))
+	{
+		return;
+	}
+
+	PGPC->SetInputMode(FInputModeGameOnly());
+	PGPC->SetShowMouseCursor(false);
 }
 
 UChatLogBox* UChatWidget::CreateLogBox()
