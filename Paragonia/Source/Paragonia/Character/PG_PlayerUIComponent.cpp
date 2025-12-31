@@ -109,6 +109,8 @@ void UPG_PlayerUIComponent::BindHeadHPDelegatesOnce()
 		return;
 	}
 
+	HeadHPWidget->BindToAttributeSet(CharacterAttributeSet);
+	bHeadHPBound = true;
 	//APGPlayerState* PGPS = OwnerCharacter->GetPlayerState<APGPlayerState>();
 	//if (!PGPS)
 	//{
@@ -121,10 +123,7 @@ void UPG_PlayerUIComponent::BindHeadHPDelegatesOnce()
 	//	return;
 	//}
 
-	HeadHPWidget->BindToAttributeSet(CharacterAttributeSet);
-//	HeadHPWidget->InitInventory(InventoryConponent);
-
-	bHeadHPBound = true;
+	//HeadHPWidget->InitInventory(InventoryConponent);
 }
 
 void UPG_PlayerUIComponent::UpdateHeadHPVisibility()

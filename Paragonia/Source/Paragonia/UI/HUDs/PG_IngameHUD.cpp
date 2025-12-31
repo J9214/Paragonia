@@ -15,6 +15,7 @@
 #include "Inventory/PGInventoryComponent.h"
 #include "UI/Panels/PG_KillLog.h"
 #include "PlayerState/PGPlayerState.h"
+#include "Components/TextBlock.h"
 
 void UPG_IngameHUD::NativeOnInitialized()
 {
@@ -321,6 +322,28 @@ void UPG_IngameHUD::UnbindInventory()
     }
 
     InventoryComponent = nullptr;
+}
+
+void UPG_IngameHUD::HandleGoldChange(int32 NewGold)
+{
+    if (GoldText)
+    {
+        GoldText->SetText(FText::FromString(FString::Printf(TEXT("Gold: %d"), NewGold)));
+    }
+}
+
+void UPG_IngameHUD::InitGold(APGPlayerState* InPS)
+{
+    if (!IsValid(InPS))
+    {
+        return;
+    }
+
+    InPS->OnGoldChanged.RemoveAll(this);
+
+    InPS->OnGoldChanged.AddUObject(this, &UPG_IngameHUD::HandleGoldChange);
+
+    HandleGoldChange(InPS->GetGold());
 }
 
 #pragma region Chatting
