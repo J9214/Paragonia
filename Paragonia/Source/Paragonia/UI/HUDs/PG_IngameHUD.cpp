@@ -11,6 +11,8 @@
 #include "UI/MiniMap/PG_MiniMap.h"
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "UI/Chatting/ChatWidget.h"
+#include "UI/Inventory/PGInventorySlotWidget.h"
+#include "Inventory/PGInventoryComponent.h"
 
 void UPG_IngameHUD::NativeOnInitialized()
 {
@@ -37,7 +39,7 @@ void UPG_IngameHUD::NativeDestruct()
     BindProxies.Empty();
     BoundAttrSets.Empty();
     HPBars.Empty();
-
+    UnbindInventory();
     Super::NativeDestruct();
 }
 
@@ -181,6 +183,64 @@ void UPG_IngameHUD::BindCooldownToSkillIcon()
 	PlayerCharacter->OnCooldownTagChangedDelegate.AddDynamic(this, &ThisClass::HandleCooldownTagChanged);
 }
 
+void UPG_IngameHUD::InitInventory(UPGInventoryComponent* InInventoryComponent)
+{
+    if (InventoryComponent != InInventoryComponent)
+    {
+        UnbindInventory();
+    }
+
+    if (!IsValid(InInventoryComponent))
+    {
+        return;
+    }
+
+    InventoryComponent = InInventoryComponent;
+
+    UPGInventorySlotWidget* Items[] = { Item0, Item1, Item2, Item3, Item4, Item5 };
+
+    int index = 0;
+
+    for (UPGInventorySlotWidget* Item : Items)
+    {
+        if (!IsValid(Item))
+        {
+            continue;
+        }
+
+        Item->Init(InInventoryComponent, index++);
+        Item->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    InventoryComponent->OnInventoryChanged.RemoveAll(this);
+    InventoryComponent->OnInventoryChanged.AddUObject(this, &UPG_IngameHUD::RefreshAll);
+}
+
+void UPG_IngameHUD::RefreshAll()
+{
+    UPGInventorySlotWidget* Items[] = { Item0, Item1, Item2, Item3, Item4, Item5 };
+
+    for (UPGInventorySlotWidget* Item : Items)
+    {
+        if (!IsValid(Item))
+        {
+            continue;
+        }
+
+        const bool bHasItem = Item->Refresh();
+        Item->SetVisibility(bHasItem ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+    }
+}
+
+void UPG_IngameHUD::UnbindInventory()
+{
+    if (IsValid(InventoryComponent))
+    {
+        InventoryComponent->OnInventoryChanged.RemoveAll(this);
+    }
+
+    InventoryComponent = nullptr;
+}
 
 #pragma region Chatting
 

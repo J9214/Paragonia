@@ -30,6 +30,8 @@ public:
 	void SetPlayerNickName(const FString& NewPlayerNickName);
 	int32 GetGold() const { return Gold; }
 
+	UPGInventoryComponent* GetInventoryComponent() { return Inventory; }
+
 protected:
 	UPROPERTY(VisibleAnywhere, Replicated)
 	int32 CharacterID;

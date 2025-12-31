@@ -278,7 +278,14 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
         return false;
     }
 
+    APGPlayerState* MyPS = Cast<APGPlayerState>(PlayerState);
+    if (!MyPS)
+    {
+        return false;
+    }
+
     IngameHUD->BindSlot(EHPBarSlot::Player, MyAttributeSet);
+    IngameHUD->InitInventory(MyPS->GetInventoryComponent());
     IngameHUD->InitMinimap(FoundMyCharacter->GetMinimapRenderTarget());
 
     return true;
