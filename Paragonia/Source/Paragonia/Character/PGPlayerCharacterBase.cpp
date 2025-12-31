@@ -795,30 +795,13 @@ void APGPlayerCharacterBase::ResetCharacterStateOnRespawn()
 
 void APGPlayerCharacterBase::ClearAllTagsAndEffectOnDeath()
 {
-	if (!IsValid(ASC))
+	if (!HasAuthority() || !IsValid(ASC))
 	{
 		return;
 	}
 
-	if (HasAuthority())
-	{
-		ASC->CancelAllAbilities();
-	}
-
+	ASC->CancelAllAbilities();
 	ASC->RemoveAllGameplayCues();
-
-	const FGameplayTag StateRoot = FGameplayTag::RequestGameplayTag(TEXT("Character.State"));
-
-	FGameplayTagContainer OwnedTags;
-	ASC->GetOwnedGameplayTags(OwnedTags);
-
-	for (const FGameplayTag& Tag : OwnedTags)
-	{
-		if (Tag.MatchesTag(StateRoot))
-		{
-			ASC->SetLooseGameplayTagCount(Tag, 0);
-		}
-	}
 }
 
 void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

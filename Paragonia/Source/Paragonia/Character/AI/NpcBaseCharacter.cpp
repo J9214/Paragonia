@@ -13,8 +13,6 @@
 #include "AIController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Character/PG_PlayerUIComponent.h"
-#include "Struct/FCharacterAttributeData.h"
-#include "AttributeSet/CharacterAttributeSet.h"
 
 ANpcBaseCharacter::ANpcBaseCharacter()
 	:TeamId(255),
@@ -88,8 +86,6 @@ void ANpcBaseCharacter::PossessedBy(AController* NewController)
 
 			CharacterAttributeSet->OnHealthChanged.AddUniqueDynamic(this, &ANpcBaseCharacter::OnHealthChanged);
 			CharacterAttributeSet->OutOfHealthChanged.AddUniqueDynamic(this, &ANpcBaseCharacter::OnOutOfHealth);
-
-			ASC->GetGameplayAttributeValueChangeDelegate(UCharacterAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ANpcBaseCharacter::OnMoveSpeedChanged);
 		}
 
 		if (HasAuthority())
@@ -415,9 +411,4 @@ void ANpcBaseCharacter::OnOutOfHealth(AActor* InstigatorActor)
 	}
 
 	HandleDeath(InstigatorActor);
-}
-
-void ANpcBaseCharacter::OnMoveSpeedChanged(const FOnAttributeChangeData& Data)
-{
-	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
 }

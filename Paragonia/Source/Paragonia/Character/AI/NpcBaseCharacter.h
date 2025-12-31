@@ -11,7 +11,6 @@ class UAbilitySystemComponent;
 class UCharacterAttributeSet;
 class UGameplayAbility;
 class UGameplayEffect;
-struct FOnAttributeChangeData;
 
 UCLASS()
 class PARAGONIA_API ANpcBaseCharacter : public APGCharacterBase
@@ -83,9 +82,6 @@ protected:
 	void OnOutOfHealth(AActor* InstigatorActor);
 
 	bool IsTargetValid(AActor* TargetActor) const;
-
-private:
-	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|StateTree")
