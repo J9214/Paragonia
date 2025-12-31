@@ -15,7 +15,12 @@ class UCharacterAttributeSet;
 class UWidgetAnimation;
 class UChatWidget;
 class UPGInventorySlotWidget;
+<<<<<<< Updated upstream
 class UPG_KillLog;
+=======
+class UTextBlock;
+class APGPlayerState;
+>>>>>>> Stashed changes
 
 UCLASS()
 class PARAGONIA_API UPG_IngameHUD : public UCommonUserWidget
@@ -56,12 +61,21 @@ public:
 	UFUNCTION()
 	void RefreshAll();
 
+<<<<<<< Updated upstream
 	UFUNCTION()
 	void OnKillEvent(APGPlayerState* ClientPS, class APGPlayerState* KillerPS, class APGPlayerState* VictimPS);
+=======
+	void InitGold(APGPlayerState* InPS);
+>>>>>>> Stashed changes
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
+
+	
+
+	UFUNCTION()
+	void HandleGoldChange(int32 NewGold);
 private:
 	void BindCooldownToSkillIcon();
 
@@ -114,6 +128,7 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPGInventorySlotWidget> Item5;
 
+<<<<<<< Updated upstream
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UPG_KillLog> KillLog0;
 	UPROPERTY(meta = (BindWidget))
@@ -129,6 +144,11 @@ protected:
 
 	UFUNCTION()
 	void InitKillLogSlots();
+=======
+	UPROPERTY(meta = (BindWidgetOptional))
+	UTextBlock* GoldText;
+
+>>>>>>> Stashed changes
 private:
 	TMap<FGameplayTag, TObjectPtr<UPG_SkillIcon>> CooldownTagToWidget;
 

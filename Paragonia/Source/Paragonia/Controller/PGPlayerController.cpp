@@ -299,6 +299,8 @@ bool APGPlayerController::SetMyHPBar(APGPlayerState* LocalPS)
     //IngameHUD->InitInventory(MyPS->GetInventoryComponent());
     IngameHUD->InitMinimap(FoundMyCharacter->GetMinimapRenderTarget());
 
+    IngameHUD->InitGold(MyPS);
+
     return true;
 }
 
