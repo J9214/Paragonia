@@ -108,7 +108,25 @@ void UPG_PlayerUIComponent::BindHeadHPDelegatesOnce()
 	{
 		return;
 	}
+<<<<<<< Updated upstream
 
+	//APGPlayerState* PGPS = OwnerCharacter->GetPlayerState<APGPlayerState>();
+	//if (!PGPS)
+	//{
+	//	return;
+	//}
+
+	//UPGInventoryComponent* InventoryConponent = PGPS->GetInventoryComponent();
+	//if (!InventoryConponent)
+	//{
+	//	return;
+	//}
+
+	HeadHPWidget->BindToAttributeSet(CharacterAttributeSet);
+//	HeadHPWidget->InitInventory(InventoryConponent);
+
+=======
+	
 	APGPlayerState* PGPS = OwnerCharacter->GetPlayerState<APGPlayerState>();
 	if (!PGPS)
 	{
@@ -125,6 +143,7 @@ void UPG_PlayerUIComponent::BindHeadHPDelegatesOnce()
 
 	HeadHPWidget->InitInventory(InventoryConponent);
 	
+>>>>>>> Stashed changes
 	bHeadHPBound = true;
 }
 
