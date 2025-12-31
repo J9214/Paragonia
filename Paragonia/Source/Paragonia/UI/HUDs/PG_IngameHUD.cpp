@@ -13,13 +13,8 @@
 #include "UI/Chatting/ChatWidget.h"
 #include "UI/Inventory/PGInventorySlotWidget.h"
 #include "Inventory/PGInventoryComponent.h"
-<<<<<<< Updated upstream
 #include "UI/Panels/PG_KillLog.h"
 #include "PlayerState/PGPlayerState.h"
-=======
-#include "PlayerState/PGPlayerState.h"
-#include "Components/TextBlock.h"
->>>>>>> Stashed changes
 
 void UPG_IngameHUD::NativeOnInitialized()
 {
@@ -30,12 +25,6 @@ void UPG_IngameHUD::NativeOnInitialized()
     HPBars.Add(EHPBarSlot::Team2, Team2HPBar->GetTeamHPBar());
     HPBars.Add(EHPBarSlot::OurNexus, OurNexusHPBar);
     HPBars.Add(EHPBarSlot::EnemyNexus, EnemyNexusHPBar);
-
-    APGPlayerState* PS = Cast<APGPlayerState>(GetOwningPlayerState());
-    if (IsValid(PS))
-    {
-        PS->OnGoldChanged.AddUObject(this, &UPG_IngameHUD::HandleGoldChange);
-    }
 
 	BindCooldownToSkillIcon();
 }
@@ -345,25 +334,3 @@ void UPG_IngameHUD::PrintChatMessageString(const FString& PlayerName, const FStr
 
 #pragma endregion
 
-
-void UPG_IngameHUD::HandleGoldChange(int32 NewGold)
-{
-    if (GoldText)
-    {
-        GoldText->SetText(FText::FromString(FString::Printf(TEXT("Gold: %d"), NewGold)));
-    }
-}
-
-void UPG_IngameHUD::InitGold(APGPlayerState* InPS)
-{
-    if (!IsValid(InPS))
-    {
-        return;
-    }
-
-    InPS->OnGoldChanged.RemoveAll(this);
-
-    InPS->OnGoldChanged.AddUObject(this, &UPG_IngameHUD::HandleGoldChange);
-
-    HandleGoldChange(InPS->GetGold());
-}
