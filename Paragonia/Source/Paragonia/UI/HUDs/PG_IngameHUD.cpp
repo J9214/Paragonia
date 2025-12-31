@@ -13,13 +13,10 @@
 #include "UI/Chatting/ChatWidget.h"
 #include "UI/Inventory/PGInventorySlotWidget.h"
 #include "Inventory/PGInventoryComponent.h"
-<<<<<<< Updated upstream
 #include "UI/Panels/PG_KillLog.h"
 #include "PlayerState/PGPlayerState.h"
-=======
 #include "PlayerState/PGPlayerState.h"
 #include "Components/TextBlock.h"
->>>>>>> Stashed changes
 
 void UPG_IngameHUD::NativeOnInitialized()
 {

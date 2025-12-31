@@ -1,4 +1,4 @@
-﻿#include "PGInventoryComponent.h"
+﻿    #include "PGInventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/DataTable.h"
 #include "AbilitySystemComponent.h"
