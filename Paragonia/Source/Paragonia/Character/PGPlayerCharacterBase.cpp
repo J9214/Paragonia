@@ -20,7 +20,6 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "PaperSpriteComponent.h"
 #include "Character/PG_PlayerUIComponent.h"
-#include "EngineUtils.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -834,34 +833,6 @@ void APGPlayerCharacterBase::OnOutOfHealth(AActor* InstigatorActor)
 	if (HasAuthority())
 	{
 		HandlePlayerDeathReward(InstigatorActor);
-
-		APGPlayerState* VictimPS = GetPlayerState<APGPlayerState>();
-		if (!IsValid(VictimPS))
-		{
-			return;
-		}
-
-		APGPlayerState* KillerPS = nullptr;
-		if (IsValid(InstigatorActor))
-		{
-			if (APGPlayerCharacterBase* KillerChar = Cast<APGPlayerCharacterBase>(InstigatorActor))
-			{
-				KillerPS = KillerChar->GetPlayerState<APGPlayerState>();
-			}
-			else if (APGPlayerController* KillerPC = Cast<APGPlayerController>(InstigatorActor))
-			{
-				KillerPS = KillerPC->GetPlayerState<APGPlayerState>();
-			}
-		}
-
-		for (TActorIterator<APGPlayerController> It(GetWorld()); It; ++It)
-		{
-			APGPlayerController* PC = *It;
-			if (IsValid(PC) == true)
-			{
-				PC->Client_KillInfo(KillerPS, VictimPS);
-			}
-		}
 	}
 }
 
@@ -872,7 +843,6 @@ void APGPlayerCharacterBase::HandlePlayerDeathReward(AActor* InstigatorActor)
 	{
 		return;
 	}
-
 	APGPlayerState* KillerPS = nullptr;
 	if (IsValid(InstigatorActor))
 	{

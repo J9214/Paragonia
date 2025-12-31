@@ -34,8 +34,7 @@ public:
 	UFUNCTION()
 	bool BindIngameHUD();
 
-	UFUNCTION(Client, Reliable)
-	void Client_KillInfo(APGPlayerState* KillerPS, APGPlayerState* VictimPS);
+
 
 
 

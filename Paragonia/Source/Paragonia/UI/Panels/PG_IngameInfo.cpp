@@ -47,8 +47,6 @@ void UPG_IngameInfo::InitInventory(UPGInventoryComponent* InInventoryComponent)
 
 	InventoryComponent->OnInventoryChanged.RemoveAll(this);
 	InventoryComponent->OnInventoryChanged.AddUObject(this, &UPG_IngameInfo::RefreshAll);
-
-	RefreshAll();
 }
 
 void UPG_IngameInfo::RefreshAll()
@@ -64,11 +62,6 @@ void UPG_IngameInfo::RefreshAll()
 
 		const bool bHasItem = Item->Refresh();
 		Item->SetVisibility(bHasItem ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-
-		if (bHasItem)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Init"));
-		}
 	}
 }
 

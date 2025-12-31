@@ -23,13 +23,11 @@ public:
 
 	int32 GetCharID() const { return CharacterID; }
 	int32 GetTeamID() const { return TeamID; }
-	int32 GetPlayerNumberId() const { return PlayerNumberId; }
 	const FString& GetPlayerNickName() const { return PlayerNickName; }
 
 	void SetCharID(int32 NewCharID);
 	void SetTeamID(int32 NewTeamID);
 	void SetPlayerNickName(const FString& NewPlayerNickName);
-	void SetPlayerNumberId(int32 NewPlayerNumberId);
 	int32 GetGold() const { return Gold; }
 
 	UPGInventoryComponent* GetInventoryComponent() { return Inventory; }
@@ -41,8 +39,6 @@ protected:
 	int32 TeamID;
 	UPROPERTY(VisibleAnywhere, Replicated)
 	FString PlayerNickName;
-	UPROPERTY(Replicated)
-	int32 PlayerNumberId;
 
 public:
 	UPROPERTY(VisibleAnywhere, Replicated)
