@@ -28,11 +28,9 @@ void UPG_KillLog::InitIfNeeded(APGPlayerState* InPlayerState, APGPlayerState* De
 {
     if (!IsValid(InPlayerState) || !IsValid(DeathPlayerState))
     {
-        UE_LOG(LogTemp, Warning, TEXT("Return"));
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("INIT"));
     const int32 PlayerId = DeathPlayerState->GetPlayerId();
     if (bInited && BoundPlayerId == PlayerId)
     {
@@ -49,8 +47,8 @@ void UPG_KillLog::InitIfNeeded(APGPlayerState* InPlayerState, APGPlayerState* De
 
     if (VictimIcon)
     {
-        UE_LOG(LogTemp, Warning, TEXT("SetPlayerIcon"));
         VictimIcon->SetPlayerIcon(DeathPlayerState->GetCharID());
+        KillerIcon->ApplyIcon();
     }
 
     BoundPlayerId = PlayerId;
@@ -61,7 +59,6 @@ void UPG_KillLog::ShowKillLog(APGPlayerState* KillerPlayerState)
 {
     if (KillerIcon)
     {
-        UE_LOG(LogTemp, Warning, TEXT("ShowLog"));
         if (KillerPlayerState == nullptr)
         {
             KillerIcon->SetVisibility(ESlateVisibility::Hidden);
@@ -70,12 +67,12 @@ void UPG_KillLog::ShowKillLog(APGPlayerState* KillerPlayerState)
         {
             KillerIcon->SetVisibility(ESlateVisibility::Visible);
             KillerIcon->SetPlayerIcon(KillerPlayerState->GetCharID());
+            KillerIcon->ApplyIcon();
         }
     }
 
     if (PulseAnim)
     {
-        UE_LOG(LogTemp, Warning, TEXT("PlayAnim"));
         this->SetVisibility(ESlateVisibility::Visible);
         StopAnimation(PulseAnim);
         PlayAnimation(PulseAnim, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
