@@ -1,4 +1,4 @@
-#include "AttributeSet/CharacterAttributeSet.h"
+﻿#include "AttributeSet/CharacterAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 
@@ -61,6 +61,16 @@ void UCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModC
 			float OldHealth = GetHealth();
 			float NewHealth = FMath::Clamp(OldHealth - LocalDamage, 0.f, GetMaxHealth());
 			SetHealth(NewHealth);
+
+			if (NewHealth <= 0.0f && OldHealth > 0.0f)
+			{
+				AActor* Instigator = Data.EffectSpec.GetContext().GetInstigator();
+
+				if (OutOfHealthChanged.IsBound())
+				{
+					OutOfHealthChanged.Broadcast(Instigator);
+				}
+			}
 		}
 	}
 }
@@ -79,11 +89,13 @@ void UCharacterAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 void UCharacterAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSet, MaxHealth, OldMaxHealth);
+	OnMaxHealthChanged_UI.Broadcast(OldMaxHealth.GetCurrentValue(), MaxHealth.GetCurrentValue());
 }
 
 void UCharacterAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCharacterAttributeSet, Health, OldHealth);
+	OnHealthChanged_UI.Broadcast(OldHealth.GetCurrentValue(), Health.GetCurrentValue());
 }
 
 void UCharacterAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldDefense)

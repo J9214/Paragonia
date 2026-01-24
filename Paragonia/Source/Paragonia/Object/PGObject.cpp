@@ -6,6 +6,7 @@
 #include "AttributeSet/CharacterAttributeSet.h"
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -18,7 +19,6 @@ APGObject::APGObject()
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	ObjectAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
-
 }
 
 UAbilitySystemComponent* APGObject::GetAbilitySystemComponent() const
@@ -30,7 +30,7 @@ UAbilitySystemComponent* APGObject::GetAbilitySystemComponent() const
 void APGObject::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	InitializeActorInfo();
 
 	if (HasAuthority())
@@ -39,7 +39,6 @@ void APGObject::BeginPlay()
 		InitializeAttributesData();
 	}
 }
-
 
 void APGObject::InitializeActorInfo()
 {
@@ -123,4 +122,12 @@ void APGObject::HandleHealthDepleted()
 	{
 		Destroy();
 	}
+}
+
+void APGObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APGObject, TeamID);
+	DOREPLIFETIME(APGObject, bIsDead);
 }

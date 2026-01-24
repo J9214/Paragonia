@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GA/PGGameplayAbilityBase.h"
+#include "GameplayTagContainer.h"
 #include "GA_HitCheck.generated.h"
 
 class UGameplayEffect;
@@ -35,4 +36,8 @@ private:
 
 	UFUNCTION()
 	void OnTargetDataCancelled(const FGameplayAbilityTargetDataHandle& DataHandle);
+
+private:
+	UPROPERTY()
+	FGameplayTag CurrentHitResultTag;
 };

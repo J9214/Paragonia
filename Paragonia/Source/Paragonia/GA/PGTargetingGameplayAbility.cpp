@@ -18,6 +18,10 @@ UPGTargetingGameplayAbility::UPGTargetingGameplayAbility()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
+
+	RelativeName = "";
+
+	bUseHitResult = true;
 }
 
 void UPGTargetingGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -30,6 +34,8 @@ void UPGTargetingGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHand
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UPGTargetingGameplayAbility::ActivateAbility - No Montage"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
@@ -55,6 +61,7 @@ void UPGTargetingGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHand
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UPGTargetingGameplayAbility::ActivateAbility - Failed to create Ability Task"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
 	UAbilityTask_WaitInputPress* InputPressTask =
@@ -103,7 +110,6 @@ void UPGTargetingGameplayAbility::OnInputPressed(float InTimeWaited)
 				PGAnimInstance->SetCurrentAttackData(AttackData);
 				PGAnimInstance->SetBulletClass(SpawnActorClass);
 				PGAnimInstance->SetTimeWaited(InTimeWaited);
-				PGAnimInstance->SetConfimationType(ConfimationType);
 
 				if (bIsUseSocket)
 				{
@@ -115,13 +121,21 @@ void UPGTargetingGameplayAbility::OnInputPressed(float InTimeWaited)
 				}
 				else if (IsValid(TransformClass))
 				{
-					UActorComponent* ActorComp = GetAvatarActorFromActorInfo()->GetComponentByClass(TransformClass);
-					if (IsValid(ActorComp))
+					TArray<UActorComponent*> OutComps;
+					GetAvatarActorFromActorInfo()->GetComponents(OutComps);
+					for (UActorComponent* Comp : OutComps)
 					{
-						USceneComponent* SceneComp = Cast<USceneComponent>(ActorComp);
-						if (IsValid(SceneComp))
+						if (IsValid(Comp))
 						{
-							PGAnimInstance->SetBulletSpawnTransform(SceneComp->GetComponentTransform());
+							if (Comp->IsA(TransformClass) && Comp->GetFName().ToString().Contains(RelativeName))
+							{
+								USceneComponent* SceneComp = Cast<USceneComponent>(Comp);
+								if (IsValid(SceneComp))
+								{
+									PGAnimInstance->SetBulletSpawnTransform(SceneComp->GetComponentTransform());
+									break;
+								}
+							}
 						}
 					}
 				}
@@ -146,22 +160,25 @@ void UPGTargetingGameplayAbility::OnInputPressed(float InTimeWaited)
 
 	MontageTask->ReadyForActivation();
 
-	UAbilityTask_WaitGameplayEvent* HitResultTask =
-		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
+	if (bUseHitResult)
+	{
+		UAbilityTask_WaitGameplayEvent* HitResultTask =
+			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, AttackData.HitResultTag);
 
-	if (IsValid(HitResultTask))
-	{
-		HitResultTask->EventReceived.AddDynamic(this, &ThisClass::OnHitResultEvent);
-		HitResultTask->ReadyForActivation();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("UPGTargetingGameplayAbility::ActivateAbility - Failed to create HitResult Ability Task"));
-	}
+		if (IsValid(HitResultTask))
+		{
+			HitResultTask->EventReceived.AddDynamic(this, &ThisClass::OnHitResultEvent);
+			HitResultTask->ReadyForActivation();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UPGTargetingGameplayAbility::ActivateAbility - Failed to create HitResult Ability Task"));
+		}
 
-	if (EffectActorClass)
-	{
-		CreateEffectActor();
+		if (EffectActorClass)
+		{
+			CreateEffectActor();
+		}
 	}
 }
 

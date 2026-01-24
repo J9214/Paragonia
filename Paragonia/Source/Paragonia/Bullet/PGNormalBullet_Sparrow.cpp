@@ -2,6 +2,7 @@
 
 #include "Bullet/PGMultiBulletCreator.h"
 #include "GA/Sparrow/GA_SpawnBullet_Sparrow.h"
+#include "Interface/PGTeamStatusInterface.h"
 
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -38,28 +39,6 @@ void APGNormalBullet_Sparrow::PostInitializeComponents()
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBeginOverlap);
 }
 
-void APGNormalBullet_Sparrow::Destroyed()
-{
-	if (IsValid(CreatedBy))
-	{
-		UGA_SpawnBullet_Sparrow* SpawnBulletAbility = Cast<UGA_SpawnBullet_Sparrow>(Ability);
-		if (IsValid(SpawnBulletAbility))
-		{
-			bool bIsEndAbility = !CreatedBy->LeftBulletCheckAndDestroy(this);
-			if (bIsEndAbility)
-			{
-				SpawnBulletAbility->EndAbility(
-					SpawnBulletAbility->GetCurrentAbilitySpecHandle(),
-					SpawnBulletAbility->GetCurrentActorInfo(),
-					SpawnBulletAbility->GetCurrentActivationInfo(),
-					true, false);
-			}
-		}
-	}
-
-	Super::Destroyed();
-}
-
 void APGNormalBullet_Sparrow::OnBeginOverlap(
 	UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
@@ -81,40 +60,41 @@ void APGNormalBullet_Sparrow::OnBeginOverlap(
 		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Valid OtherActor"));
 		Destroy();
 	}
-	else if (Owner == OtherActor)
+	else if (Owner == OtherActor ||
+			 Owner == OtherActor->GetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Can't Hit Self"));
-	}
-	else if (Owner == OtherActor->GetOwner())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Same Owner"));
-	}
-	else if (!IsValid(Task))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Task is Not Valid"));
-	}
-	else if (!IsValid(Ability))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Ability is Not Valid"));
-	}
-	else if (UAbilitySystemComponent* ASC = OtherActor->GetComponentByClass<UAbilitySystemComponent>())
-	{
-		if (IsValid(CreatedBy))
-		{
-			UGA_SpawnBullet_Sparrow* SpawnBulletAbility = Cast<UGA_SpawnBullet_Sparrow>(Ability);
-			if (IsValid(SpawnBulletAbility))
-			{
-				bool bIsEndAbility = !CreatedBy->LeftBulletCheckAndDestroy(this);
-				SpawnBulletAbility->SetIsEndAbility(bIsEndAbility);
-			}
-		}
-
-		CreateTargetActor();
-		if (!bIsPierce)
-			Destroy();
+		UE_LOG(LogTemp, Warning, TEXT("APGNormalBullet_Sparrow::OnBeginOverlap - Not Available Target"));
 	}
 	else
 	{
-		Destroy();
+		if (OtherActor->GetClass()->ImplementsInterface(UPGTeamStatusInterface::StaticClass()))
+		{
+			int32 OwnerTeamID = IPGTeamStatusInterface::Execute_GetTeamID(Owner);
+			int32 TargetTeamID = IPGTeamStatusInterface::Execute_GetTeamID(OtherActor);
+
+			if (OwnerTeamID != TargetTeamID)
+			{
+				HitCheckNotify();
+				if (!bIsPierce)
+				{
+					Destroy();
+				}
+			}
+		}
+		else
+		{
+			for (auto& Ignore : OverlapIgnoreClasses)
+			{
+				if (IsValid(Ignore))
+				{
+					if (OtherActor->IsA(Ignore))
+					{
+						return;
+					}
+				}
+			}
+
+			Destroy();
+		}
 	}
 }

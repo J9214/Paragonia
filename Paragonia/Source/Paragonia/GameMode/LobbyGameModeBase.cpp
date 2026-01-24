@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "GameMode/LobbyGameModeBase.h"
@@ -10,7 +10,7 @@
 #include "Engine/GameInstance.h"
 
 ALobbyGameModeBase::ALobbyGameModeBase()
-	:PlayerCountToStart(2),
+	:PlayerCountToStart(3),
 	CountdownDuration(5),
 	PlayerIDCounter(0)
 {
@@ -45,6 +45,7 @@ void ALobbyGameModeBase::BeginPlay()
     {
         LobbyGS->SetLobbyState(EGameLobbyState::GLS_WaitingForPlayers);
         LobbyGS->SetLeftTime(CountdownDuration);
+		LobbyGS->SetMatchingWaitUserCountMax(PlayerCountToStart);
     }
 }
 

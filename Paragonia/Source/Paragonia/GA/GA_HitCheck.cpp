@@ -1,4 +1,4 @@
-#include "GA/GA_HitCheck.h"
+﻿#include "GA/GA_HitCheck.h"
 #include "Character/PGPlayerCharacterBase.h"
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "TargetActor/PGTargetActor.h"
@@ -48,6 +48,7 @@ void UGA_HitCheck::ActivateAbility(
 	}
 
 	FAttackData AttackData = Wrapper->Data;
+	CurrentHitResultTag = AttackData.HitResultTag;
 
 	UAbilityTask_WaitTargetData* Task =
 		UAbilityTask_WaitTargetData::WaitTargetData(
@@ -89,13 +90,19 @@ void UGA_HitCheck::EndAbility(
 
 void UGA_HitCheck::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
+	if (DataHandle.Num() <= 0)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+		return;
+	}
+
 	FGameplayEventData EventPayload;
 	EventPayload.Instigator = GetAvatarActorFromActorInfo();
 	EventPayload.TargetData = DataHandle;
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 		GetAvatarActorFromActorInfo(),
-		FGameplayTag::RequestGameplayTag(FName("Event.Character.HitResult")),
+		CurrentHitResultTag,
 		EventPayload
 	);
 

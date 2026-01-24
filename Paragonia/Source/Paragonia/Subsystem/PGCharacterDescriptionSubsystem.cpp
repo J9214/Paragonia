@@ -4,6 +4,7 @@
 #include "Subsystem/PGCharacterDescriptionSubsystem.h"
 #include "PGCharacterDescriptionSubsystem.h"
 #include "Struct/FCharacterDescription.h"
+#include "Struct/FStatDescription.h"
 #include "Struct/FCharacterResourceInfo.h"
 
 UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem()
@@ -27,6 +28,16 @@ UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem - Failed to find CharacterResourceInfo at specified path."));
 	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_StatDescription(TEXT("/Game/Paragonia/Data/DT_StatDescription.DT_StatDescription"));
+	if (DT_StatDescription.Succeeded())
+	{
+		StatDescriptionDataTable = DT_StatDescription.Object;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UPGCharacterDescriptionSubsystem::UPGCharacterDescriptionSubsystem - Failed to find StatDescription at specified path."));
+	}
 }
 
 void UPGCharacterDescriptionSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -48,9 +59,12 @@ void UPGCharacterDescriptionSubsystem::Initialize(FSubsystemCollectionBase& Coll
 	const TMap<FName, uint8*>& RowMap = CharacterDescriptionDataTable->GetRowMap();
 	for (const auto& Pair : RowMap)
 	{
-		const FName RowName = Pair.Key;
-		const FCharacterDescription* Row = reinterpret_cast<const FCharacterDescription*>(Pair.Value);
-		if (!Row) continue;
+		const FName RowName = Pair.Key;        
+		const FCharacterResourceInfo* Row = reinterpret_cast<const FCharacterResourceInfo*>(Pair.Value);
+		if (!Row)
+		{
+			continue;
+		}
 
 		UIDToRowName.Add(Row->UID, RowName); // 중복 체크는 필요하면 추가
 	}
@@ -79,7 +93,7 @@ const FCharacterDescription* UPGCharacterDescriptionSubsystem::GetCharacterDescr
 
 const FCharacterDescription* UPGCharacterDescriptionSubsystem::GetCharacterDescription(const int32 UID) const
 {
-	if (UID <= 0) // UID 규칙 없으면 이 체크는 빼도 됨
+	if (UID < 0)
 		return nullptr;
 
 	if (!IsValid(CharacterDescriptionDataTable))
@@ -111,7 +125,7 @@ const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterReso
 
 const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterResource(const int32 UID) const
 {
-	if (UID <= 0) // UID 규칙 없으면 이 체크는 빼도 됨
+	if (UID < 0) 
 		return nullptr;
 
 	if (!IsValid(CharacterResourceInfoDataTable))
@@ -122,6 +136,22 @@ const FCharacterResourceInfo* UPGCharacterDescriptionSubsystem::GetCharacterReso
 		return nullptr;
 
 	return CharacterResourceInfoDataTable->FindRow<FCharacterResourceInfo>(*FoundRowName, TEXT("GetCharacterResourceInfoByUID"));
+}
+
+const FStatDescription* UPGCharacterDescriptionSubsystem::GetStatDescription(const FName& StatName) const
+{
+	if (StatName.IsNone())
+	{
+		return nullptr;
+	}
+
+	if (!IsValid(CharacterResourceInfoDataTable))
+	{
+		return nullptr;
+	}
+
+	return StatDescriptionDataTable->FindRow<FStatDescription>(StatName, TEXT("GetStatDescriptionByName"));
+
 }
 
 TArray<FName> UPGCharacterDescriptionSubsystem::GetAllRowNames() const

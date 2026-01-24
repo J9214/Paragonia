@@ -27,24 +27,15 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (IsValid(Character))
-	{
-		if (UAnimInstance* AI = Character->GetMesh()->GetAnimInstance())
-		{
-			if (auto PGAnimInstance = Cast<UPGAnimInstance>(AI))
-			{
-				PGAnimInstance->SetCurrentAttackData(AttackData);
-			}
-		}
-	}
-
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillQ_Aurora::ActivateAbility - Montage is invalid"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 
@@ -63,7 +54,7 @@ void UGA_SkillQ_Aurora::ActivateAbility(
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("AttackTask"),
+			TEXT("SkillQ_Task"),
 			AttackData.Montage,
 			1.0f
 		);
@@ -95,7 +86,7 @@ void UGA_SkillQ_Aurora::EndAbility(
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (IsValid(Character))
 	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		Character->GetCharacterMovement()->bUseControllerDesiredRotation = true;
 
 		APlayerController* PC = Cast<APlayerController>(Character->GetController());
 		if (IsValid(PC) && PC->IsLocalController())
@@ -105,11 +96,6 @@ void UGA_SkillQ_Aurora::EndAbility(
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UGA_SkillQ_Aurora::OnHitResultEvent(const FGameplayEventData Payload)
-{
-	// Add Damage Logic Here If Needed
 }
 
 void UGA_SkillQ_Aurora::OnMontageCompleted()
@@ -132,16 +118,17 @@ void UGA_SkillQ_Aurora::OnDashFinished()
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}
+
+	Character->GetCharacterMovement()->StopMovementImmediately();
 
 	if (DashTask)
 	{
 		DashTask->EndTask();
 		DashTask = nullptr;
 	}
-
-	Character->GetCharacterMovement()->StopMovementImmediately();
 
 	ApplyAttackDataOwnerEffects_OnActivate(AttackData);
 
@@ -153,8 +140,11 @@ void UGA_SkillQ_Aurora::OnDashStartEvent(const FGameplayEventData Payload)
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!IsValid(Character))
 	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 		return;
 	}
+
+	Character->GetCharacterMovement()->bUseControllerDesiredRotation = false;
 
 	AController* Controller = Character->GetController();
 	if (IsValid(Controller) && Controller->IsLocalController())
@@ -165,14 +155,20 @@ void UGA_SkillQ_Aurora::OnDashStartEvent(const FGameplayEventData Payload)
 		}
 	}
 
-	if (!HasAuthority(&CurrentActivationInfo))
-	{
-		return;
-	}
-
 	const FVector Forward = Character->GetActorForwardVector();
 	const FVector StartLocation = Character->GetActorLocation();
-	const FVector TargetLocation = StartLocation + Forward * DashDistance;
+	FVector TargetLocation = StartLocation + Forward * DashDistance;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(DashGround), false, Character);
+
+	const FVector TraceStart = TargetLocation + FVector(0, 0, 1000.f);
+	const FVector TraceEnd = TargetLocation - FVector(0, 0, 1000.f);
+
+	if (Character->GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
+	{
+		TargetLocation.Z = Hit.Location.Z;
+	}
 
 	DashTask = UAbilityTask_ApplyRootMotionMoveToForce::ApplyRootMotionMoveToForce(
 		this,

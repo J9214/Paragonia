@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
@@ -42,11 +42,34 @@ public:
 
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
+    virtual void PostSeamlessTravel() override;
+
+
     FTransform GetTeamSpawnTransform(int32 TeamID) const;
 
+    void CheckAllClientsReady();
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Character")
     TMap<int32, TSubclassOf<APawn>> CharacterIDToPawnClass;
+
+    UPROPERTY(EditDefaultsOnly, Category = "PG|Loading")
+    int32 RequiredPlayers = 3;
+
+    UPROPERTY(EditDefaultsOnly, Category = "PG|Loading")
+    float ReadyTimeoutSeconds = 30.f;
+
+
+    void StartReadyPolling();
+    void StopReadyPolling();
+    void TickReadyPolling();
+    void TryStartReadyCountdown();
+    void OnReadyTimeout();
+
+    FTimerHandle ReadyTimeoutTimerHandle;
+    FTimerHandle ReadyPollTimerHandle;
+    bool bReadyCountdownStarted = false;
+    bool bAllClientsReady = false;
+    bool bAbortInProgress = false;
 
 #pragma region DeathAndRespawn
 public:
@@ -90,5 +113,24 @@ protected:
 
 
 #pragma endregion
+
+#pragma region ReturnLobby
+protected:
+    FTimerHandle EndGameTimerHandle;
+
+    void ReturnToLobby();
+
+    UPROPERTY(EditDefaultsOnly, Category = "PG|Lobby")
+    float ReturnLobbyTime = 5.f;
+#pragma endregion
+
+#pragma region Chatting
+
+public:
+    void PrintChatMessageString(APGPlayerController* InChattingPlayerController, const FString& InChatMessageString, const int32& InTeamID);
+
+
+#pragma endregion
+
 
 };

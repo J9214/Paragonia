@@ -28,20 +28,22 @@ void APGTargetActor::ConfirmTargetingAndContinue()
 		FGameplayAbilityTargetDataHandle DataHandle;
 		if (bHit)
 		{
+			TSet<AActor*> UniqueActors;
+
 			for (const FHitResult& Hit : OutHitResults)
 			{
+				AActor* HitActor = Hit.GetActor();
+				if (!IsValid(HitActor) || UniqueActors.Contains(HitActor))
+				{
+					continue;
+				}
+
+				UniqueActors.Add(HitActor);
 				DataHandle.Add(new FGameplayAbilityTargetData_SingleTargetHit(Hit));
 			}
 		}
 
 		TargetDataReadyDelegate.Broadcast(DataHandle);
-
-		APGPlayerCharacterBase* Player = Cast<APGPlayerCharacterBase>(SourceActor);
-		if (IsValid(Player))
-		{
-			FColor Color = bHit ? FColor::Green : FColor::Red;
-			Player->DrawDebugAttackCollision(Color, SourceActor->GetActorLocation(), SourceActor->GetActorLocation() + SourceActor->GetActorForwardVector() * AttackData.Range, SourceActor->GetActorForwardVector(), AttackData);
-		}
 	}
 }
 

@@ -55,6 +55,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Task")
 	FName TargetingEndtMontageSectionName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Task")
+	bool bUseHitResult;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn")
 	bool bIsUseSocket;
 
@@ -63,11 +66,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn", meta = (EditCondition = "!bIsUseSocket", EditConditionHides))
 	TSubclassOf<UActorComponent> TransformClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn", meta = (EditCondition = "!bIsUseSocket", EditConditionHides))
+	FString RelativeName;
 	FTransform SpawnTransform;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spawn")
 	TSubclassOf<AActor> EffectActorClass;
 
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
-	
 };

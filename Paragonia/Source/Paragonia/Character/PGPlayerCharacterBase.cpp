@@ -14,6 +14,13 @@
 #include "Subsystem/PGAttributeDataSubsystem.h"
 #include "Struct/FCharacterAttributeData.h"
 #include "PlayerStart/PGPlayerStart.h"
+#include "Controller/PGPlayerController.h"
+#include "Components/WidgetComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "PaperSpriteComponent.h"
+#include "Character/PG_PlayerUIComponent.h"
+#include "EngineUtils.h"
 
 APGPlayerCharacterBase::APGPlayerCharacterBase()
 {
@@ -35,18 +42,27 @@ APGPlayerCharacterBase::APGPlayerCharacterBase()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 500.0f;
+	SpringArm->TargetArmLength = 400.0f;
+	SpringArm->TargetOffset = FVector(0.f, 0.f, 150.f);
 	SpringArm->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
-	ASC->SetIsReplicated(true);
-	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	MiniMapSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapSpringArm"));
+	MiniMapSpringArm->SetupAttachment(RootComponent);
+	MiniMapSpringArm->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+	MiniMapSpringArm->TargetArmLength = 3000.0f;
+	MiniMapSpringArm->bUsePawnControlRotation = false;
 
-	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributeSet"));
+	MinimapCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MinimapCaptureComponent"));
+	MinimapCaptureComponent->SetupAttachment(MiniMapSpringArm, USpringArmComponent::SocketName);
+	MinimapCaptureComponent->bCaptureEveryFrame = false;
+	MinimapCaptureComponent->bCaptureOnMovement = false;
+	MinimapCaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+
+	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void APGPlayerCharacterBase::PossessedBy(AController* NewController)
@@ -66,6 +82,11 @@ void APGPlayerCharacterBase::PossessedBy(AController* NewController)
 void APGPlayerCharacterBase::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
+
+	if (IsValid(UIComponent))
+	{
+		UIComponent->SetupHeadHPWidget();
+	}
 }
 
 void APGPlayerCharacterBase::OnRep_Controller()
@@ -80,11 +101,47 @@ void APGPlayerCharacterBase::OnRep_Controller()
 	{
 		PC->SetInputMode(InputMode);
 	}
+
+	BindCooldownTagEvent();
+
+	if (IsValid(UIComponent))
+	{
+		UIComponent->SetupHeadHPWidget();
+	}
+}
+
+UTextureRenderTarget2D* APGPlayerCharacterBase::GetMinimapRenderTarget()
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return nullptr;
+	}
+
+	if (!IsValid(UIComponent))
+	{
+		return nullptr;
+	}
+
+	MinimapRT = UIComponent->GetMinimapRenderTarget();
+
+	if (!MinimapRT)
+	{
+		return nullptr;
+	}
+
+	if (MinimapCaptureComponent)
+	{
+		MinimapCaptureComponent->TextureTarget = MinimapRT;
+		MinimapCaptureComponent->CaptureScene();
+	}
+
+	return MinimapRT;
 }
 
 void APGPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -104,12 +161,29 @@ void APGPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(SkillQAction, ETriggerEvent::Triggered, this, &ThisClass::SkillQ);
 		EnhancedInputComponent->BindAction(SkillEAction, ETriggerEvent::Triggered, this, &ThisClass::SkillE);
 		EnhancedInputComponent->BindAction(SkillRAction, ETriggerEvent::Triggered, this, &ThisClass::SkillR);
+
+		EnhancedInputComponent->BindAction(ToggleShop, ETriggerEvent::Started, this, &ThisClass::ToggleShopInput);
+	}
+
+	if (IsValid(UIComponent))
+	{
+		UIComponent->UpdateHeadHPVisibility();
+
+		if (MinimapCaptureComponent)
+		{
+			MinimapCaptureComponent->bCaptureOnMovement = true;
+			MinimapCaptureComponent->bCaptureEveryFrame = false;
+			MinimapCaptureComponent->ShowFlags.SetSkeletalMeshes(false);
+			MinimapCaptureComponent->ShowFlags.SetParticles(false);
+
+			MinimapCaptureComponent->MarkRenderStateDirty();
+		}
 	}
 }
 
 void APGPlayerCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (!IsLocallyControlled() || bSpawnMoveLock)
+	if (!IsLocallyControlled() || bInputLock)
 	{
 		return;
 	}
@@ -205,6 +279,14 @@ void APGPlayerCharacterBase::SkillR(const FInputActionValue& Value)
 	ASC->AbilityLocalInputPressed(static_cast<int32>(EPGAbilityInputID::SkillR));
 }
 
+void APGPlayerCharacterBase::ToggleShopInput()
+{
+	if (APGPlayerController* PC = Cast<APGPlayerController>(GetController()))
+	{
+		PC->ToggleShop();
+	}
+}
+
 void APGPlayerCharacterBase::InitializeActorInfo()
 {
 	ASC->InitAbilityActorInfo(this, this);
@@ -239,6 +321,9 @@ void APGPlayerCharacterBase::InitializeAbilities()
 			ASC->GiveAbility(Spec);
 		}
 	}
+
+	const FGameplayTag AirborneTag = FGameplayTag::RequestGameplayTag("Character.State.Airborne");
+	ASC->RegisterGameplayTagEvent(AirborneTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAirborneTagChanged);
 }
 
 void APGPlayerCharacterBase::InitializeAttributes()
@@ -290,6 +375,8 @@ void APGPlayerCharacterBase::InitializeAttributesData()
 		CharacterAttributeSet->InitAttackPower(AttributeData->AttackPower);
 		CharacterAttributeSet->InitMoveSpeed(AttributeData->MoveSpeed);
 		GetCharacterMovement()->MaxWalkSpeed = AttributeData->MoveSpeed;
+
+		CharacterAttributeSet->OutOfHealthChanged.AddDynamic(this, &ThisClass::OnOutOfHealth);
 	}
 	else
 	{
@@ -333,34 +420,168 @@ void APGPlayerCharacterBase::OnMoveSpeedChanged(const FOnAttributeChangeData& Da
 	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
 }
 
-UAbilitySystemComponent* APGPlayerCharacterBase::GetAbilitySystemComponent() const
+void APGPlayerCharacterBase::OnAirborneTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	return ASC;
+	if (NewCount > 0)
+	{
+		if (HasAuthority())
+		{
+			LaunchCharacter(FVector(0.f, 0.f, 400.f), true, true);
+		}
+	}
 }
 
-void APGPlayerCharacterBase::SetSpawnMoveLock(bool bLock)
+void APGPlayerCharacterBase::BindCooldownTagEvent()
 {
-	bSpawnMoveLock = bLock;
-	if (bSpawnMoveLock)
-	{
-		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
-	}
-	else
-	{
-		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
-	}
-
-	if (!HasAuthority())
+	if (!IsValid(ASC))
 	{
 		return;
 	}
 
-	if (bSpawnMoveLock)
+	TArray<FGameplayTag> CooldownTags;
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.Q")));
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.E")));
+	CooldownTags.Add(FGameplayTag::RequestGameplayTag(FName("Cooldown.Skill.R")));
+
+	for (const FGameplayTag& Tag : CooldownTags)
 	{
-		GetCharacterMovement()->DisableMovement();
+		ASC->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCooldownTagChanged);
+	}
+}
+
+void APGPlayerCharacterBase::OnCooldownTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	OnCooldownTagChangedDelegate.Broadcast(CallbackTag, NewCount);
+
+	if (NewCount > 0)
+	{
+		StartCooldownTick(CallbackTag);
 	}
 	else
 	{
+		StopCooldownTick(CallbackTag);
+		OnCooldownTimeChangedDelegate.Broadcast(CallbackTag, 0.f, 0.f);
+	}
+}
+
+void APGPlayerCharacterBase::StartCooldownTick(FGameplayTag CooldownTag)
+{
+	if (CooldownTickTimerHandles.Contains(CooldownTag))
+	{
+		return;
+	}
+
+	FTimerHandle Handle;
+	CooldownTickTimerHandles.Add(CooldownTag, Handle);
+
+	GetWorldTimerManager().SetTimer(
+		CooldownTickTimerHandles[CooldownTag],
+		FTimerDelegate::CreateUObject(this, &ThisClass::TickCooldown, CooldownTag),
+		0.1f,
+		true
+	);
+
+	TickCooldown(CooldownTag);
+}
+
+void APGPlayerCharacterBase::StopCooldownTick(FGameplayTag CooldownTag)
+{
+	if (FTimerHandle* Handle = CooldownTickTimerHandles.Find(CooldownTag))
+	{
+		GetWorldTimerManager().ClearTimer(*Handle);
+		CooldownTickTimerHandles.Remove(CooldownTag);
+	}
+}
+
+void APGPlayerCharacterBase::TickCooldown(FGameplayTag CooldownTag)
+{
+	float Remaining = 0.f;
+	float Duration = 0.f;
+	if (GetCooldownRemainingAndDurationByTag(CooldownTag, Remaining, Duration))
+	{
+		OnCooldownTimeChangedDelegate.Broadcast(CooldownTag, Remaining, Duration);
+	}
+	else
+	{
+		StopCooldownTick(CooldownTag);
+		OnCooldownTimeChangedDelegate.Broadcast(CooldownTag, 0.f, 0.f);
+	}
+}
+
+bool APGPlayerCharacterBase::GetCooldownRemainingAndDurationByTag(FGameplayTag CooldownTag, float& OutRemaining, float& OutDuration) const
+{
+	OutRemaining = 0.f;
+	OutDuration = 0.f;
+
+	if (!IsValid(ASC))
+	{
+		return false;
+	}
+
+	FGameplayTagContainer CooldownTags;
+	CooldownTags.AddTag(CooldownTag);
+
+	const FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags);
+	const TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
+	if (Handles.Num() == 0)
+	{
+		return false;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+
+	float BestRemaining = 0.f;
+	float BestDuration = 0.f;
+
+	for (const FActiveGameplayEffectHandle& Handle : Handles)
+	{
+		const FActiveGameplayEffect* ActiveGE = ASC->GetActiveGameplayEffect(Handle);
+		if (!ActiveGE)
+		{
+			continue;
+		}
+
+		const float Duration = ActiveGE->GetDuration();
+		const float Remaining = ActiveGE->GetTimeRemaining(Now);
+
+		if (Remaining > BestRemaining)
+		{
+			BestRemaining = Remaining;
+			BestDuration = Duration;
+		}
+	}
+
+	OutRemaining = BestRemaining;
+	OutDuration = BestDuration;
+
+	return true;
+}
+
+void APGPlayerCharacterBase::SetSpawningAbilityLock(bool bLock)
+{
+	if (bLock)
+	{
+		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+		SetInputLock(true);
+	}
+	else
+	{
+		ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(FName("Character.State.Spawning")));
+		SetInputLock(false);
+	}
+}
+
+void APGPlayerCharacterBase::SetInputLock(bool bLock)
+{
+	bInputLock = bLock;
+	if (bInputLock)
+	{
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_None);
+	}
+	else
+	{
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
 }
@@ -434,7 +655,7 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 }
 
 #pragma region Respawn
-void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(uint8 bDead)
+void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(bool bDead)
 {
 	SetDeadState(bDead);
 }
@@ -443,43 +664,30 @@ void APGPlayerCharacterBase::OnRep_Dead()
 {
 	if (bIsDead == 1) 
 	{ // 사망
-
 		if (APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>())
 		{
 			GM->HandleCharacterDeath(this, GetController());
 		}
 
-		// 1) 입력 막기 
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			DisableInput(PC);
 		}
 
-		// 2) 이동 막기 
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
-			// 완전 정지
 			MoveComp->StopMovementImmediately();
 			MoveComp->DisableMovement();
+			MoveComp->GravityScale = 0.0f;
 		}
 
-		// 3) 충돌 끄기 (총알/근접 공격 맞지 않도록) 
-		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+		if (IsValid(CapsuleComp))
 		{
-			Capsule->SetCollisionProfileName(TEXT("Ragdoll"));
+			CapsuleComp->SetCollisionProfileName(TEXT("NoCollision"));
 		}
 
-		// 메시를 숨기고 물리 시체로 만듦
-		//GetMesh()->SetVisibility(false, true);  // 메시 숨기기
-		GetMesh()->SetSimulatePhysics(true);    // 물리 시뮬레이션 활성화 (Ragdoll)
-
-		// 4) 물리 시체 상태로 설정 
-		if (USkeletalMeshComponent* SkelMesh = GetMesh())
-		{
-			SkelMesh->SetCollisionProfileName(TEXT("Ragdoll"));  // 충돌 프로필을 'Ragdoll'로 변경
-			SkelMesh->SetSimulatePhysics(true);  // 물리 시뮬레이션 활성화
-		}
-
+		ClearAllTagsAndEffectOnDeath();
 	}
 	else { // 리스폰
 
@@ -488,7 +696,6 @@ void APGPlayerCharacterBase::OnRep_Dead()
 		FTransform SpawnTransform = GetRespawnLocationForController();
 		MovePlayerToRespawnPoint(SpawnTransform);
 
-		// 2) 메쉬 다시 보여주기 + 자식까지 전부
 		if (USkeletalMeshComponent* SkelMesh = GetMesh())
 		{
 			SkelMesh->SetVisibility(true, true);
@@ -497,30 +704,29 @@ void APGPlayerCharacterBase::OnRep_Dead()
 			GetMesh()->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
 			GetMesh()->SetRelativeLocation({ 0, 0, -90 });
 			GetMesh()->SetRelativeRotation({ 0, -90, 0 });
-
 		}
 
-		// 3) 캡슐, 충돌 다시 활성화
 		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
 		{
 			Capsule->SetCollisionProfileName(TEXT("Pawn"));
 		}
 
-		// 4) 이동 다시 켜기	
 		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
 			MoveComp->SetMovementMode(MOVE_Walking);
+			MoveComp->GravityScale = 1.0f;
 		}
 
-		// 5) 입력 활성화
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			EnableInput(PC);
 		}
+
+		ResetCharacterStateOnRespawn();
 	}
 }
 
-void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
+void APGPlayerCharacterBase::SetDeadState(bool bDead)
 {
 	if (bIsDead == bDead)
 	{
@@ -530,6 +736,21 @@ void APGPlayerCharacterBase::SetDeadState(uint8 bDead)
 	bIsDead = bDead;
 
 	OnRep_Dead();
+}
+
+int32 APGPlayerCharacterBase::GetTeamID_Implementation() const
+{
+	APGPlayerState* PS = GetPlayerState<APGPlayerState>();
+	if (IsValid(PS))
+	{
+		return PS->GetTeamID();
+	}
+	return -1;
+}
+
+bool APGPlayerCharacterBase::GetIsDead() const
+{
+	return bIsDead;
 }
 
 void APGPlayerCharacterBase::MovePlayerToRespawnPoint(FTransform SpawnTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector))
@@ -545,21 +766,60 @@ FTransform APGPlayerCharacterBase::GetRespawnLocationForController() const
 	AController* PlayerController = GetController();
 	if (!PlayerController) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
 
-	// PlayerState에서 팀ID 받기
 	APGPlayerState* PS = PlayerController->GetPlayerState<APGPlayerState>();
-	if (!PS) return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+	if (!PS)
+	{
+		return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+	}
 
-	int32 TeamID = PS->GetTeamID();
+	int32 SpawnTeamID = PS->GetTeamID();
 
-	// GameMode나 다른 매니저에서 팀별 스폰 위치 쿼리
 	APGGameModeBase* GM = GetWorld()->GetAuthGameMode<APGGameModeBase>();
 	if (GM)
 	{
-		FTransform TeamSpawnTransform = GM->GetTeamSpawnTransform(TeamID);
+		FTransform TeamSpawnTransform = GM->GetTeamSpawnTransform(SpawnTeamID);
 		return TeamSpawnTransform;
 	}
 
 	return FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+}
+
+void APGPlayerCharacterBase::ResetCharacterStateOnRespawn()
+{
+	if (!HasAuthority() || !IsValid(CharacterAttributeSet))
+	{
+		return;
+	}
+
+	CharacterAttributeSet->SetHealth(CharacterAttributeSet->GetMaxHealth());
+}
+
+void APGPlayerCharacterBase::ClearAllTagsAndEffectOnDeath()
+{
+	if (!IsValid(ASC))
+	{
+		return;
+	}
+
+	if (HasAuthority())
+	{
+		ASC->CancelAllAbilities();
+	}
+
+	ASC->RemoveAllGameplayCues();
+
+	const FGameplayTag StateRoot = FGameplayTag::RequestGameplayTag(TEXT("Character.State"));
+
+	FGameplayTagContainer OwnedTags;
+	ASC->GetOwnedGameplayTags(OwnedTags);
+
+	for (const FGameplayTag& Tag : OwnedTags)
+	{
+		if (Tag.MatchesTag(StateRoot))
+		{
+			ASC->SetLooseGameplayTagCount(Tag, 0);
+		}
+	}
 }
 
 void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -567,6 +827,68 @@ void APGPlayerCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APGPlayerCharacterBase, bIsDead);
+}
+
+void APGPlayerCharacterBase::OnOutOfHealth(AActor* InstigatorActor)
+{
+	if (HasAuthority())
+	{
+		HandlePlayerDeathReward(InstigatorActor);
+
+		APGPlayerState* VictimPS = GetPlayerState<APGPlayerState>();
+		if (!IsValid(VictimPS))
+		{
+			return;
+		}
+
+		APGPlayerState* KillerPS = nullptr;
+		if (IsValid(InstigatorActor))
+		{
+			if (APGPlayerCharacterBase* KillerChar = Cast<APGPlayerCharacterBase>(InstigatorActor))
+			{
+				KillerPS = KillerChar->GetPlayerState<APGPlayerState>();
+			}
+			else if (APGPlayerController* KillerPC = Cast<APGPlayerController>(InstigatorActor))
+			{
+				KillerPS = KillerPC->GetPlayerState<APGPlayerState>();
+			}
+		}
+
+		for (TActorIterator<APGPlayerController> It(GetWorld()); It; ++It)
+		{
+			APGPlayerController* PC = *It;
+			if (IsValid(PC) == true)
+			{
+				PC->Client_KillInfo(KillerPS, VictimPS);
+			}
+		}
+	}
+}
+
+void APGPlayerCharacterBase::HandlePlayerDeathReward(AActor* InstigatorActor)
+{
+	APGPlayerState* VictimPS = GetPlayerState<APGPlayerState>();
+	if (!IsValid(VictimPS))
+	{
+		return;
+	}
+
+	APGPlayerState* KillerPS = nullptr;
+	if (IsValid(InstigatorActor))
+	{
+		if (APGPlayerCharacterBase* KillerChar = Cast<APGPlayerCharacterBase>(InstigatorActor))
+		{
+			KillerPS = KillerChar->GetPlayerState<APGPlayerState>();
+		}
+		else if (APGPlayerController* KillerPC = Cast<APGPlayerController>(InstigatorActor))
+		{
+			KillerPS = KillerPC->GetPlayerState<APGPlayerState>();
+		}
+	}
+	if (IsValid(KillerPS) && KillerPS != VictimPS)
+	{
+		KillerPS->AddGold(RewardGold);
+	}
 }
 
 #pragma endregion

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"  
+#include "PaperSprite.h"
 #include "FCharacterResourceInfo.generated.h"
 
 USTRUCT(BlueprintType)
@@ -13,13 +14,19 @@ struct PARAGONIA_API FCharacterResourceInfo : public FTableRowBase
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    int32 UID;
+    int32 UID = -1;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<UTexture2D> BoxIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<UTexture2D> CircleIcon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UPaperSprite> MinimapTeamIcon;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UPaperSprite> MinimapEnemyIcon;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TSoftObjectPtr<USkeletalMesh> LobbyMesh;

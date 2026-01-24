@@ -26,6 +26,7 @@ void UGA_SkillE_Aurora::ActivateAbility(
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::ActivateAbility - CommitAbility failed"));
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
@@ -44,14 +45,15 @@ void UGA_SkillE_Aurora::ActivateAbility(
 
 	if (!IsValid(AttackData.Montage))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("UGA_SkillE_Aurora::ActivateAbility - Montage is invalid"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
 
 	if (HasAuthority(&ActivationInfo))
 	{
 		UAbilityTask_WaitGameplayEvent* HitResultTask =
-			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
-
+			UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, AttackData.HitResultTag);
 		if (IsValid(HitResultTask))
 		{
 			HitResultTask->EventReceived.AddDynamic(this, &UGA_SkillE_Aurora::OnHitResultEvent);
@@ -66,11 +68,10 @@ void UGA_SkillE_Aurora::ActivateAbility(
 	UAbilityTask_PlayMontageAndWait* Task =
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
-			TEXT("AttackTask"),
+			TEXT("SkillE_Task"),
 			AttackData.Montage,
 			1.0f
 		);
-
 	if (IsValid(Task))
 	{
 		Task->OnCompleted.AddDynamic(this, &UGA_SkillE_Aurora::OnMontageCompleted);
@@ -79,9 +80,10 @@ void UGA_SkillE_Aurora::ActivateAbility(
 
 		Task->ReadyForActivation();
 
-		if (IsValid(Character))
+		APGPlayerCharacterBase* PGCharacter = Cast<APGPlayerCharacterBase>(ActorInfo->AvatarActor.Get());
+		if (IsValid(PGCharacter))
 		{
-			Character->GetCharacterMovement()->SetMovementMode(MOVE_None);
+			PGCharacter->SetInputLock(true);
 		}
 	}
 	else
@@ -99,10 +101,10 @@ void UGA_SkillE_Aurora::EndAbility(
 	bool bWasCancelled
 )
 {
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (IsValid(Character))
+	APGPlayerCharacterBase* PGCharacter = Cast<APGPlayerCharacterBase>(ActorInfo->AvatarActor.Get());
+	if (IsValid(PGCharacter))
 	{
-		Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		PGCharacter->SetInputLock(false);
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

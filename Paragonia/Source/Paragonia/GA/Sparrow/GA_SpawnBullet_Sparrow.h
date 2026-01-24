@@ -31,18 +31,6 @@ public:
 		bool bWasCancelled
 	) override;
 
-	void SetIsEndAbility(const uint8& InIsEndAbility);
-
-private:
-	UFUNCTION()
-	void OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle);
-
-	UFUNCTION()
-	void OnTargetDataCancelled();
-
 protected:
-	uint8 bIsEndAbility;
 	FAttackData CurrentAttackData;
-	TObjectPtr<APGTaskRelatedBullet> CurrentTargetActor;
-	EGameplayTargetingConfirmation::Type CurrentConfimationType;
 };

@@ -41,9 +41,10 @@ void UGA_Attack_Sparrow::ActivateAbility(
 		return;
 	}
 
-	bool bIsUlt = ASC->GetOwnedGameplayTags().HasTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.SparrowUlt")));
+	bIsUlt = ASC->GetOwnedGameplayTags().HasTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.SparrowUlt")));
+
+	FAttackData& RealAttackData = bIsUlt ? UltAttackData : AttackData;
 	TSubclassOf<AActor> RealBulletClass = bIsUlt ? UltBulletClass : SpawnActorClass;
-	AttackData.DamageEffects[0] = bIsUlt ? UltAttackEntry : NormalAttackEntry;
 
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (IsValid(Character))
@@ -52,16 +53,16 @@ void UGA_Attack_Sparrow::ActivateAbility(
 		{
 			if (auto PGAnimInstance = Cast<UPGRangedAnimInstance>(AI))
 			{
-				PGAnimInstance->SetCurrentAttackData(AttackData);
+				PGAnimInstance->SetCurrentAttackData(RealAttackData);
 				PGAnimInstance->SetBulletClass(RealBulletClass);
 				PGAnimInstance->SetBulletSpawnTransform(Character->GetMesh()->GetSocketTransform(FName(TEXT("BowEmitterSocket"))));
-				PGAnimInstance->SetConfimationType(ConfimationType);
 			}
 		}
 	}
 
-	if (!IsValid(AttackData.Montage))
+	if (!IsValid(RealAttackData.Montage))
 	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
@@ -69,7 +70,7 @@ void UGA_Attack_Sparrow::ActivateAbility(
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this,
 			TEXT("AttackTask"),
-			AttackData.Montage,
+			RealAttackData.Montage,
 			1.0f
 		);
 
@@ -88,7 +89,7 @@ void UGA_Attack_Sparrow::ActivateAbility(
 	}
 
 	UAbilityTask_WaitGameplayEvent* HitResultTask =
-		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag("Event.Character.HitResult"));
+		UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, RealAttackData.HitResultTag);
 
 	if (IsValid(HitResultTask))
 	{

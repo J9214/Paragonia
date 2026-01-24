@@ -13,7 +13,4 @@ class PARAGONIA_API UPGSpawnActorGameplayAbilityBase : public UPGGameplayAbility
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn Actor")
 	TSubclassOf<AActor> SpawnActorClass;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Task")
-	TEnumAsByte<EGameplayTargetingConfirmation::Type> ConfimationType;
 };

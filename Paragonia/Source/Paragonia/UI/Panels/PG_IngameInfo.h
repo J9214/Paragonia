@@ -1,0 +1,82 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "CommonUserWidget.h"
+#include "PG_IngameInfo.generated.h"
+
+class UPG_HPBar;
+class UTextBlock;
+class UCharacterAttributeSet;
+class UPGInventorySlotWidget;
+class UPGInventoryComponent;
+/**
+ * 
+ */
+UCLASS()
+class PARAGONIA_API UPG_IngameInfo : public UCommonUserWidget
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetHPBarColor(bool TeamType);
+
+	UFUNCTION(BlueprintCallable)
+	void SetNickName(const FString& InNickName, bool CheckTeam);
+
+	void BindToAttributeSet(UCharacterAttributeSet* InAttrSet);
+
+	UFUNCTION()
+	void HandleHealthChanged(float OldValue, float NewValue);
+
+	UFUNCTION()
+	void HandleMaxHealthChanged(float OldValue, float NewValue);
+
+	UFUNCTION()
+	void InitInventory(UPGInventoryComponent* InInventoryComponent);
+
+	UFUNCTION()
+	void UnbindInventory();
+
+	UFUNCTION()
+	void RefreshAll();
+protected:
+	virtual void NativeDestruct() override;
+
+private:
+
+	void UnbindFromAttributeSet();
+
+protected:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPG_HPBar> PlayerHPBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> PlayerName;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPGInventorySlotWidget> Item0;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPGInventorySlotWidget> Item1;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPGInventorySlotWidget> Item2;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPGInventorySlotWidget> Item3;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPGInventorySlotWidget> Item4;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPGInventorySlotWidget> Item5;
+private:
+	UPROPERTY()
+	TObjectPtr<UCharacterAttributeSet> BoundAttrSet;
+
+	UPROPERTY()
+	TObjectPtr<UPGInventoryComponent> InventoryComponent;
+};
