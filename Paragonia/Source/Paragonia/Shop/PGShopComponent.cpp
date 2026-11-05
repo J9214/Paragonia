@@ -122,6 +122,20 @@ void UPGShopComponent::ServerBuy_Implementation(FName ItemId)
         return;
     }
 
+    UPGInventoryComponent* Inv = PS->FindComponentByClass<UPGInventoryComponent>();
+    if (!Inv)
+    {
+        ClientBuyResult(EShopBuyResult::InvalidItem, ItemId);
+        return;
+    }
+
+    // 소비 아이템은 슬롯을 쓰지 않는다. 장비는 골드를 빼기 전에 빈 슬롯부터 확인한다
+    if (Item.Category != EShopCategory::Consumable && !Inv->HasEmptySlot())
+    {
+        ClientBuyResult(EShopBuyResult::InventoryFull, ItemId);
+        return;
+    }
+
     const int32 TotalCost = Item.Price;
 
     if (!PS->CanAfford(TotalCost))
@@ -132,7 +146,12 @@ void UPGShopComponent::ServerBuy_Implementation(FName ItemId)
 
     PS->AddGold(-TotalCost);
 
-    GrantItemToOwner(Item);
+    if (!GrantItemToOwner(Item))
+    {
+        PS->AddGold(TotalCost);
+        ClientBuyResult(EShopBuyResult::InventoryFull, ItemId);
+        return;
+    }
 
     ClientBuyResult(EShopBuyResult::Success, ItemId);
 }
@@ -154,7 +173,14 @@ void UPGShopComponent::ServerSell_Implementation(int32 Index)
     UPGInventoryComponent* Inv = PS->FindComponentByClass<UPGInventoryComponent>();
     if (!Inv)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Shop] GrantItemToOwner: InventoryComponent not found on PlayerState"));
+        UE_LOG(LogTemp, Warning, TEXT("[Shop] ServerSell: InventoryComponent not found on PlayerState"));
+        return;
+    }
+
+    // Index는 클라이언트가 보낸 값이므로 배열에 접근하기 전에 확인한다
+    if (!Inv->Slots.IsValidIndex(Index) || Inv->Slots[Index].bEmpty)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[Shop] ServerSell: invalid slot index %d"), Index);
         return;
     }
 
@@ -179,40 +205,34 @@ void UPGShopComponent::ClientBuyResult_Implementation(EShopBuyResult Result, FNa
     OnBuyResult.Broadcast(Result, ItemId);
 }
 
-void UPGShopComponent::GrantItemToOwner(const FPGShopItemRow& Item)
+bool UPGShopComponent::GrantItemToOwner(const FPGShopItemRow& Item)
 {
     APlayerController* PC = Cast<APlayerController>(GetOwner());
     if (!PC)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Shop] GrantItemToOwner: Owner is not PlayerController"));
-        return;
+        return false;
     }
 
     APGPlayerState* PS = Cast<APGPlayerState>(PC->PlayerState);
     if (!PS)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Shop] GrantItemToOwner: PlayerState is null"));
-        return;
+        return false;
     }
 
     UPGInventoryComponent* Inv = PS->FindComponentByClass<UPGInventoryComponent>();
     if (!Inv)
     {
         UE_LOG(LogTemp, Warning, TEXT("[Shop] GrantItemToOwner: InventoryComponent not found on PlayerState"));
-        return;
+        return false;
     }
 
     if(Item.Category == EShopCategory::Consumable)
     {
 		Inv->ApplyAllItemStatsToOwner(Item);
+		return true;
 	}
-    else
-    {
-        const bool bOk = Inv->AddItem(Item.ItemId);
 
-        if (!bOk)
-        {
-            PS->AddGold(Item.Price);
-        }
-    }
+    return Inv->AddItem(Item.ItemId);
 }

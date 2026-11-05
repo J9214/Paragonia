@@ -44,6 +44,8 @@ public:
     UFUNCTION(BlueprintCallable)
     bool RemoveItem(int32 Index);
 
+    bool HasEmptySlot() const;
+
     UFUNCTION(BlueprintCallable)
     const FInventorySlot& GetSlot(int32 Index) const;
 
@@ -58,13 +60,6 @@ protected:
     /** 서버 슬롯 교환 */
     UFUNCTION(Server, Reliable)
     void ServerSwapSlot(int32 FromIndex, int32 ToIndex);
-
-    /** 서버 아이템 추가 */
-    UFUNCTION(Server, Reliable)
-    void ServerAddItem(FName ItemId);
-
-    UFUNCTION(Server, Reliable)
-    void ServerRemoveItem(int32 Index);
 
     UFUNCTION()
     void OnRep_Inventory();

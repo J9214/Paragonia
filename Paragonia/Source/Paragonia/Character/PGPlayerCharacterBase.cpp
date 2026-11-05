@@ -657,7 +657,13 @@ void APGPlayerCharacterBase::DrawDebugAttackCollision_Implementation(const FColo
 #pragma region Respawn
 void APGPlayerCharacterBase::ServerRPCSetDeadState_Implementation(bool bDead)
 {
-	SetDeadState(bDead);
+	// 클라이언트 요청은 사망만 받고, 서버의 체력으로 다시 확인한다. 부활은 GameMode만 결정한다
+	if (!bDead || !IsValid(CharacterAttributeSet) || CharacterAttributeSet->GetHealth() > 0.0f)
+	{
+		return;
+	}
+
+	SetDeadState(true);
 }
 
 void APGPlayerCharacterBase::OnRep_Dead()
