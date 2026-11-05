@@ -105,12 +105,26 @@ const FInventorySlot& UPGInventoryComponent::GetSlot(int32 Index) const
     return Slots[Index];
 }
 
+bool UPGInventoryComponent::HasEmptySlot() const
+{
+    for (const FInventorySlot& Slot : Slots)
+    {
+        if (Slot.bEmpty)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool UPGInventoryComponent::AddItem(FName ItemId)
 {
+    // 지급은 서버에서 ShopComponent를 거쳐서만 일어난다. 클라이언트 요청 경로는 두지 않는다
     if (GetOwnerRole() < ROLE_Authority)
     {
-        ServerAddItem(ItemId);
-        return true;
+        UE_LOG(LogTemp, Warning, TEXT("[Inventory] AddItem is server only"));
+        return false;
     }
 
     for (FInventorySlot& Slot : Slots)
@@ -135,8 +149,13 @@ bool UPGInventoryComponent::RemoveItem(int32 Index)
 {
     if (GetOwnerRole() < ROLE_Authority)
     {
-        ServerRemoveItem(Index);
-        return true;
+        UE_LOG(LogTemp, Warning, TEXT("[Inventory] RemoveItem is server only"));
+        return false;
+    }
+
+    if (!Slots.IsValidIndex(Index))
+    {
+        return false;
     }
 
     if (!Slots[Index].bEmpty)
@@ -195,16 +214,6 @@ void UPGInventoryComponent::ServerSwapSlot_Implementation(int32 FromIndex, int32
 
     Slots.Swap(FromIndex, ToIndex);
     OnInventoryChanged.Broadcast();
-}
-
-void UPGInventoryComponent::ServerAddItem_Implementation(FName ItemId)
-{
-    AddItem(ItemId);
-}
-
-void UPGInventoryComponent::ServerRemoveItem_Implementation(int32 Index)
-{
-    RemoveItem(Index);
 }
 
 void UPGInventoryComponent::OnRep_Inventory()

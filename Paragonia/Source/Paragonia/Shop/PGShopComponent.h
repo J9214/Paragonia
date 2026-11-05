@@ -17,7 +17,8 @@ enum class EShopBuyResult : uint8
     Success,
     NotEnoughGold,
     OutOfStock,
-    InvalidItem
+    InvalidItem,
+    InventoryFull
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
@@ -62,7 +63,7 @@ protected:
     UFUNCTION(Client, Reliable)
     void ClientBuyResult(EShopBuyResult Result, FName ItemId);
 
-    void GrantItemToOwner(const FPGShopItemRow& Item);
+    bool GrantItemToOwner(const FPGShopItemRow& Item);
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop|Data")
